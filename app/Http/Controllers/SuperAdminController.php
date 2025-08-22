@@ -302,12 +302,12 @@ class SuperAdminController extends Controller
     {
         $activities = [];
 
-        // Get recent user registrations
+        // Get recent user creations
         $recentUsers = User::latest()->take(5)->get();
         foreach ($recentUsers as $user) {
             $activities[] = [
-                'type' => 'user_registered',
-                'description' => "New user registered: {$user->name}",
+                'type' => 'user_created',
+                'description' => "New user created: {$user->name}",
                 'timestamp' => $user->created_at,
                 'user' => $user
             ];

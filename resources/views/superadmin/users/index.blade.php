@@ -232,7 +232,7 @@
                                     <i class="bi bi-person-badge text-muted fs-1"></i>
                                 </div>
                                 <h6 class="text-muted mb-2">No clients found</h6>
-                                <p class="text-muted small mb-0">Clients will appear here when they register</p>
+                                <p class="text-muted small mb-0">Clients will appear here when created by administrators</p>
                             </td>
                         </tr>
                         @endforelse
