@@ -2,10 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\Auth\AdminLoginController;
+use App\Http\Controllers\Auth\SuperAdminLoginController;
 
 Route::get('/', function () {
     return redirect()->route('login');
-});
+})->name('home');
 
 // Simple health check route (no auth required)
 Route::get('/health', function() {
@@ -43,6 +47,51 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');
     Route::get('/predictions/{prediction}/model-info', [PredictionController::class, 'showModelInfo'])->name('predictions.model-info');
     Route::get('/predictions/{prediction}/export', [PredictionController::class, 'export'])->name('predictions.export');
+});
+
+// Admin and Superadmin Login Routes (no auth required)
+Route::middleware('guest')->group(function () {
+    Route::get('/admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login');
+    Route::post('/admin/login', [AdminLoginController::class, 'login']);
+    
+    Route::get('/superadmin/login', [SuperAdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
+    Route::post('/superadmin/login', [SuperAdminLoginController::class, 'login']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::post('/admin/logout', [AdminLoginController::class, 'logout'])->name('admin.logout');
+    Route::post('/superadmin/logout', [SuperAdminLoginController::class, 'logout'])->name('superadmin.logout');
+});
+
+// Admin routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions.index');
+    Route::get('/predictions/{prediction}', [AdminController::class, 'showPrediction'])->name('predictions.show');
+    Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.update-role');
+});
+
+// Superadmin routes
+Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('/', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/settings', [SuperAdminController::class, 'settings'])->name('settings');
+    Route::get('/admins', [SuperAdminController::class, 'admins'])->name('admins.index');
+    Route::post('/admins', [SuperAdminController::class, 'storeAdmin'])->name('admins.store');
+    Route::get('/admins/{user}', [SuperAdminController::class, 'showAdmin'])->name('admins.show');
+    Route::patch('/admins/{user}', [SuperAdminController::class, 'updateAdmin'])->name('admins.update');
+    Route::delete('/admins/{user}', [SuperAdminController::class, 'deleteAdmin'])->name('admins.destroy');
+    Route::patch('/admins/{user}/role', [SuperAdminController::class, 'updateAdminRole'])->name('admins.update-role');
+    Route::get('/users', [SuperAdminController::class, 'users'])->name('users.index');
+    Route::post('/users', [SuperAdminController::class, 'storeUser'])->name('users.store');
+    Route::get('/users/{user}', [SuperAdminController::class, 'showUser'])->name('users.show');
+    Route::patch('/users/{user}', [SuperAdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('/users/{user}', [SuperAdminController::class, 'deleteUser'])->name('users.destroy');
+    Route::get('/predictions', [SuperAdminController::class, 'predictions'])->name('predictions.index');
+    Route::get('/predictions/{prediction}', [SuperAdminController::class, 'showPrediction'])->name('predictions.show');
+    Route::get('/logs', [SuperAdminController::class, 'logs'])->name('logs');
+    Route::get('/system-health', [SuperAdminController::class, 'getSystemHealth'])->name('system-health');
 });
 
 require __DIR__.'/auth.php';
