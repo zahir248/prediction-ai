@@ -3,6 +3,8 @@
 @section('content')
 <div style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 32px 16px;">
     <div style="max-width: 1200px; margin: 0 auto;">
+
+
         <!-- Header Section -->
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 24px;">
             <div>
@@ -159,6 +161,10 @@
                                                     Export PDF
                                                 </a>
                                             @endif
+                                            <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
+                                                    style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+                                                🗑️ Delete
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -252,6 +258,13 @@
                                         </a>
                                     @endif
                                 </div>
+                                <!-- Delete Button -->
+                                <div style="margin-top: 12px;">
+                                    <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
+                                            style="width: 100%; display: inline-block; padding: 12px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+                                        🗑️ Delete Analysis
+                                    </button>
+                                </div>
                             </div>
                             @endforeach
                         </div>
@@ -325,6 +338,85 @@
         </div>
     </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div style="margin-bottom: 24px;">
+            <span style="font-size: 48px; color: #ef4444;">⚠️</span>
+        </div>
+        <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Confirm Deletion</h3>
+        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you sure you want to delete this prediction analysis?</p>
+        <p id="deleteTopic" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        <p style="color: #ef4444; margin-bottom: 24px; font-size: 14px; font-weight: 500;">This action cannot be undone.</p>
+        
+        <div style="display: flex; gap: 16px; justify-content: center;">
+            <button onclick="closeDeleteModal()" 
+                    style="padding: 12px 24px; background: transparent; color: #64748b; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+                Delete Analysis
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentDeleteId = null;
+
+function confirmDelete(predictionId, topic) {
+    currentDeleteId = predictionId;
+    document.getElementById('deleteTopic').textContent = topic;
+    document.getElementById('deleteModal').style.display = 'flex';
+}
+
+function closeDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    currentDeleteId = null;
+}
+
+function deletePrediction() {
+    if (!currentDeleteId) return;
+    
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{{ url("/predictions") }}/' + currentDeleteId;
+    
+    const methodInput = document.createElement('input');
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    methodInput.value = 'DELETE';
+    
+    const tokenInput = document.createElement('input');
+    tokenInput.type = 'hidden';
+    tokenInput.name = '_token';
+    tokenInput.value = '{{ csrf_token() }}';
+    
+    form.appendChild(methodInput);
+    form.appendChild(tokenInput);
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Set up the confirm delete button
+document.getElementById('confirmDeleteBtn').onclick = deletePrediction;
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').onclick = function(e) {
+    if (e.target === this) {
+        closeDeleteModal();
+    }
+};
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal();
+    }
+});
+</script>
 
 <style>
     /* Hover effects for table rows */
@@ -571,6 +663,26 @@
             a, button {
                 min-height: 44px !important;
                 min-width: 44px !important;
+            }
+            
+            /* Modal responsive improvements */
+            #deleteModal > div {
+                margin: 16px !important;
+                padding: 24px !important;
+                max-width: calc(100% - 32px) !important;
+            }
+            
+            #deleteModal h3 {
+                font-size: 18px !important;
+            }
+            
+            #deleteModal p {
+                font-size: 14px !important;
+            }
+            
+            #deleteModal button {
+                padding: 14px 20px !important;
+                font-size: 14px !important;
             }
             
             /* Prevent zoom on iOS */

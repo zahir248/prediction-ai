@@ -42,11 +42,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/debug-ownership/{predictionId}', [PredictionController::class, 'debugPredictionOwnership'])->name('predictions.debug-ownership');
     Route::get('/predictions/api/test', [PredictionController::class, 'testApi'])->name('predictions.test-api');
     Route::get('/predictions/simple-test', [PredictionController::class, 'simpleTest'])->name('predictions.simple-test');
+    Route::get('/predictions/debug-auth', [PredictionController::class, 'debugAuth'])->name('predictions.debug-auth');
+    Route::get('/predictions/test-delete/{prediction}', [PredictionController::class, 'testDelete'])->name('predictions.test-delete');
     
     // Parameterized routes must come LAST
     Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');
     Route::get('/predictions/{prediction}/model-info', [PredictionController::class, 'showModelInfo'])->name('predictions.model-info');
     Route::get('/predictions/{prediction}/export', [PredictionController::class, 'export'])->name('predictions.export');
+    Route::delete('/predictions/{prediction}', [PredictionController::class, 'destroy'])->name('predictions.destroy');
 });
 
 // Admin and Superadmin Login Routes (no auth required)

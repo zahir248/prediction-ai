@@ -94,6 +94,8 @@ class PredictionController extends Controller
         ]);
     }
 
+
+
     public function create()
     {
         return view('predictions.create');
@@ -271,6 +273,39 @@ class PredictionController extends Controller
         ]);
     }
 
+    public function testDelete(Prediction $prediction)
+    {
+        return response()->json([
+            'prediction' => [
+                'id' => $prediction->id,
+                'user_id' => $prediction->user_id,
+                'topic' => $prediction->topic,
+                'created_at' => $prediction->created_at
+            ],
+            'current_user' => [
+                'id' => Auth::id(),
+                'name' => Auth::user()->name,
+                'email' => Auth::user()->email
+            ],
+            'ownership_check' => [
+                'prediction_user_id' => $prediction->user_id,
+                'current_user_id' => Auth::id(),
+                'is_owner' => Auth::id() === $prediction->user_id,
+                'comparison' => Auth::id() . ' === ' . $prediction->user_id . ' = ' . (Auth::id() === $prediction->user_id ? 'true' : 'false'),
+                'type_comparison' => [
+                    'prediction_user_id_type' => gettype($prediction->user_id),
+                    'current_user_id_type' => gettype(Auth::id()),
+                    'prediction_user_id_value' => $prediction->user_id,
+                    'current_user_id_value' => Auth::id()
+                ]
+            ],
+            'session_info' => [
+                'session_id' => session()->getId(),
+                'user_authenticated' => Auth::check()
+            ]
+        ]);
+    }
+
     public function showModelInfo(Prediction $prediction)
     {
         // Check if user owns this prediction or is admin
@@ -396,5 +431,80 @@ class PredictionController extends Controller
             ],
             'all_user_predictions' => Auth::user()->predictions()->pluck('id')->toArray()
         ]);
+    }
+
+    /**
+     * Delete a prediction
+     */
+    public function destroy(Prediction $prediction)
+    {
+        // Add debugging information
+        \Log::info('Prediction delete attempt', [
+            'prediction_id' => $prediction->id,
+            'prediction_user_id' => $prediction->user_id,
+            'current_user_id' => Auth::id(),
+            'user_authenticated' => Auth::check(),
+            'session_id' => session()->getId(),
+            'request_url' => request()->url(),
+            'request_method' => request()->method(),
+            'user_agent' => request()->userAgent()
+        ]);
+
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            \Log::warning('User not authenticated for prediction deletion', [
+                'prediction_id' => $prediction->id,
+                'session_id' => session()->getId()
+            ]);
+            abort(401, 'User not authenticated.');
+        }
+
+        // Check if user owns this prediction (handle both string and integer types)
+        if ((int)Auth::id() !== (int)$prediction->user_id) {
+            \Log::warning('Unauthorized prediction deletion attempt', [
+                'prediction_id' => $prediction->id,
+                'prediction_user_id' => $prediction->user_id,
+                'current_user_id' => Auth::id(),
+                'session_id' => session()->getId()
+            ]);
+            abort(403, 'Unauthorized access to prediction. User ID: ' . Auth::id() . ', Prediction User ID: ' . $prediction->user_id);
+        }
+
+        try {
+            $prediction->delete();
+            
+            \Log::info('Prediction deleted successfully', [
+                'prediction_id' => $prediction->id,
+                'user_id' => Auth::id()
+            ]);
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Prediction deleted successfully'
+                ]);
+            }
+            
+            return redirect()->route('predictions.index')
+                ->with('success', 'Prediction deleted successfully');
+                
+        } catch (\Exception $e) {
+            \Log::error('Error deleting prediction', [
+                'prediction_id' => $prediction->id,
+                'user_id' => Auth::id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting prediction'
+                ], 500);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Error deleting prediction. Please try again.');
+        }
     }
 }
