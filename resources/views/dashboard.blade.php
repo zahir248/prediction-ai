@@ -5,9 +5,6 @@
     <div style="max-width: 1200px; margin: 0 auto;">
         <!-- Header Section -->
         <div style="text-align: center; margin-bottom: 48px;">
-            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);">
-                <span style="font-size: 36px; color: white;">🤖</span>
-            </div>
             <h1 style="font-size: 48px; font-weight: 800; color: #1e293b; margin-bottom: 16px;">AI Prediction Analysis</h1>
             <p style="color: #64748b; font-size: 20px; max-width: 800px; margin: 0 auto; line-height: 1.6;">
                 Professional-grade prediction analysis powered by Google Gemini 2.0 Flash. 
