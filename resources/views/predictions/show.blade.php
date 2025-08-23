@@ -56,8 +56,91 @@
                     </div>
                 </div>
 
+                <!-- Source URLs -->
+                @if($prediction->source_urls && count($prediction->source_urls) > 0)
+                <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">Source References</h2>
+                    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 24px; border-radius: 16px; border: 1px solid #f59e0b;">
+                        <p style="color: #92400e; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📚 Additional Source Information</p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            @foreach($prediction->source_urls as $index => $sourceUrl)
+                            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(146, 64, 14, 0.1); border-radius: 8px;">
+                                <span style="color: #92400e; font-weight: 600; min-width: 60px;">Source {{ $index + 1 }}:</span>
+                                <a href="{{ $sourceUrl }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   style="flex: 1; padding: 8px 16px; background: #92400e; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    🔗 View Source
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                        <p style="color: #92400e; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
+                            These sources were referenced during the AI analysis to provide additional context and data points for the prediction.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Scraping Metadata -->
+                @if(isset($prediction->prediction_result['scraping_metadata']))
+                <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin-top: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">🔍 Source Content Analysis</h2>
+                    <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 24px; border-radius: 16px; border: 1px solid #16a34a;">
+                        <p style="color: #166534; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📊 Content Extraction Results</p>
+                        <div style="color: #166534; font-size: 14px; line-height: 1.6;">
+                            <p><strong>Total Sources:</strong> {{ $prediction->prediction_result['scraping_metadata']['total_sources'] }}</p>
+                            <p><strong>Successfully Scraped:</strong> {{ $prediction->prediction_result['scraping_metadata']['successfully_scraped'] }}</p>
+                            <p><strong>Analysis Date:</strong> {{ \Carbon\Carbon::parse($prediction->prediction_result['scraping_metadata']['scraped_at'])->format('M d, Y H:i') }}</p>
+                            
+                            @if(isset($prediction->prediction_result['scraping_metadata']['source_details']))
+                            <div style="margin-top: 16px;">
+                                <p style="font-weight: 600; margin-bottom: 12px;">Source Details:</p>
+                                @foreach($prediction->prediction_result['scraping_metadata']['source_details'] as $index => $source)
+                                <div style="background: rgba(22, 101, 52, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 8px;">
+                                    <p style="margin: 0 0 4px 0;"><strong>Source {{ $index + 1 }}:</strong> 
+                                        <a href="{{ $source['url'] }}" target="_blank" style="color: #166534; text-decoration: underline;">{{ $source['url'] }}</a>
+                                    </p>
+                                    <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Title:</strong> {{ $source['title'] }}</p>
+                                    <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Word Count:</strong> {{ $source['word_count'] }}</p>
+                                    <p style="margin: 0; font-size: 13px;"><strong>Status:</strong> 
+                                        <span style="color: {{ $source['status'] === 'success' ? '#059669' : '#dc2626' }}; font-weight: 600;">
+                                            {{ ucfirst($source['status']) }}
+                                        </span>
+                                    </p>
+                                    @if(isset($source['error']))
+                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #dc2626;"><strong>Error:</strong> {{ $source['error'] }}</p>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                        <p style="color: #166534; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
+                            This analysis incorporates actual content extracted from the provided source URLs, ensuring predictions are based on real, current data rather than general knowledge.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Source Analysis Section -->
+                @if($prediction->source_urls && count($prediction->source_urls) > 0 && isset($prediction->prediction_result['source_analysis']))
+                <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin-top: 24px;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">📊 Source Analysis & Influence</h2>
+                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 24px; border-radius: 16px; border: 1px solid #0ea5e9;">
+                        <p style="color: #0c4a6e; font-size: 16px; margin-bottom: 16px; font-weight: 600;">🔍 How Sources Influenced This Analysis</p>
+                        <div style="color: #0c4a6e; font-size: 14px; line-height: 1.6;">
+                            {!! nl2br(e($prediction->prediction_result['source_analysis'])) !!}
+                        </div>
+                        <p style="color: #0c4a6e; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
+                            This analysis shows how each provided source contributed to specific predictions and conclusions, ensuring transparency and traceability of insights.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
                 <!-- AI Results -->
-                @if($prediction->status === 'completed' && $prediction->prediction_result)
+                @if(($prediction->status === 'completed' || $prediction->status === 'completed_with_warnings') && $prediction->prediction_result)
                 <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
                     <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 24px;">AI Future Prediction Analysis Results</h2>
                     
@@ -67,7 +150,23 @@
                         </div>
                     @endif
                     
-                    @if(isset($prediction->prediction_result['title']))
+                    @if(isset($prediction->prediction_result['raw_response']))
+                        <!-- Raw Response Display -->
+                        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b; color: #92400e; padding: 20px; border-radius: 16px; margin-bottom: 24px;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                                <span style="font-size: 20px;">⚠️</span>
+                                <strong style="font-size: 16px;">Partial Analysis Results</strong>
+                            </div>
+                            <p style="margin-bottom: 16px;">The AI analysis was completed but the response may be incomplete. Below is the raw output from the AI:</p>
+                        </div>
+                        
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0;">
+                            <h4 style="font-weight: 700; color: #374151; margin-bottom: 16px; font-size: 18px;">📄 AI Analysis Output</h4>
+                            <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #d1d5db; max-height: 600px; overflow-y: auto;">
+                                <pre style="white-space: pre-wrap; color: #374151; line-height: 1.6; margin: 0; font-family: 'Courier New', monospace; font-size: 14px;">{{ $prediction->prediction_result['raw_response'] }}</pre>
+                            </div>
+                        </div>
+                    @elseif(isset($prediction->prediction_result['title']))
                         @php $report = $prediction->prediction_result; @endphp
                         
                         <div style="display: flex; flex-direction: column; gap: 24px;">

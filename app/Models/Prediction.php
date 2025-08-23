@@ -12,6 +12,7 @@ class Prediction extends Model
     protected $fillable = [
         'topic',
         'input_data',
+        'source_urls',
         'prediction_result',
         'confidence_score',
         'model_used',
@@ -22,6 +23,7 @@ class Prediction extends Model
 
     protected $casts = [
         'input_data' => 'array',
+        'source_urls' => 'array',
         'prediction_result' => 'array',
         'confidence_score' => 'float',
         'processing_time' => 'float',

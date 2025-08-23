@@ -4,79 +4,217 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Exception;
+use Illuminate\Support\Facades\Cache;
 
 class GeminiService
 {
     protected $apiKey;
-    protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
-    protected $model = 'gemini-2.0-flash';
+    protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+    protected $webScrapingService;
+    protected $sslVerify;
 
-    public function __construct()
+    public function __construct(WebScrapingService $webScrapingService)
     {
         $this->apiKey = config('services.gemini.api_key');
-        $this->sslVerify = config('services.gemini.ssl_verify', true);
+        $this->webScrapingService = $webScrapingService;
         
-        if (empty($this->apiKey)) {
-            Log::warning('Gemini API key not configured');
-        }
+        // Check if we should verify SSL (default to true for production)
+        $this->sslVerify = config('services.gemini.ssl_verify', !app()->environment('local', 'development'));
     }
 
-    public function analyzeText($text, $analysisType = 'prediction-analysis')
+    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null)
     {
         try {
-            $startTime = microtime(true);
-            
-            // Create a comprehensive prompt for prediction analysis
-            $prompt = $this->createAnalysisPrompt($text, $analysisType);
-            
-            // Make API call to Gemini
-            $result = $this->makeGeminiRequest($prompt);
-            
-            $processingTime = microtime(true) - $startTime;
-            
-            if ($result['success']) {
-                // Process and structure the Gemini response
-                $structuredResult = $this->processGeminiResponse($text, $result['result'], $analysisType);
-                
-                return [
-                    'success' => true,
-                    'result' => $structuredResult,
-                    'model_used' => $this->model,
-                    'processing_time' => $processingTime
-                ];
+            // Validate API key
+            if (empty($this->apiKey)) {
+                Log::error('Gemini API key not configured');
+                return $this->getFallbackResponse($analysisType);
             }
             
-            // If Gemini API fails, return error
-            Log::error('Gemini API request failed', ['analysis_type' => $analysisType]);
+            // Validate API key format (should start with AIza)
+            if (!str_starts_with($this->apiKey, 'AIza')) {
+                Log::error('Invalid Gemini API key format. Key should start with "AIza"');
+                return $this->getFallbackResponse($analysisType);
+            }
+
+            // Scrape content from source URLs if provided
+            $scrapedContent = null;
+            if ($sourceUrls && count($sourceUrls) > 0) {
+                Log::info("Starting to scrape " . count($sourceUrls) . " source URLs");
+                $scrapedContent = $this->webScrapingService->scrapeMultipleUrls($sourceUrls);
+                Log::info("Completed scraping URLs. Results: " . json_encode(array_column($scrapedContent, 'status')));
+            }
+
+            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent);
             
-            return [
-                'success' => false,
-                'error' => 'Gemini API request failed',
-                'model_used' => $this->model . '-failed',
-                'processing_time' => $processingTime
-            ];
+            // Set execution time limit to 5 minutes for long AI requests
+            set_time_limit(300);
             
-        } catch (Exception $e) {
-            Log::error('Gemini analysis failed', [
-                'error' => $e->getMessage(),
-                'analysis_type' => $analysisType,
-                'text_length' => strlen($text)
+            Log::info("Execution time limit set to: " . ini_get('max_execution_time') . " seconds");
+            Log::info("Memory limit: " . ini_get('memory_limit'));
+            Log::info("Starting Gemini API request at: " . now());
+            
+            Log::info("Sending request to Gemini API with prompt length: " . strlen($prompt));
+            Log::info("API Key configured: " . (!empty($this->apiKey) ? 'Yes (length: ' . strlen($this->apiKey) . ')' : 'No'));
+            Log::info("Request URL: " . $this->baseUrl);
+            Log::info("Authentication: Using x-goog-api-key header");
+            Log::info("Full request details:", [
+                'base_url' => $this->baseUrl,
+                'api_key_length' => strlen($this->apiKey),
+                'api_key_prefix' => substr($this->apiKey, 0, 10),
+                'ssl_verify' => $this->sslVerify,
+                'auth_method' => 'x-goog-api-key header'
             ]);
             
-            return [
-                'success' => false,
-                'error' => 'Gemini analysis failed: ' . $e->getMessage(),
-                'model_used' => $this->model . '-error',
-                'processing_time' => 0,
-            ];
+            $response = Http::timeout(300)->withOptions([
+                'verify' => $this->sslVerify, // Use the configured SSL verification option
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                    CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
+                ]
+            ])->withHeaders([
+                'x-goog-api-key' => $this->apiKey,
+                'Content-Type' => 'application/json'
+            ])->post($this->baseUrl, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => $prompt
+                            ]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'topK' => 40,
+                    'topP' => 0.95,
+                    'maxOutputTokens' => 8192,
+                ],
+                'safetySettings' => [
+                    [
+                        'category' => 'HARM_CATEGORY_HARASSMENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ]
+                ]
+            ]);
+            
+            Log::info("Gemini API response received at: " . now());
+            Log::info("Response status: " . $response->status());
+            Log::info("Response body length: " . strlen($response->body()));
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    $result = $data['candidates'][0]['content']['parts'][0]['text'];
+                    
+                    // Try to parse JSON response
+                    $parsedResult = $this->parseJsonResponse($result);
+                    
+                    if ($parsedResult) {
+                        // Add scraping metadata to the result
+                        if ($scrapedContent) {
+                            $parsedResult['scraping_metadata'] = [
+                                'total_sources' => count($sourceUrls),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'scraped_at' => now()->toISOString(),
+                                'source_details' => array_map(function($source) {
+                                    return [
+                                        'url' => $source['url'],
+                                        'title' => $source['title'] ?? 'N/A',
+                                        'word_count' => $source['word_count'] ?? 0,
+                                        'status' => $source['status'],
+                                        'error' => $source['error'] ?? null
+                                    ];
+                                }, $scrapedContent)
+                            ];
+                        }
+                        
+                        return $parsedResult;
+                    }
+                    
+                    return $result;
+                }
+                
+                Log::error('Unexpected Gemini API response structure: ' . json_encode($data));
+                return $this->getFallbackResponse($analysisType);
+            }
+            
+            // If SSL verification failed, try without SSL verification
+            if ($response->status() === 0 && strpos($response->body(), 'SSL certificate problem') !== false) {
+                Log::warning('SSL verification failed, retrying without SSL verification');
+                return $this->retryWithoutSSLVerification($prompt, $scrapedContent, $sourceUrls, $analysisType);
+            }
+            
+            Log::error('Gemini API request failed: ' . $response->status() . ' - ' . $response->body());
+            return $this->getFallbackResponse($analysisType);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in GeminiService: ' . $e->getMessage());
+            return $this->getFallbackResponse($analysisType);
         }
     }
 
-    protected function createAnalysisPrompt($text, $analysisType)
+    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null)
     {
         $prompt = "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.\n\n";
         $prompt .= "Text to analyze: {$text}\n\n";
+        
+        if ($sourceUrls && count($sourceUrls) > 0) {
+            $prompt .= "IMPORTANT: You have been provided with the following additional sources that contain relevant context, data, or background information:\n";
+            
+            foreach ($sourceUrls as $index => $url) {
+                $prompt .= "- Source " . ($index + 1) . ": {$url}\n";
+            }
+            
+            // Add actual scraped content if available
+            if ($scrapedContent && count($scrapedContent) > 0) {
+                $prompt .= "\nACTUAL CONTENT FROM SOURCES:\n";
+                $prompt .= "The following is the real content extracted from the provided URLs. Use this actual data in your analysis:\n\n";
+                
+                foreach ($scrapedContent as $index => $source) {
+                    if ($source['status'] === 'success' && !empty($source['content'])) {
+                        $prompt .= "=== SOURCE " . ($index + 1) . " ===\n";
+                        $prompt .= "URL: {$source['url']}\n";
+                        if (!empty($source['title'])) {
+                            $prompt .= "Title: {$source['title']}\n";
+                        }
+                        $prompt .= "Content: {$source['content']}\n";
+                        $prompt .= "Word Count: {$source['word_count']}\n";
+                        $prompt .= "==================\n\n";
+                    } else {
+                        $prompt .= "=== SOURCE " . ($index + 1) . " ===\n";
+                        $prompt .= "URL: {$source['url']}\n";
+                        $prompt .= "Status: Failed to scrape - {$source['error']}\n";
+                        $prompt .= "Note: Use your existing knowledge about this topic/source\n";
+                        $prompt .= "==================\n\n";
+                    }
+                }
+            }
+            
+            $prompt .= "\nCRITICAL REQUIREMENTS FOR SOURCE INTEGRATION:\n";
+            $prompt .= "1. Throughout your analysis, explicitly reference these sources when they support or influence your predictions\n";
+            $prompt .= "2. Use phrases like 'According to Source 1...', 'Source 2 indicates...', 'Based on the analysis from Source 3...'\n";
+            $prompt .= "3. Show the direct connection between source information and your predictions\n";
+            $prompt .= "4. If sources provide conflicting information, acknowledge this and explain how you weighed the evidence\n";
+            $prompt .= "5. Include a dedicated 'Source Analysis' section explaining how each source contributed to your conclusions\n";
+            $prompt .= "6. Make it clear to readers which parts of your analysis are based on the provided sources vs. general knowledge\n";
+            $prompt .= "7. When possible, cite specific facts, numbers, or quotes from the scraped content\n\n";
+        }
+        
         $prompt .= "Please provide your analysis in the following comprehensive JSON structure:\n";
         $prompt .= "{\n";
         $prompt .= "  \"title\": \"[Comprehensive Title: Topic + Time Period + Key Focus Areas]\",\n";
@@ -111,81 +249,43 @@ class GeminiService
         $prompt .= "      \"impact\": \"[Severe/Significant/Moderate/Minimal]\",\n";
         $prompt .= "      \"timeline\": \"[When this risk is most likely to materialize]\",\n";
         $prompt .= "      \"mitigation\": \"[Specific mitigation strategy with actionable steps]\"\n";
-        $prompt .= "    },\n";
-        $prompt .= "    {\n";
-        $prompt .= "      \"risk\": \"[Specific risk description with context]\",\n";
-        $prompt .= "      \"level\": \"[Critical/High/Medium/Low]\",\n";
-        $prompt .= "      \"probability\": \"[Very Likely/Likely/Possible/Unlikely]\",\n";
-        $prompt .= "      \"impact\": \"[Severe/Significant/Moderate/Minimal]\",\n";
-        $prompt .= "      \"timeline\": \"[When this risk is most likely to materialize]\",\n";
-        $prompt .= "      \"mitigation\": \"[Specific mitigation strategy with actionable steps]\"\n";
-        $prompt .= "    },\n";
-        $prompt .= "    {\n";
-        $prompt .= "      \"risk\": \"[Specific risk description with context]\",\n";
-        $prompt .= "      \"level\": \"[Critical/High/Medium/Low]\",\n";
-        $prompt .= "      \"probability\": \"[Very Likely/Likely/Possible/Unlikely]\",\n";
-        $prompt .= "      \"impact\": \"[Severe/Significant/Moderate/Minimal]\",\n";
-        $prompt .= "      \"timeline\": \"[When this risk is most likely to materialize]\",\n";
-        $prompt .= "      \"mitigation\": \"[Specific mitigation strategy with actionable steps]\"\n";
-        $prompt .= "    },\n";
-        $prompt .= "    {\n";
-        $prompt .= "      \"risk\": \"[Specific risk description with context]\",\n";
-        $prompt .= "      \"level\": \"[Critical/High/Medium/Low]\",\n";
-        $prompt .= "      \"probability\": \"[Very Likely/Likely/Possible/Unlikely]\",\n";
-        $prompt .= "      \"impact\": \"[Severe/Significant/Moderate/Minimal]\",\n";
-        $prompt .= "      \"timeline\": \"[When this risk is most likely to materialize]\",\n";
-        $prompt .= "      \"mitigation\": \"[Specific mitigation strategy with actionable steps]\"\n";
-        $prompt .= "    },\n";
-        $prompt .= "    {\n";
-        $prompt .= "      \"risk\": \"[Specific risk description with context]\",\n";
-        $prompt .= "      \"level\": \"[Critical/High/Medium/Low]\",\n";
-        $prompt .= "      \"probability\": \"[Very Likely/Likely/Possible/Unlikely]\",\n";
-        $prompt .= "      \"impact\": \"[Severe/Significant/Moderate/Minimal]\",\n";
-        $prompt .= "      \"timeline\": \"[When this risk is most likely to materialize]\",\n";
-        $prompt .= "      \"mitigation\": \"[Specific mitigation strategy with actionable steps]\"\n";
         $prompt .= "    }\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"recommendations\": [\n";
-        $prompt .= "    \"[Recommendation 1: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 2: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 3: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 4: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 5: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 6: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 7: Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Recommendation 8: Specific, actionable recommendation with expected outcome]\"\n";
+        $prompt .= "    \"[Specific, actionable recommendation with expected outcome]\",\n";
+        $prompt .= "    \"[Specific, actionable recommendation with expected outcome]\",\n";
+        $prompt .= "    \"[Specific, actionable recommendation with expected outcome]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"strategic_implications\": [\n";
-        $prompt .= "    \"[Implication 1: Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Implication 2: Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Implication 3: Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Implication 4: Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Implication 5: Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Implication 6: Strategic business/organizational implication]\"\n";
+        $prompt .= "    \"[Strategic business/organizational implication]\",\n";
+        $prompt .= "    \"[Strategic business/organizational implication]\",\n";
+        $prompt .= "    \"[Strategic business/organizational implication]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"confidence_level\": \"[High (90-95%)/Medium (75-89%)/Low (60-74%)]\",\n";
-        $prompt .= "  \"methodology\": \"[Detailed methodology including AI analysis approach, data sources, and validation methods]\",\n";
+        $prompt .= "  \"methodology\": \"[AI analysis approach, data sources, and validation methods]\",\n";
         $prompt .= "  \"data_sources\": [\n";
-        $prompt .= "    \"[Data source 1: Specific source with relevance]\",\n";
-        $prompt .= "    \"[Data source 2: Specific source with relevance]\",\n";
-        $prompt .= "    \"[Data source 3: Specific source with relevance]\"\n";
+        $prompt .= "    \"[Data source with relevance]\",\n";
+        $prompt .= "    \"[Data source with relevance]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"assumptions\": [\n";
-        $prompt .= "    \"[Assumption 1: Key assumption underlying predictions]\",\n";
-        $prompt .= "    \"[Assumption 2: Key assumption underlying predictions]\",\n";
-        $prompt .= "    \"[Assumption 3: Key assumption underlying predictions]\",\n";
-        $prompt .= "    \"[Assumption 4: Key assumption underlying predictions]\"\n";
+        $prompt .= "    \"[Key assumption underlying predictions]\",\n";
+        $prompt .= "    \"[Key assumption underlying predictions]\"\n";
         $prompt .= "  ],\n";
-        $prompt .= "  \"note\": \"[Important note about analysis limitations, confidence intervals, or key considerations]\",\n";
+        $prompt .= "  \"note\": \"[Important note about analysis limitations or key considerations]\",\n";
         $prompt .= "  \"analysis_date\": \"[Current date in YYYY-MM-DD format]\",\n";
         $prompt .= "  \"next_review\": \"[Recommended next review date]\",\n";
         $prompt .= "  \"critical_timeline\": \"[Critical dates or milestones to watch]\",\n";
         $prompt .= "  \"success_metrics\": [\n";
-        $prompt .= "    \"[Metric 1: How to measure success of predictions]\",\n";
-        $prompt .= "    \"[Metric 2: How to measure success of predictions]\",\n";
-        $prompt .= "    \"[Metric 3: How to measure success of predictions]\"\n";
-        $prompt .= "  ]\n";
-        $prompt .= "}\n\n";
+        $prompt .= "    \"[How to measure success of predictions]\",\n";
+        $prompt .= "    \"[How to measure success of predictions]\"\n";
+        $prompt .= "  ]";
+        
+        if ($sourceUrls && count($sourceUrls) > 0) {
+            $prompt .= ",\n";
+            $prompt .= "  \"source_analysis\": \"[Detailed explanation of how each provided source influenced your analysis and predictions. Use specific examples and show direct connections between source information and conclusions.]\"";
+        }
+        
+        $prompt .= "\n}\n\n";
         $prompt .= "IMPORTANT INSTRUCTIONS:\n";
         $prompt .= "1. Be SPECIFIC and ACTIONABLE - avoid vague statements\n";
         $prompt .= "2. Include TIMELINES and PROBABILITIES for all predictions\n";
@@ -196,169 +296,143 @@ class GeminiService
         $prompt .= "7. Include QUANTIFIABLE metrics where possible\n";
         $prompt .= "8. Consider both OPPORTUNITIES and THREATS\n";
         $prompt .= "9. Base analysis on LOGICAL REASONING and TREND ANALYSIS\n";
-        $prompt .= "10. Ensure all sections are COMPREHENSIVE and PROFESSIONAL\n\n";
-        $prompt .= "Focus on generating high-quality, professional-grade prediction analysis that would be suitable for executive decision-making and strategic planning.";
+        $prompt .= "10. Ensure all sections are COMPREHENSIVE and PROFESSIONAL\n";
+        
+        if ($sourceUrls && count($sourceUrls) > 0) {
+            $prompt .= "11. CONSISTENTLY CITE SOURCES throughout the analysis using phrases like 'According to Source 1...', 'Source 2 indicates...'\n";
+            $prompt .= "12. Show DIRECT CONNECTIONS between source information and specific predictions\n";
+            $prompt .= "13. Include the source_analysis field explaining how each source contributed to conclusions\n";
+            if ($scrapedContent) {
+                $prompt .= "14. Use ACTUAL DATA and QUOTES from the scraped content when available\n";
+                $prompt .= "15. Reference specific facts, numbers, and insights from the source content\n";
+            }
+        }
+        
+        $prompt .= "\nFocus on generating high-quality, professional-grade prediction analysis that would be suitable for executive decision-making and strategic planning.";
         
         return $prompt;
     }
 
-    protected function makeGeminiRequest($prompt)
+    protected function parseJsonResponse($text)
     {
-        if (empty($this->apiKey)) {
-            throw new Exception('Gemini API key not configured');
-        }
-
         try {
-            // Check rate limiting
-            $this->checkRateLimit();
-            
-            $url = $this->baseUrl . $this->model . ':generateContent?key=' . $this->apiKey;
-            
-            $data = [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'text' => $prompt
-                            ]
-                        ]
-                    ]
-                ]
-            ];
-
-            // Try different SSL configurations for different environments
-            $sslConfigs = [
-                [
-                    'verify' => $this->sslVerify, // Use configured SSL setting
-                    'timeout' => 30,
-                    'connect_timeout' => 10
-                ],
-                [
-                    'verify' => false, // Disable SSL verification (for development)
-                    'timeout' => 30,
-                    'connect_timeout' => 10
-                ],
-                [
-                    'verify' => base_path('cacert.pem'), // Use CA certificate if available
-                    'timeout' => 30,
-                    'connect_timeout' => 10
-                ]
-            ];
-
-            $lastError = null;
-            
-            foreach ($sslConfigs as $sslIndex => $sslConfig) {
-                try {
-                    Log::info("Trying SSL config {$sslIndex} for Gemini API", [
-                        'ssl_config' => $sslConfig,
-                        'url' => $url
-                    ]);
-                    
-                    $response = Http::withOptions($sslConfig)->withHeaders([
-                        'Content-Type' => 'application/json',
-                    ])->post($url, $data);
-
-                    if ($response->successful()) {
-                        $result = $response->json();
-                        
-                        if (isset($result['candidates'][0]['content']['parts'][0]['text'])) {
-                            $generatedText = $result['candidates'][0]['content']['parts'][0]['text'];
-                            
-                            // Try to extract JSON from the response
-                            $jsonData = $this->extractJsonFromResponse($generatedText);
-                            
-                            if ($jsonData) {
-                                return [
-                                    'success' => true,
-                                    'result' => $jsonData
-                                ];
-                            } else {
-                                // If JSON extraction fails, return the raw text
-                                return [
-                                    'success' => true,
-                                    'result' => ['raw_response' => $generatedText]
-                                ];
-                            }
-                        } else {
-                            throw new Exception('Invalid response format from Gemini API');
-                        }
-                                         } else {
-                         $responseBody = $response->body();
-                         $responseData = json_decode($responseBody, true);
-                         
-                         // Handle rate limiting specifically
-                         if ($response->status() === 429) {
-                             $retryDelay = 15; // Default retry delay
-                             if (isset($responseData['error']['details'])) {
-                                 foreach ($responseData['error']['details'] as $detail) {
-                                     if (isset($detail['@type']) && $detail['@type'] === 'type.googleapis.com/google.rpc.RetryInfo') {
-                                         if (isset($detail['retryDelay'])) {
-                                             $retryDelay = $detail['retryDelay'];
-                                         }
-                                     }
-                                 }
-                             }
-                             
-                             $lastError = "Rate limit exceeded. Please wait {$retryDelay} seconds before trying again.";
-                             Log::warning("Rate limit hit for Gemini API", [
-                                 'status' => $response->status(),
-                                 'retry_delay' => $retryDelay,
-                                 'response' => $responseData
-                             ]);
-                             
-                             // Don't continue with other SSL configs for rate limits
-                             throw new Exception($lastError);
-                         }
-                         
-                         $lastError = "Gemini API request failed: " . $response->status() . " - " . $responseBody;
-                         Log::warning("SSL config {$sslIndex} failed for Gemini API", [
-                             'status' => $response->status(),
-                             'response' => $responseBody,
-                             'ssl_config' => $sslConfig
-                         ]);
-                         continue;
-                     }
-                } catch (Exception $e) {
-                    $lastError = "Exception on SSL config {$sslIndex}: " . $e->getMessage();
-                    Log::warning("SSL config {$sslIndex} exception for Gemini API", [
-                        'message' => $e->getMessage(),
-                        'ssl_config' => $sslConfig
-                    ]);
-                    continue;
+            // First, try to extract JSON from markdown blocks
+            if (preg_match('/```json\s*(.*?)\s*```/s', $text, $matches)) {
+                $jsonString = trim($matches[1]);
+            } else {
+                // Try to find JSON-like content
+                if (preg_match('/\{.*\}/s', $text, $matches)) {
+                    $jsonString = $matches[0];
+                } else {
+                    Log::warning("No JSON structure found in response");
+                    return ['raw_response' => $text];
                 }
             }
             
-            // If all SSL configs failed, throw the last error
-            throw new Exception('All SSL configurations failed for Gemini API: ' . $lastError);
-            
-        } catch (Exception $e) {
-            Log::error('Gemini API request failed', [
-                'error' => $e->getMessage(),
-                'prompt_length' => strlen($prompt)
-            ]);
-            
-            throw $e;
-        }
-    }
-
-    protected function extractJsonFromResponse($text)
-    {
-        // Try to find JSON in the response
-        if (preg_match('/\{.*\}/s', $text, $matches)) {
-            $jsonString = $matches[0];
-            
-            // Clean up the JSON string
-            $jsonString = preg_replace('/```json\s*/', '', $jsonString);
-            $jsonString = preg_replace('/```\s*$/', '', $jsonString);
+            // Check if JSON appears truncated and try to fix it
+            if (!$this->isValidJson($jsonString)) {
+                Log::warning("JSON appears invalid/truncated, attempting to fix...");
+                Log::info("Original JSON length: " . strlen($jsonString));
+                Log::info("JSON preview: " . substr($jsonString, -200)); // Show end of JSON
+                
+                $jsonString = $this->fixTruncatedJson($jsonString);
+                Log::info("Fixed JSON length: " . strlen($jsonString));
+            }
             
             $decoded = json_decode($jsonString, true);
             
             if (json_last_error() === JSON_ERROR_NONE) {
                 return $decoded;
+            } else {
+                Log::error("JSON decode error: " . json_last_error_msg());
+                Log::error("JSON string: " . substr($jsonString, 0, 500) . "...");
+            }
+        } catch (\Exception $e) {
+            Log::error("Exception in parseJsonResponse: " . $e->getMessage());
+        }
+        
+        // If no valid JSON found, return the text as is
+        return ['raw_response' => $text];
+    }
+
+    private function isValidJson($jsonString)
+    {
+        json_decode($jsonString);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    private function fixTruncatedJson($jsonString)
+    {
+        // Remove any trailing incomplete content
+        $jsonString = rtrim($jsonString);
+        
+        // If string ends with incomplete quote, remove trailing content back to last complete quote
+        if (preg_match('/.*"[^"]*$/s', $jsonString)) {
+            // Find the last complete quoted string
+            $lastQuotePos = strrpos($jsonString, '"', -2);
+            if ($lastQuotePos !== false) {
+                $jsonString = substr($jsonString, 0, $lastQuotePos + 1);
             }
         }
         
-        return null;
+        // Remove any trailing comma
+        $jsonString = rtrim($jsonString, ',');
+        
+        // Count braces and brackets to close properly
+        $openBraces = substr_count($jsonString, '{');
+        $closeBraces = substr_count($jsonString, '}');
+        $openBrackets = substr_count($jsonString, '[');
+        $closeBrackets = substr_count($jsonString, ']');
+        
+        // Close any open arrays first
+        while ($openBrackets > $closeBrackets) {
+            $jsonString .= ']';
+            $closeBrackets++;
+        }
+        
+        // Close any open objects
+        while ($openBraces > $closeBraces) {
+            $jsonString .= '}';
+            $closeBraces++;
+        }
+        
+        Log::info("JSON fix: Added " . ($closeBraces - substr_count($jsonString, '}') + ($openBraces - $closeBraces)) . " closing braces");
+        
+        return $jsonString;
+    }
+
+    protected function getFallbackResponse($analysisType)
+    {
+        return [
+            'title' => 'Analysis Failed - Fallback Response',
+            'executive_summary' => 'Due to technical difficulties, a comprehensive analysis could not be generated. Please try again or contact support.',
+            'prediction_horizon' => 'Unable to determine',
+            'current_situation' => 'Analysis failed to complete',
+            'key_factors' => ['Technical error prevented analysis'],
+            'predictions' => ['Unable to generate predictions at this time'],
+            'risk_assessment' => [
+                [
+                    'risk' => 'Analysis system failure',
+                    'level' => 'Critical',
+                    'probability' => 'Very Likely',
+                    'impact' => 'Severe',
+                    'timeline' => 'Immediate',
+                    'mitigation' => 'Retry analysis or contact technical support'
+                ]
+            ],
+            'recommendations' => ['Retry the analysis', 'Check system status', 'Contact support if problem persists'],
+            'strategic_implications' => ['Analysis system requires attention'],
+            'confidence_level' => 'Unable to determine',
+            'methodology' => 'Fallback response due to system error',
+            'data_sources' => ['System error prevented data analysis'],
+            'assumptions' => ['System is experiencing technical difficulties'],
+            'note' => 'This is a fallback response due to technical difficulties. Please retry your analysis.',
+            'analysis_date' => now()->format('Y-m-d'),
+            'next_review' => 'Immediate retry recommended',
+            'critical_timeline' => 'Immediate attention required',
+            'success_metrics' => ['System restoration', 'Successful analysis completion'],
+            'status' => 'error'
+        ];
     }
 
     protected function processGeminiResponse($text, $result, $analysisType)
@@ -419,7 +493,7 @@ class GeminiService
             ],
             'recommendations' => $result['recommendations'] ?? ["Implement continuous monitoring systems", "Establish regular review cycles", "Develop contingency plans", "Build stakeholder communication channels", "Create success measurement frameworks", "Establish risk mitigation protocols", "Develop adaptive strategy frameworks", "Implement feedback loops"],
             'strategic_implications' => $result['strategic_implications'] ?? ["Strategic planning implications", "Resource allocation considerations", "Risk management requirements", "Stakeholder engagement needs", "Performance measurement frameworks", "Adaptive strategy requirements"],
-            'confidence_level' => $result['confidence_level'] ?? 'High (85-90%)',
+            'confidence_level' => $result['confidence_level'] ?? 'High (90-95%)/Medium (75-89%)/Low (60-74%)',
             'methodology' => $result['methodology'] ?? 'AI-powered analysis using Google Gemini 2.0 Flash for comprehensive future forecasting. Includes pattern recognition, trend analysis, and strategic scenario modeling.',
             'data_sources' => $result['data_sources'] ?? ["AI pattern recognition", "Trend analysis algorithms", "Historical data modeling", "External factor assessment"],
             'assumptions' => $result['assumptions'] ?? ["Current trends continue", "No major external disruptions", "Data quality remains consistent", "Model accuracy maintains current levels"],
@@ -660,23 +734,23 @@ class GeminiService
 
             // Test with a simple prompt
             $testPrompt = "Hello, this is a test message. Please respond with 'Test successful'.";
-            $result = $this->makeGeminiRequest($testPrompt);
+            $result = $this->analyzeText($testPrompt, 'test');
             
-            if ($result['success']) {
-                return [
-                    'success' => true,
-                    'message' => 'Gemini API connection successful',
-                    'status_code' => 200
-                ];
-            } else {
+            if (isset($result['status']) && $result['status'] === 'error') {
                 return [
                     'success' => false,
-                    'message' => 'Gemini API test failed',
+                    'message' => 'Gemini API test failed: ' . ($result['note'] ?? 'Unknown error'),
                     'status_code' => 0
                 ];
             }
             
-        } catch (Exception $e) {
+            return [
+                'success' => true,
+                'message' => 'Gemini API connection successful',
+                'status_code' => 200
+            ];
+            
+        } catch (\Exception $e) {
             return [
                 'success' => false,
                 'message' => 'Gemini API connection error: ' . $e->getMessage(),
@@ -748,5 +822,102 @@ class GeminiService
         $cacheKey = 'gemini_rate_limit_' . $this->model;
         cache()->forget($cacheKey);
         return true;
+    }
+
+    protected function retryWithoutSSLVerification($prompt, $scrapedContent, $sourceUrls, $analysisType)
+    {
+        try {
+            Log::info("Retrying Gemini API request without SSL verification");
+            
+            $response = Http::timeout(300)->withOptions([
+                'verify' => false,
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                ]
+            ])->withHeaders([
+                'x-goog-api-key' => $this->apiKey,
+                'Content-Type' => 'application/json'
+            ])->post($this->baseUrl, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => $prompt
+                            ]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'topK' => 40,
+                    'topP' => 0.95,
+                    'maxOutputTokens' => 8192,
+                ],
+                'safetySettings' => [
+                    [
+                        'category' => 'HARM_CATEGORY_HARASSMENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ]
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    $result = $data['candidates'][0]['content']['parts'][0]['text'];
+                    
+                    // Try to parse JSON response
+                    $parsedResult = $this->parseJsonResponse($result);
+                    
+                    if ($parsedResult) {
+                        // Add scraping metadata to the result
+                        if ($scrapedContent) {
+                            $parsedResult['scraping_metadata'] = [
+                                'total_sources' => count($sourceUrls),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'scraped_at' => now()->toISOString(),
+                                'source_details' => array_map(function($source) {
+                                    return [
+                                        'url' => $source['url'],
+                                        'title' => $source['title'] ?? 'N/A',
+                                        'word_count' => $source['word_count'] ?? 0,
+                                        'status' => $source['status'],
+                                        'error' => $source['error'] ?? null
+                                    ];
+                                }, $scrapedContent)
+                            ];
+                        }
+                        
+                        return $parsedResult;
+                    }
+                    
+                    return $result;
+                }
+                
+                Log::error('Unexpected Gemini API response structure on retry: ' . json_encode($data));
+                return $this->getFallbackResponse($analysisType);
+            }
+            
+            Log::error('Gemini API retry request failed: ' . $response->status() . ' - ' . $response->body());
+            return $this->getFallbackResponse($analysisType);
+            
+        } catch (\Exception $e) {
+            Log::error('Error in SSL retry: ' . $e->getMessage());
+            return $this->getFallbackResponse($analysisType);
+        }
     }
 }

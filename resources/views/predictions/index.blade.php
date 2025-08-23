@@ -116,6 +116,9 @@
                                         Topic & Details
                                     </th>
                                     <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                        Source
+                                    </th>
+                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
                                         Status
                                     </th>
                                     <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
@@ -149,6 +152,23 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td style="padding: 20px 24px; text-align: center;">
+                                        @if($prediction->source_urls && count($prediction->source_urls) > 0)
+                                            <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                                @foreach($prediction->source_urls as $index => $sourceUrl)
+                                                <a href="{{ $sourceUrl }}" 
+                                                   target="_blank" 
+                                                   rel="noopener noreferrer"
+                                                   style="display: inline-block; padding: 4px 8px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 12px; font-size: 10px; font-weight: 500; transition: all 0.3s ease; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                                   title="{{ $sourceUrl }}">
+                                                    🔗 S{{ $index + 1 }}
+                                                </a>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <span style="color: #64748b; font-size: 12px;">-</span>
+                                        @endif
                                     </td>
                                     <td style="padding: 20px 24px; text-align: center;">
                                         @if($prediction->status === 'completed')
@@ -203,7 +223,7 @@
                                             @endif
                                             <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
                                                     style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
-                                                🗑️ Delete
+                                                Delete
                                             </button>
                                         </div>
                                     </td>
@@ -270,6 +290,23 @@
                                     </div>
                                 </div>
 
+                                <!-- Source URL -->
+                                @if($prediction->source_urls && count($prediction->source_urls) > 0)
+                                <div style="margin-bottom: 20px; text-align: center;">
+                                    <div style="font-size: 12px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Source</div>
+                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                        @foreach($prediction->source_urls as $index => $sourceUrl)
+                                        <a href="{{ $sourceUrl }}" 
+                                           target="_blank" 
+                                           rel="noopener noreferrer"
+                                           style="display: inline-block; padding: 8px 16px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 16px; font-size: 12px; font-weight: 500; transition: all 0.3s ease;">
+                                            🔗 S{{ $index + 1 }}
+                                        </a>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+
                                 <!-- Confidence Score -->
                                 @if(isset($prediction->confidence_score) && $prediction->confidence_score !== null && is_numeric($prediction->confidence_score))
                                 <div style="margin-bottom: 20px;">
@@ -302,7 +339,7 @@
                                 <div style="margin-top: 12px;">
                                     <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
                                             style="width: 100%; display: inline-block; padding: 12px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
-                                        🗑️ Delete Analysis
+                                        Delete Analysis
                                     </button>
                                 </div>
                             </div>

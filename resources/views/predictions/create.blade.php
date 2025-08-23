@@ -60,6 +60,38 @@
                     @enderror
                 </div>
 
+                <!-- Source URLs Field -->
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Source URLs (Optional)
+                    </label>
+                    <div id="source-urls-container">
+                        <div class="source-url-row" style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
+                            <input type="url" 
+                                   name="source_urls[]" 
+                                   style="flex: 1; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
+                                   placeholder="https://example.com/article or https://news.example.com/report"
+                                   pattern="https?://.+">
+                            <button type="button" 
+                                    class="remove-source-url" 
+                                    style="padding: 16px 20px; background: #ef4444; color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; min-width: 60px; display: none;"
+                                    onclick="removeSourceUrl(this)">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" 
+                            id="add-source-url" 
+                            style="margin-top: 12px; padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;"
+                            onclick="addSourceUrlField()">
+                        ➕ Add Another Source
+                    </button>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Add links to articles, reports, or sources that provide additional context for your analysis. The AI will automatically fetch and read the actual content from these URLs, then explicitly cite specific facts, numbers, and insights from the source material in the analysis.</p>
+                    @error('source_urls')
+                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Analysis Type Info -->
                 <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid #bfdbfe;">
                     <h3 style="font-weight: 600; color: #1e40af; margin-bottom: 16px; font-size: 18px;">📋 Prediction Analysis Information</h3>
@@ -87,13 +119,24 @@
                 </div>
 
                 <!-- Submit Buttons -->
-                <div style="display: flex; justify-content: flex-end; gap: 16px; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
+                <div style="display: flex; justify-content: center; gap: 16px; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
                     <a href="{{ route('predictions.index') }}" style="display: inline-block; padding: 16px 32px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease;">
                         Cancel
                     </a>
-                    <button type="submit" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); cursor: pointer;">
-                        🚀 Create Prediction
-                    </button>
+                                         <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                         🚀 Create Prediction
+                     </button>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" style="display: none; margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; border: 1px solid #0ea5e9; text-align: center;">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                        <div style="width: 24px; height: 24px; border: 3px solid #0ea5e9; border-top: 3px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span style="color: #0ea5e9; font-weight: 600; font-size: 16px;">AI Analysis in Progress...</span>
+                    </div>
+                    <p style="color: #0369a1; font-size: 14px; margin: 12px 0 0 0; opacity: 0.8;">
+                        This may take 2-5 minutes. The AI is reading your source URLs and generating a comprehensive analysis.
+                    </p>
                 </div>
             </form>
         </div>
@@ -101,6 +144,20 @@
 </div>
 
 <style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .source-url-field {
+        transition: all 0.3s ease;
+    }
+    
+    .source-url-field.new-field {
+        border: 2px solid #10b981;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+    
     /* Responsive design improvements */
     @media (max-width: 768px) {
         div[style*="padding: 32px 16px"] {
@@ -372,6 +429,86 @@
 </style>
 
 <script>
+// Global functions for source URLs
+function addSourceUrlField() {
+    try {
+        const container = document.getElementById('source-urls-container');
+        
+        if (!container) {
+            console.error('Container not found!');
+            return;
+        }
+        
+        const newRow = document.createElement('div');
+        newRow.className = 'source-url-row';
+        newRow.style.cssText = 'display: flex; gap: 12px; margin-bottom: 12px; align-items: center; border: 2px solid #10b981; background-color: #f0fdf4; padding: 8px; border-radius: 8px;';
+        
+        newRow.innerHTML = `
+            <input type="url" 
+                   name="source_urls[]" 
+                   style="flex: 1; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
+                   placeholder="https://example.com/article or https://news.example.com/report"
+                   pattern="https?://.+">
+            <button type="button" 
+                    class="remove-source-url" 
+                    style="padding: 16px 20px; background: #ef4444; color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease; min-width: 60px;"
+                    onclick="removeSourceUrl(this)">
+                🗑️
+            </button>
+        `;
+        
+        // Add a temporary highlight to make the new field visible
+        newRow.style.border = '2px solid #10b981';
+        newRow.style.backgroundColor = '#f0fdf4';
+        newRow.style.padding = '8px';
+        newRow.style.borderRadius = '8px';
+        
+        // Remove highlight after 2 seconds
+        setTimeout(() => {
+            newRow.style.border = '';
+            newRow.style.backgroundColor = '';
+            newRow.style.padding = '';
+            newRow.style.borderRadius = '';
+        }, 2000);
+        
+        container.appendChild(newRow);
+        
+        // Always ensure first field has no remove button
+        updateRemoveButtonVisibility();
+        
+    } catch (error) {
+        console.error('Error adding source URL field:', error);
+    }
+}
+
+function removeSourceUrl(button) {
+    const row = button.closest('.source-url-row');
+    const container = document.getElementById('source-urls-container');
+    
+    row.remove();
+    
+    // Update remove button visibility after removal
+    updateRemoveButtonVisibility();
+}
+
+function updateRemoveButtonVisibility() {
+    const container = document.getElementById('source-urls-container');
+    const rows = container.querySelectorAll('.source-url-row');
+    
+    rows.forEach((row, index) => {
+        const removeBtn = row.querySelector('.remove-source-url');
+        if (removeBtn) {
+            // First field (index 0) should never show remove button
+            if (index === 0) {
+                removeBtn.style.display = 'none';
+            } else {
+                removeBtn.style.display = 'block';
+            }
+        }
+    });
+    
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const apiStatus = document.getElementById('api-status');
     
@@ -380,6 +517,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check API status
     checkApiStatus();
+    
+    // Source URLs functionality
+    setupSourceUrls();
     
     function checkApiStatus() {
         apiStatus.textContent = 'Checking...';
@@ -466,6 +606,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Main API test failed: ' + error.message);
             });
     }
+    
+    function setupSourceUrls() {
+        const addButton = document.getElementById('add-source-url');
+        const container = document.getElementById('source-urls-container');
+        
+        // Set up initial remove button visibility
+        updateRemoveButtonVisibility();
+    }
+
+    // Show loading indicator when form is submitted
+    const form = document.querySelector('form');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    
+    form.addEventListener('submit', function() {
+        loadingIndicator.style.display = 'block';
+        
+        // Disable the submit button
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+        submitButton.textContent = '🔄 Processing...';
+        submitButton.style.opacity = '0.7';
+        submitButton.style.cursor = 'not-allowed';
+    });
 });
 </script>
 @endsection

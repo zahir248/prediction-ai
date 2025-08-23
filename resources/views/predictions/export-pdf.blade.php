@@ -320,6 +320,36 @@
         </div>
     </div>
 
+    <!-- Source References -->
+    @if($prediction->source_urls && count($prediction->source_urls) > 0)
+    <div class="section">
+        <div class="section-title">Source References</div>
+        <div class="prediction-content">
+            <h3>Additional Source Information</h3>
+            <div class="data-point">
+                @foreach($prediction->source_urls as $index => $sourceUrl)
+                <p style="margin-bottom: 8px;"><strong>Source {{ $index + 1 }}:</strong> <a href="{{ $sourceUrl }}">{{ $sourceUrl }}</a></p>
+                @endforeach
+            </div>
+            <p>These sources were referenced during the AI analysis to provide additional context and data points for the prediction. The analysis incorporates information from both the user input and these external sources.</p>
+        </div>
+    </div>
+    @endif
+
+    <!-- Source Analysis Section -->
+    @if($prediction->source_urls && count($prediction->source_urls) > 0 && isset($prediction->prediction_result['source_analysis']))
+    <div class="section">
+        <div class="section-title">Source Analysis & Influence</div>
+        <div class="prediction-content">
+            <h3>How Sources Influenced This Analysis</h3>
+            <div class="data-point">
+                <p>{!! nl2br(e($prediction->prediction_result['source_analysis'])) !!}</p>
+            </div>
+            <p>This analysis shows how each provided source contributed to specific predictions and conclusions, ensuring transparency and traceability of insights.</p>
+        </div>
+    </div>
+    @endif
+
     <!-- AI Analysis Results -->
     @if($prediction->status === 'completed' && $prediction->prediction_result)
         <div class="section">

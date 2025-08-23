@@ -389,6 +389,12 @@
             color: #991b1b;
         }
         
+        .alert-warning {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+        
         .badge {
             display: inline-block;
             padding: 4px 8px;
@@ -839,6 +845,14 @@
                 <div class="container mt-4">
                     <div class="alert alert-error">
                         {{ session('error') }}
+                    </div>
+                </div>
+            @endif
+
+            @if(session('warning'))
+                <div class="container mt-4">
+                    <div class="alert alert-warning">
+                        {{ session('warning') }}
                     </div>
                 </div>
             @endif

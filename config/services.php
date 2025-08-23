@@ -23,7 +23,7 @@ return [
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
-        'ssl_verify' => env('GEMINI_SSL_VERIFY', true),
+        'ssl_verify' => env('GEMINI_SSL_VERIFY', true), // Set to false for development environments
     ],
 
     'postmark' => [
