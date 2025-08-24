@@ -147,6 +147,7 @@
                             <th class="border-0 px-3 py-3">User</th>
                             <th class="border-0 px-3 py-3">Role</th>
                             <th class="border-0 px-3 py-3">Prediction</th>
+                            <th class="border-0 px-3 py-3">Horizon</th>
                             <th class="border-0 px-3 py-3">Date</th>
                             <th class="border-0 px-3 py-3">Status</th>
                             <th class="border-0 px-3 py-3">Actions</th>
@@ -180,6 +181,9 @@
                                     </div>
                                 </td>
                                 <td class="px-3 py-3">
+                                    <span class="badge bg-info rounded-pill">{{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}</span>
+                                </td>
+                                <td class="px-3 py-3">
                                     <small class="text-muted">{{ $prediction->created_at->format('M d, Y H:i') }}</small>
                                 </td>
                                 <td class="px-3 py-3">
@@ -201,7 +205,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="8" class="text-center py-5">
                                     <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
                                         <i class="bi bi-graph-up text-danger fs-1"></i>
                                     </div>

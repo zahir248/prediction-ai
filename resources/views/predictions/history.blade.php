@@ -79,6 +79,9 @@
                                         Source
                                     </th>
                                     <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                        Horizon
+                                    </th>
+                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
                                         Status
                                     </th>
                                     <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
@@ -129,6 +132,11 @@
                                         @else
                                             <span style="color: #64748b; font-size: 12px;">-</span>
                                         @endif
+                                    </td>
+                                    <td style="padding: 20px 24px; text-align: center;">
+                                        <span style="background: #e0f2fe; color: #0277bd; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-block;">
+                                            {{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}
+                                        </span>
                                     </td>
                                     <td style="padding: 20px 24px; text-align: center;">
                                         @if($prediction->status === 'completed')

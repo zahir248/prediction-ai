@@ -119,6 +119,9 @@
                                         Source
                                     </th>
                                     <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                        Horizon
+                                    </th>
+                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
                                         Status
                                     </th>
                                     <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
@@ -169,6 +172,11 @@
                                         @else
                                             <span style="color: #64748b; font-size: 12px;">-</span>
                                         @endif
+                                    </td>
+                                    <td style="padding: 20px 24px; text-align: center;">
+                                        <span style="background: #e0f2fe; color: #0277bd; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-block;">
+                                            {{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}
+                                        </span>
                                     </td>
                                     <td style="padding: 20px 24px; text-align: center;">
                                         @if($prediction->status === 'completed')
@@ -259,7 +267,7 @@
                                 </div>
 
                                 <!-- Card Content -->
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                                     <!-- Status -->
                                     <div style="text-align: center;">
                                         <div style="font-size: 12px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
@@ -280,6 +288,14 @@
                                                 {{ ucfirst($prediction->status) }}
                                             </span>
                                         @endif
+                                    </div>
+
+                                    <!-- Horizon -->
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Horizon</div>
+                                        <span style="background: #e0f2fe; color: #0277bd; padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; display: inline-block;">
+                                            {{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}
+                                        </span>
                                     </div>
 
                                     <!-- Date -->

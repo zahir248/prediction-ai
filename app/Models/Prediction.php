@@ -9,9 +9,31 @@ class Prediction extends Model
 {
     use HasFactory;
 
+    // Prediction horizon constants
+    const HORIZON_NEXT_TWO_WEEKS = 'next_two_weeks';
+    const HORIZON_NEXT_MONTH = 'next_month';
+    const HORIZON_THREE_MONTHS = 'three_months';
+    const HORIZON_SIX_MONTHS = 'six_months';
+    const HORIZON_TWELVE_MONTHS = 'twelve_months';
+    const HORIZON_TWO_YEARS = 'two_years';
+
+    // Available horizon options
+    public static function getHorizonOptions()
+    {
+        return [
+            self::HORIZON_NEXT_TWO_WEEKS => 'Next Two Weeks',
+            self::HORIZON_NEXT_MONTH => 'Next Month',
+            self::HORIZON_THREE_MONTHS => '3 Months',
+            self::HORIZON_SIX_MONTHS => '6 Months',
+            self::HORIZON_TWELVE_MONTHS => '12 Months',
+            self::HORIZON_TWO_YEARS => '2 Years',
+        ];
+    }
+
     protected $fillable = [
         'topic',
         'input_data',
+        'prediction_horizon',
         'source_urls',
         'prediction_result',
         'confidence_score',

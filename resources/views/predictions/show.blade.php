@@ -45,6 +45,9 @@
                         <span style="color: #64748b; font-size: 14px;">
                             Analysis Type: Future Prediction Analysis
                         </span>
+                        <span style="color: #64748b; font-size: 14px;">
+                            Horizon: {{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}
+                        </span>
                     </div>
                 </div>
 
@@ -52,6 +55,11 @@
                 <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
                     <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">Input Data</h2>
                     <div style="background: #f8fafc; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0;">
+                        <div style="margin-bottom: 16px; padding: 12px 16px; background: linear-gradient(135deg, #e0f2fe 0%, #b3e5fc 100%); border-radius: 8px; border: 1px solid #0288d1;">
+                            <p style="color: #0277bd; font-size: 14px; margin: 0; font-weight: 600;">
+                                📅 <strong>Prediction Horizon:</strong> {{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}
+                            </p>
+                        </div>
                         <p style="color: #374151; line-height: 1.6; margin: 0; white-space: pre-wrap;">{{ $prediction->input_data['text'] }}</p>
                     </div>
                 </div>

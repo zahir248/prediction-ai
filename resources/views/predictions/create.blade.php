@@ -15,10 +15,10 @@
                 @csrf
                 
                 <!-- Topic Field -->
-                <div style="margin-bottom: 32px;">
-                    <label for="topic" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Prediction Topic *
-                    </label>
+                        <div style="margin-bottom: 32px;">
+            <label for="topic" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Prediction Topic <span style="color: #dc2626;">*</span>
+            </label>
                     <input type="text" 
                            id="topic" 
                            name="topic" 
@@ -29,6 +29,29 @@
                     @error('topic')
                         <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <!-- Prediction Horizon Field -->
+                        <div style="margin-bottom: 32px;">
+            <label for="prediction_horizon" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Prediction Horizon <span style="color: #dc2626;">*</span>
+            </label>
+                    <select id="prediction_horizon" 
+                            name="prediction_horizon" 
+                            style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb; cursor: pointer;"
+                            required>
+                        <option value="">Select Prediction Horizon</option>
+                        <option value="next_two_weeks" {{ old('prediction_horizon') == 'next_two_weeks' ? 'selected' : '' }}>Next Two Weeks</option>
+                        <option value="next_month" {{ old('prediction_horizon') == 'next_month' ? 'selected' : '' }}>Next Month</option>
+                        <option value="three_months" {{ old('prediction_horizon') == 'three_months' ? 'selected' : '' }}>3 Months</option>
+                        <option value="six_months" {{ old('prediction_horizon') == 'six_months' ? 'selected' : '' }}>6 Months</option>
+                        <option value="twelve_months" {{ old('prediction_horizon') == 'twelve_months' ? 'selected' : '' }}>12 Months</option>
+                        <option value="two_years" {{ old('prediction_horizon') == 'two_years' ? 'selected' : '' }}>2 Years</option>
+                    </select>
+                    @error('prediction_horizon')
+                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
+                    @enderror
+                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Select the time period for your prediction analysis</p>
                 </div>
 
                 <!-- Analysis Type (Fixed) -->
@@ -44,10 +67,10 @@
                 </div>
 
                 <!-- Input Data -->
-                <div style="margin-bottom: 32px;">
-                    <label for="input_data" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Input Data *
-                    </label>
+                        <div style="margin-bottom: 32px;">
+            <label for="input_data" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                Input Data <span style="color: #dc2626;">*</span>
+            </label>
                     <textarea id="input_data" 
                               name="input_data" 
                               rows="8"

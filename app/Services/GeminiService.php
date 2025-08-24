@@ -22,7 +22,7 @@ class GeminiService
         $this->sslVerify = config('services.gemini.ssl_verify', !app()->environment('local', 'development'));
     }
 
-    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null)
+    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null)
     {
         try {
             // Validate API key
@@ -45,7 +45,7 @@ class GeminiService
                 Log::info("Completed scraping URLs. Results: " . json_encode(array_column($scrapedContent, 'status')));
             }
 
-            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent);
+            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon);
             
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
@@ -168,10 +168,33 @@ class GeminiService
         }
     }
 
-    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null)
+    /**
+     * Convert prediction horizon enum to human-readable text
+     */
+    protected function getHorizonText($horizon)
+    {
+        $horizonMap = [
+            'next_two_weeks' => 'Next Two Weeks',
+            'next_month' => 'Next Month',
+            'three_months' => 'Next 3 Months',
+            'six_months' => 'Next 6 Months',
+            'twelve_months' => 'Next 12 Months',
+            'two_years' => 'Next 2 Years'
+        ];
+
+        return $horizonMap[$horizon] ?? 'Next Month';
+    }
+
+    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null)
     {
         $prompt = "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.\n\n";
         $prompt .= "Text to analyze: {$text}\n\n";
+        
+        if ($predictionHorizon) {
+            $horizonText = $this->getHorizonText($predictionHorizon);
+            $prompt .= "PREDICTION HORIZON: {$horizonText}\n";
+            $prompt .= "IMPORTANT: All your predictions, risk assessments, and strategic implications should be specifically tailored to this time period. Focus on what is most likely to happen within this timeframe.\n\n";
+        }
         
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= "IMPORTANT: You have been provided with the following additional sources that contain relevant context, data, or background information:\n";

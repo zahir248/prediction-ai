@@ -105,6 +105,7 @@ class PredictionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'topic' => 'required|string|max:255',
+            'prediction_horizon' => 'required|in:next_two_weeks,next_month,three_months,six_months,twelve_months,two_years',
             'input_data' => 'required|string|min:10',
             'source_urls' => 'nullable|array',
             'source_urls.*' => 'nullable|url|max:500'
@@ -120,6 +121,7 @@ class PredictionController extends Controller
         // Create prediction record with fixed analysis type
         $prediction = Prediction::create([
             'topic' => $request->topic,
+            'prediction_horizon' => $request->prediction_horizon,
             'input_data' => ['text' => $request->input_data, 'analysis_type' => 'prediction-analysis'],
             'source_urls' => $sourceUrls,
             'user_id' => Auth::id(),
@@ -134,7 +136,8 @@ class PredictionController extends Controller
             $result = $this->geminiService->analyzeText(
                 $request->input_data,
                 'prediction-analysis',
-                $sourceUrls
+                $sourceUrls,
+                $request->prediction_horizon
             );
             
             // Log the result for debugging
