@@ -224,10 +224,10 @@
                                                 View Details
                                             </a>
                                             @if($prediction->status === 'completed')
-                                                <a href="{{ route('predictions.export', $prediction) }}" 
-                                                   style="width: 120px; display: inline-block; padding: 8px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; text-align: center;">
+                                                <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
+                                                        style="width: 120px; display: inline-block; padding: 8px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
                                                     Export PDF
-                                                </a>
+                                                </button>
                                             @endif
                                             <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
                                                     style="width: 120px; display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); text-align: center;">
@@ -345,10 +345,10 @@
                                         View Details
                                     </a>
                                     @if($prediction->status === 'completed')
-                                        <a href="{{ route('predictions.export', $prediction) }}" 
-                                           style="flex: 1; display: inline-block; padding: 12px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; text-align: center;">
+                                        <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
+                                                style="flex: 1; display: inline-block; padding: 12px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
                                             Export PDF
-                                        </a>
+                                        </button>
                                     @endif
                                 </div>
                                 <!-- Delete Button -->
@@ -469,6 +469,30 @@
     </div>
 </div>
 
+<!-- Export Confirmation Modal -->
+<div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div style="margin-bottom: 24px;">
+            <span style="font-size: 48px; color: #10b981;">📄</span>
+        </div>
+        <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Export PDF Report</h3>
+        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you ready to export this prediction analysis as a PDF report?</p>
+        <p id="exportTopic" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and AI insights.</p>
+        
+        <div style="display: flex; gap: 16px; justify-content: center;">
+            <button onclick="closeExportModal()" 
+                    style="padding: 12px 24px; background: transparent; color: #64748b; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="confirmExportBtn" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                Export PDF
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 let currentDeleteId = null;
 
@@ -520,8 +544,40 @@ document.getElementById('deleteModal').onclick = function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDeleteModal();
+        closeExportModal();
     }
 });
+
+// Export modal functions
+let currentExportId = null;
+
+function confirmExport(predictionId, topic) {
+    currentExportId = predictionId;
+    document.getElementById('exportTopic').textContent = topic;
+    document.getElementById('exportModal').style.display = 'flex';
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').style.display = 'none';
+    currentExportId = null;
+}
+
+function exportPrediction() {
+    if (!currentExportId) return;
+    
+    // Redirect to the export route
+    window.location.href = '{{ url("/predictions") }}/' + currentExportId + '/export';
+}
+
+// Set up the confirm export button
+document.getElementById('confirmExportBtn').onclick = exportPrediction;
+
+// Close export modal when clicking outside
+document.getElementById('exportModal').onclick = function(e) {
+    if (e.target === this) {
+        closeExportModal();
+    }
+};
 </script>
 
 <style>
@@ -755,25 +811,29 @@ document.addEventListener('keydown', function(e) {
             min-width: 44px;
         }
         
-        /* Modal responsive improvements */
-        #deleteModal > div {
-            margin: 16px !important;
-            padding: 24px !important;
-            max-width: calc(100% - 32px) !important;
-        }
-        
-        #deleteModal h3 {
-            font-size: 18px !important;
-        }
-        
-        #deleteModal p {
-            font-size: 14px !important;
-        }
-        
-        #deleteModal button {
-            padding: 14px 20px !important;
-            font-size: 14px !important;
-        }
+                    /* Modal responsive improvements */
+            #deleteModal > div,
+            #exportModal > div {
+                margin: 16px !important;
+                padding: 24px !important;
+                max-width: calc(100% - 32px) !important;
+            }
+            
+            #deleteModal h3,
+            #exportModal h3 {
+                font-size: 18px !important;
+            }
+            
+            #deleteModal p,
+            #exportModal p {
+                font-size: 14px !important;
+            }
+            
+            #deleteModal button,
+            #exportModal button {
+                padding: 14px 20px !important;
+                font-size: 14px !important;
+            }
         
         /* Improve table scrolling on mobile */
         .table-responsive {
