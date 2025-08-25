@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Prediction;
 use App\Services\GeminiService;
+use App\Services\FileProcessingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -12,10 +13,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class PredictionController extends Controller
 {
     protected $geminiService;
+    protected $fileProcessingService;
 
-    public function __construct(GeminiService $geminiService)
+    public function __construct(GeminiService $geminiService, FileProcessingService $fileProcessingService)
     {
         $this->geminiService = $geminiService;
+        $this->fileProcessingService = $fileProcessingService;
     }
 
     public function index()
@@ -108,7 +111,8 @@ class PredictionController extends Controller
             'prediction_horizon' => 'required|in:next_two_weeks,next_month,three_months,six_months,twelve_months,two_years',
             'input_data' => 'required|string|min:10',
             'source_urls' => 'nullable|array',
-            'source_urls.*' => 'nullable|url|max:500'
+            'source_urls.*' => 'nullable|url|max:500',
+            'uploaded_files.*' => 'nullable|file|mimes:pdf,xlsx,xls,csv,txt|max:10240' // 10MB max
         ]);
 
         if ($validator->fails()) {
@@ -118,12 +122,30 @@ class PredictionController extends Controller
         // Filter out empty source URLs
         $sourceUrls = $request->source_urls ? array_filter($request->source_urls) : null;
 
+        // Process uploaded files if any
+        $uploadedFiles = null;
+        $extractedText = null;
+        $combinedInputData = $request->input_data;
+
+        if ($request->hasFile('uploaded_files')) {
+            $fileResults = $this->fileProcessingService->processFiles($request->file('uploaded_files'));
+            $uploadedFiles = $fileResults['files'];
+            $extractedText = $fileResults['extracted_text'];
+            
+            // Combine the original input data with extracted text from files
+            if (!empty($extractedText)) {
+                $combinedInputData = $request->input_data . "\n\n--- EXTRACTED DATA FROM UPLOADED FILES ---\n\n" . $extractedText;
+            }
+        }
+
         // Create prediction record with fixed analysis type
         $prediction = Prediction::create([
             'topic' => $request->topic,
             'prediction_horizon' => $request->prediction_horizon,
-            'input_data' => ['text' => $request->input_data, 'analysis_type' => 'prediction-analysis'],
+            'input_data' => ['text' => $combinedInputData, 'analysis_type' => 'prediction-analysis'],
             'source_urls' => $sourceUrls,
+            'uploaded_files' => $uploadedFiles,
+            'extracted_text' => $extractedText,
             'user_id' => Auth::id(),
             'status' => 'processing',
             'confidence_score' => 0.0, // Set default confidence score
@@ -132,9 +154,9 @@ class PredictionController extends Controller
         ]);
 
         try {
-            // Process with AI using fixed analysis type
+            // Process with AI using combined input data (original + extracted from files)
             $result = $this->geminiService->analyzeText(
-                $request->input_data,
+                $combinedInputData,
                 'prediction-analysis',
                 $sourceUrls,
                 $request->prediction_horizon

@@ -11,7 +11,7 @@
 
         <!-- Main Form Card -->
         <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-            <form action="{{ route('predictions.store') }}" method="POST">
+            <form action="{{ route('predictions.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
                 <!-- Topic Field -->
@@ -81,6 +81,53 @@
                     @error('input_data')
                         <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
                     @enderror
+                </div>
+
+                <!-- File Upload Section -->
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Upload Files (Optional)
+                    </label>
+                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 20px; border-radius: 12px; border: 2px solid #bfdbfe;">
+                        <div style="margin-bottom: 16px;">
+                            <input type="file" 
+                                   id="uploaded_files" 
+                                   name="uploaded_files[]" 
+                                   multiple
+                                   accept=".pdf,.xlsx,.xls,.csv,.txt"
+                                   style="width: 100%; padding: 16px 20px; border: 2px solid #bfdbfe; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: white; cursor: pointer;"
+                                   onchange="updateFileList()">
+                        </div>
+                        
+                        <div id="file-list" style="display: none;">
+                            <h4 style="font-weight: 600; color: #1e40af; margin-bottom: 12px; font-size: 16px;">Selected Files:</h4>
+                            <div id="file-items" style="margin-bottom: 16px;"></div>
+                        </div>
+                        
+                        <div style="color: #1e40af; font-size: 14px; line-height: 1.6;">
+                            <p style="margin-bottom: 8px;"><strong>Supported Formats:</strong></p>
+                            <ul style="margin: 0; padding-left: 20px; margin-bottom: 12px;">
+                                <li style="margin-bottom: 4px;">📄 PDF Documents (.pdf)</li>
+                                <li style="margin-bottom: 4px;">📊 Excel Spreadsheets (.xlsx, .xls)</li>
+                                <li style="margin-bottom: 4px;">📋 CSV Files (.csv)</li>
+                                <li style="margin-bottom: 0px;">📝 Text Files (.txt)</li>
+                            </ul>
+                            <p style="margin: 0; font-size: 13px;"><strong>Note:</strong> Maximum file size: 10MB per file. The AI will extract and analyze text content from these files along with your input data.</p>
+                        </div>
+                    </div>
+                    @error('uploaded_files.*')
+                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
+                    @enderror
+                    @if($errors->has('uploaded_files.*'))
+                        <div style="margin-top: 8px; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                            <p style="color: #dc2626; font-size: 14px; margin: 0; font-weight: 600;">File Upload Errors:</p>
+                            <ul style="color: #dc2626; font-size: 13px; margin: 8px 0 0 0; padding-left: 20px;">
+                                @foreach($errors->get('uploaded_files.*') as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Source URLs Field -->
@@ -530,6 +577,55 @@ function updateRemoveButtonVisibility() {
         }
     });
     
+}
+
+// File upload functions
+function updateFileList() {
+    const fileInput = document.getElementById('uploaded_files');
+    const fileList = document.getElementById('file-list');
+    const fileItems = document.getElementById('file-items');
+    
+    if (fileInput.files.length > 0) {
+        fileList.style.display = 'block';
+        fileItems.innerHTML = '';
+        
+        Array.from(fileInput.files).forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 8px;';
+            
+            const fileInfo = document.createElement('div');
+            fileInfo.innerHTML = `
+                <div style="font-weight: 600; color: #1e40af;">${file.name}</div>
+                <div style="font-size: 12px; color: #64748b;">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+            `;
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '🗑️';
+            removeBtn.style.cssText = 'padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s ease;';
+            removeBtn.onclick = () => removeFile(index);
+            
+            fileItem.appendChild(fileInfo);
+            fileItem.appendChild(removeBtn);
+            fileItems.appendChild(fileItem);
+        });
+    } else {
+        fileList.style.display = 'none';
+    }
+}
+
+function removeFile(index) {
+    const fileInput = document.getElementById('uploaded_files');
+    const dt = new DataTransfer();
+    
+    Array.from(fileInput.files).forEach((file, i) => {
+        if (i !== index) {
+            dt.items.add(file);
+        }
+    });
+    
+    fileInput.files = dt.files;
+    updateFileList();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

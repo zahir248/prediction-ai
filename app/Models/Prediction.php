@@ -35,6 +35,8 @@ class Prediction extends Model
         'input_data',
         'prediction_horizon',
         'source_urls',
+        'uploaded_files',
+        'extracted_text',
         'prediction_result',
         'confidence_score',
         'model_used',
@@ -46,6 +48,7 @@ class Prediction extends Model
     protected $casts = [
         'input_data' => 'array',
         'source_urls' => 'array',
+        'uploaded_files' => 'array',
         'prediction_result' => 'array',
         'confidence_score' => 'float',
         'processing_time' => 'float',

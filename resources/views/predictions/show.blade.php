@@ -64,6 +64,66 @@
                     </div>
                 </div>
 
+                <!-- Uploaded Files -->
+                @if($prediction->uploaded_files && count($prediction->uploaded_files) > 0)
+                <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">📎 Uploaded Files</h2>
+                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 24px; border-radius: 16px; border: 1px solid #0ea5e9;">
+                        <p style="color: #0369a1; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📊 Files Processed for Analysis</p>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            @foreach($prediction->uploaded_files as $index => $file)
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: rgba(14, 165, 233, 0.1); border-radius: 8px; border: 1px solid #0ea5e9;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                        @if($file['extension'] === 'pdf')
+                                            <span style="font-size: 20px;">📄</span>
+                                        @elseif(in_array($file['extension'], ['xlsx', 'xls']))
+                                            <span style="font-size: 20px;">📊</span>
+                                        @elseif($file['extension'] === 'csv')
+                                            <span style="font-size: 20px;">📋</span>
+                                        @elseif($file['extension'] === 'txt')
+                                            <span style="font-size: 20px;">📝</span>
+                                        @else
+                                            <span style="font-size: 20px;">📎</span>
+                                        @endif
+                                        <span style="font-weight: 600; color: #0369a1;">{{ $file['original_name'] }}</span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #64748b;">
+                                        Size: {{ number_format($file['size'] / 1024 / 1024, 2) }} MB | Type: {{ strtoupper($file['extension']) }}
+                                    </div>
+                                </div>
+                                <a href="{{ Storage::url($file['stored_path']) }}" 
+                                   target="_blank" 
+                                   rel="noopener noreferrer"
+                                   style="padding: 8px 16px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease;">
+                                    📥 Download
+                                </a>
+                            </div>
+                            @endforeach
+                        </div>
+                        <p style="color: #0369a1; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
+                            These files were processed and their content was extracted for AI analysis. The extracted text was combined with your input data for comprehensive prediction analysis.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
+                <!-- Extracted Text from Files -->
+                @if($prediction->extracted_text)
+                <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">📋 Extracted Content from Files</h2>
+                    <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 24px; border-radius: 16px; border: 1px solid #f59e0b;">
+                        <p style="color: #92400e; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📊 AI-Processed File Content</p>
+                        <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-height: 400px; overflow-y: auto;">
+                            <pre style="color: #92400e; line-height: 1.6; margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px;">{{ $prediction->extracted_text }}</pre>
+                        </div>
+                        <p style="color: #92400e; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
+                            This content was automatically extracted from your uploaded files and analyzed by the AI system to enhance the prediction accuracy.
+                        </p>
+                    </div>
+                </div>
+                @endif
+
                 <!-- Source URLs -->
                 @if($prediction->source_urls && count($prediction->source_urls) > 0)
                 <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
