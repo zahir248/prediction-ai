@@ -220,17 +220,17 @@
                                     <td style="padding: 20px 24px; text-align: center;">
                                         <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
                                             <a href="{{ route('predictions.show', $prediction) }}" 
-                                               style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                                               style="width: 120px; display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); text-align: center;">
                                                 View Details
                                             </a>
                                             @if($prediction->status === 'completed')
                                                 <a href="{{ route('predictions.export', $prediction) }}" 
-                                                   style="display: inline-block; padding: 8px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease;">
+                                                   style="width: 120px; display: inline-block; padding: 8px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; text-align: center;">
                                                     Export PDF
                                                 </a>
                                             @endif
                                             <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
-                                                    style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
+                                                    style="width: 120px; display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); text-align: center;">
                                                 Delete
                                             </button>
                                         </div>
