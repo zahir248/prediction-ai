@@ -13,7 +13,10 @@ class WebScrapingService
     protected $userAgents = [
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     ];
 
     public function __construct()
@@ -29,8 +32,154 @@ class WebScrapingService
                 'Accept-Encoding' => 'gzip, deflate',
                 'Connection' => 'keep-alive',
                 'Upgrade-Insecure-Requests' => '1',
+                'Cache-Control' => 'no-cache',
+                'Pragma' => 'no-cache',
+                'Sec-Fetch-Dest' => 'document',
+                'Sec-Fetch-Mode' => 'navigate',
+                'Sec-Fetch-Site' => 'none',
+                'Sec-Fetch-User' => '?1'
             ]
         ]);
+    }
+
+    /**
+     * Validate and check if URLs are accessible before scraping
+     */
+    public function validateAndCheckUrls(array $urls): array
+    {
+        $validatedUrls = [];
+        $invalidUrls = [];
+        
+        foreach ($urls as $url) {
+            $url = trim($url);
+            if (empty($url)) {
+                continue;
+            }
+            
+            // Basic URL format validation
+            if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                $invalidUrls[] = [
+                    'url' => $url,
+                    'error' => 'Invalid URL format',
+                    'status' => 'invalid_format'
+                ];
+                continue;
+            }
+            
+            // Check if URL is accessible
+            $accessibilityCheck = $this->checkUrlAccessibility($url);
+            
+            if ($accessibilityCheck['accessible']) {
+                $validatedUrls[] = [
+                    'url' => $url,
+                    'status' => 'accessible',
+                    'response_time' => $accessibilityCheck['response_time'],
+                    'status_code' => $accessibilityCheck['status_code']
+                ];
+            } else {
+                $invalidUrls[] = [
+                    'url' => $url,
+                    'error' => $accessibilityCheck['error'],
+                    'status' => 'inaccessible',
+                    'status_code' => $accessibilityCheck['status_code']
+                ];
+            }
+        }
+        
+        return [
+            'valid_urls' => $validatedUrls,
+            'invalid_urls' => $invalidUrls,
+            'total_checked' => count($urls),
+            'accessible_count' => count($validatedUrls),
+            'inaccessible_count' => count($invalidUrls)
+        ];
+    }
+
+    /**
+     * Check if a specific URL is accessible
+     */
+    public function checkUrlAccessibility(string $url): array
+    {
+        try {
+            $startTime = microtime(true);
+            
+            // First try a HEAD request to check accessibility
+            $response = $this->client->head($url, [
+                'timeout' => 15,
+                'connect_timeout' => 10
+            ]);
+            
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2); // in milliseconds
+            $statusCode = $response->getStatusCode();
+            
+            // Check if status code indicates success
+            if ($statusCode >= 200 && $statusCode < 400) {
+                return [
+                    'accessible' => true,
+                    'status_code' => $statusCode,
+                    'response_time' => $responseTime,
+                    'error' => null
+                ];
+            } else {
+                return [
+                    'accessible' => false,
+                    'status_code' => $statusCode,
+                    'response_time' => $responseTime,
+                    'error' => "HTTP status code: {$statusCode}"
+                ];
+            }
+            
+        } catch (RequestException $e) {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : null;
+            
+            $errorMessage = $this->getReadableErrorMessage($e, $statusCode);
+            
+            return [
+                'accessible' => false,
+                'status_code' => $statusCode,
+                'response_time' => $responseTime,
+                'error' => $errorMessage
+            ];
+        } catch (\Exception $e) {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            
+            return [
+                'accessible' => false,
+                'status_code' => null,
+                'response_time' => $responseTime,
+                'error' => 'Connection error: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get readable error message for different HTTP status codes
+     */
+    protected function getReadableErrorMessage(RequestException $e, ?int $statusCode): string
+    {
+        if ($statusCode === null) {
+            return 'Connection failed: ' . $e->getMessage();
+        }
+        
+        switch ($statusCode) {
+            case 403:
+                return 'Access forbidden - This website blocks automated access (bot protection)';
+            case 401:
+                return 'Unauthorized access - Authentication required';
+            case 404:
+                return 'Page not found - URL may be invalid or content removed';
+            case 429:
+                return 'Too many requests - Rate limiting in effect';
+            case 500:
+                return 'Server error - Website is experiencing technical issues';
+            case 502:
+            case 503:
+            case 504:
+                return 'Service unavailable - Website is down or overloaded';
+            default:
+                return "HTTP error {$statusCode}: " . $e->getMessage();
+        }
     }
 
     /**
@@ -47,13 +196,53 @@ class WebScrapingService
                 return null;
             }
 
-            // Make HTTP request
-            $response = $this->client->get($url);
+            // Check accessibility first
+            $accessibilityCheck = $this->checkUrlAccessibility($url);
+            if (!$accessibilityCheck['accessible']) {
+                Log::warning("URL not accessible: {$url} - {$accessibilityCheck['error']}");
+                return [
+                    'url' => $url,
+                    'error' => $accessibilityCheck['error'],
+                    'status' => 'error',
+                    'status_code' => $accessibilityCheck['status_code']
+                ];
+            }
+
+            // Make HTTP request with enhanced headers
+            $response = $this->client->get($url, [
+                'timeout' => 30,
+                'headers' => [
+                    'User-Agent' => $this->userAgents[array_rand($this->userAgents)],
+                    'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                    'Accept-Language' => 'en-US,en;q=0.5',
+                    'Accept-Encoding' => 'gzip, deflate',
+                    'Connection' => 'keep-alive',
+                    'Upgrade-Insecure-Requests' => '1',
+                    'Cache-Control' => 'no-cache',
+                    'Pragma' => 'no-cache',
+                    'Sec-Fetch-Dest' => 'document',
+                    'Sec-Fetch-Mode' => 'navigate',
+                    'Sec-Fetch-Site' => 'none',
+                    'Sec-Fetch-User' => '?1'
+                ]
+            ]);
+            
             $html = $response->getBody()->getContents();
             
             if (empty($html)) {
                 Log::warning("Empty response from URL: {$url}");
                 return null;
+            }
+
+            // Check if response contains anti-bot protection
+            if ($this->isAntiBotProtected($html)) {
+                Log::warning("Anti-bot protection detected for URL: {$url}");
+                return [
+                    'url' => $url,
+                    'error' => 'This website has anti-bot protection that prevents automated access',
+                    'status' => 'error',
+                    'status_code' => 403
+                ];
             }
 
             // Extract content
@@ -79,15 +268,20 @@ class WebScrapingService
                 'content' => $content,
                 'word_count' => str_word_count($content),
                 'scraped_at' => now()->toISOString(),
-                'status' => 'success'
+                'status' => 'success',
+                'status_code' => $response->getStatusCode()
             ];
 
         } catch (RequestException $e) {
+            $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : null;
+            $errorMessage = $this->getReadableErrorMessage($e, $statusCode);
+            
             Log::error("HTTP request failed for URL {$url}: " . $e->getMessage());
             return [
                 'url' => $url,
-                'error' => 'HTTP request failed: ' . $e->getMessage(),
-                'status' => 'error'
+                'error' => $errorMessage,
+                'status' => 'error',
+                'status_code' => $statusCode
             ];
         } catch (\Exception $e) {
             Log::error("Error scraping URL {$url}: " . $e->getMessage());
@@ -97,6 +291,43 @@ class WebScrapingService
                 'status' => 'error'
             ];
         }
+    }
+
+    /**
+     * Check if HTML content contains anti-bot protection indicators
+     */
+    protected function isAntiBotProtected(string $html): bool
+    {
+        $antiBotIndicators = [
+            'just a moment',
+            'checking your browser',
+            'ddos protection',
+            'cloudflare',
+            'captcha',
+            'security check',
+            'bot protection',
+            'access denied',
+            'blocked by',
+            'suspicious activity',
+            'verify you are human',
+            'please wait while we verify',
+            'challenge page',
+            'security verification',
+            'please complete the security check',
+            'blocked by security',
+            'rate limited',
+            'too many requests'
+        ];
+        
+        $htmlLower = strtolower($html);
+        
+        foreach ($antiBotIndicators as $indicator) {
+            if (strpos($htmlLower, $indicator) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     /**
@@ -306,10 +537,31 @@ class WebScrapingService
     {
         $results = [];
         
-        foreach ($urls as $url) {
-            $url = trim($url);
-            if (!empty($url)) {
-                $results[] = $this->scrapeUrl($url);
+        // First validate and check all URLs for accessibility
+        $urlValidation = $this->validateAndCheckUrls($urls);
+        
+        Log::info("URL validation completed", [
+            'total_urls' => $urlValidation['total_checked'],
+            'accessible_count' => $urlValidation['accessible_count'],
+            'inaccessible_count' => $urlValidation['inaccessible_count']
+        ]);
+        
+        // Add validation results for inaccessible URLs
+        foreach ($urlValidation['invalid_urls'] as $invalidUrl) {
+            $results[] = [
+                'url' => $invalidUrl['url'],
+                'error' => $invalidUrl['error'],
+                'status' => 'error',
+                'status_code' => $invalidUrl['status_code'] ?? null,
+                'validation_status' => 'failed_accessibility_check'
+            ];
+        }
+        
+        // Only attempt to scrape accessible URLs
+        foreach ($urlValidation['valid_urls'] as $validUrl) {
+            $scrapeResult = $this->scrapeUrl($validUrl['url']);
+            if ($scrapeResult) {
+                $results[] = $scrapeResult;
             }
         }
 
@@ -317,15 +569,78 @@ class WebScrapingService
     }
 
     /**
-     * Check if a URL is accessible
+     * Check if a URL is accessible (legacy method - use checkUrlAccessibility for detailed info)
      */
     public function isUrlAccessible(string $url): bool
     {
-        try {
-            $response = $this->client->head($url);
-            return $response->getStatusCode() === 200;
-        } catch (\Exception $e) {
-            return false;
+        $accessibilityCheck = $this->checkUrlAccessibility($url);
+        return $accessibilityCheck['accessible'];
+    }
+
+    /**
+     * Validate URLs and provide detailed feedback for user interface
+     */
+    public function validateUrlsForUser(array $urls): array
+    {
+        $validation = $this->validateAndCheckUrls($urls);
+        
+        $results = [
+            'summary' => [
+                'total_urls' => $validation['total_checked'],
+                'accessible_count' => $validation['accessible_count'],
+                'inaccessible_count' => $validation['inaccessible_count'],
+                'success_rate' => $validation['total_checked'] > 0 ? 
+                    round(($validation['accessible_count'] / $validation['total_checked']) * 100, 1) : 0
+            ],
+            'accessible_urls' => $validation['valid_urls'],
+            'inaccessible_urls' => $validation['invalid_urls'],
+            'recommendations' => []
+        ];
+        
+        // Generate recommendations based on validation results
+        if ($validation['inaccessible_count'] > 0) {
+            $results['recommendations'][] = 'Some URLs are not accessible. Consider removing them or finding alternative sources.';
+            
+            // Add specific recommendations for common issues
+            $has403Errors = false;
+            $has404Errors = false;
+            $hasConnectionErrors = false;
+            
+            foreach ($validation['invalid_urls'] as $invalidUrl) {
+                if (isset($invalidUrl['status_code'])) {
+                    if ($invalidUrl['status_code'] === 403) {
+                        $has403Errors = true;
+                    } elseif ($invalidUrl['status_code'] === 404) {
+                        $has404Errors = true;
+                    }
+                } else {
+                    $hasConnectionErrors = true;
+                }
+            }
+            
+            if ($has403Errors) {
+                $results['recommendations'][] = 'Some websites block automated access (403 errors). Try finding alternative sources or manually copy relevant content.';
+            }
+            
+            if ($has404Errors) {
+                $results['recommendations'][] = 'Some URLs return "not found" errors (404). Check if the links are still valid or have been moved.';
+            }
+            
+            if ($hasConnectionErrors) {
+                $results['recommendations'][] = 'Some URLs cannot be reached due to network issues. Check your internet connection and try again.';
+            }
         }
+        
+        if ($validation['accessible_count'] === 0) {
+            $results['recommendations'][] = 'No URLs are accessible. Please check your URLs or try again later.';
+            $results['recommendations'][] = 'Consider using different sources or manually providing key information in your input text.';
+        }
+        
+        if ($validation['accessible_count'] > 0 && $validation['inaccessible_count'] > 0) {
+            $results['recommendations'][] = 'Some URLs are accessible and will be used for analysis.';
+            $results['recommendations'][] = 'The AI will work with available sources and use general knowledge for blocked content.';
+        }
+        
+        return $results;
     }
 }

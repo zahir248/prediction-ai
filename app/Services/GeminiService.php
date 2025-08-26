@@ -39,10 +39,36 @@ class GeminiService
 
             // Scrape content from source URLs if provided
             $scrapedContent = null;
+            $scrapingSummary = null;
             if ($sourceUrls && count($sourceUrls) > 0) {
                 Log::info("Starting to scrape " . count($sourceUrls) . " source URLs");
                 $scrapedContent = $this->webScrapingService->scrapeMultipleUrls($sourceUrls);
+                
+                // Create scraping summary for better user feedback
+                $successfulScrapes = array_filter($scrapedContent, fn($s) => $s['status'] === 'success');
+                $failedScrapes = array_filter($scrapedContent, fn($s) => $s['status'] === 'error');
+                
+                $scrapingSummary = [
+                    'total_urls' => count($sourceUrls),
+                    'successful_scrapes' => count($successfulScrapes),
+                    'failed_scrapes' => count($failedScrapes),
+                    'success_rate' => count($sourceUrls) > 0 ? round((count($successfulScrapes) / count($sourceUrls)) * 100, 1) : 0,
+                    'failed_urls' => array_map(function($failed) {
+                        return [
+                            'url' => $failed['url'],
+                            'error' => $failed['error'] ?? 'Unknown error',
+                            'status_code' => $failed['status_code'] ?? null
+                        ];
+                    }, $failedScrapes)
+                ];
+                
                 Log::info("Completed scraping URLs. Results: " . json_encode(array_column($scrapedContent, 'status')));
+                Log::info("Scraping summary: " . json_encode($scrapingSummary));
+                
+                // If no URLs were successfully scraped, provide warning
+                if (count($successfulScrapes) === 0) {
+                    Log::warning("No URLs were successfully scraped. All URLs may be inaccessible or blocked.");
+                }
             }
 
             $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon);
@@ -126,18 +152,20 @@ class GeminiService
                     
                     if ($parsedResult) {
                         // Add scraping metadata to the result
-                        if ($scrapedContent) {
+                        if ($scrapedContent || $scrapingSummary) {
                             $parsedResult['scraping_metadata'] = [
                                 'total_sources' => count($sourceUrls),
                                 'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
                                 'scraped_at' => now()->toISOString(),
+                                'scraping_summary' => $scrapingSummary,
                                 'source_details' => array_map(function($source) {
                                     return [
                                         'url' => $source['url'],
                                         'title' => $source['title'] ?? 'N/A',
                                         'word_count' => $source['word_count'] ?? 0,
                                         'status' => $source['status'],
-                                        'error' => $source['error'] ?? null
+                                        'error' => $source['error'] ?? null,
+                                        'status_code' => $source['status_code'] ?? null
                                     ];
                                 }, $scrapedContent)
                             ];
@@ -203,10 +231,31 @@ class GeminiService
                 $prompt .= "- Source " . ($index + 1) . ": {$url}\n";
             }
             
+            // Add scraping summary if available
+            if (isset($scrapingSummary)) {
+                $prompt .= "\nSCRAPING SUMMARY:\n";
+                $prompt .= "Total URLs provided: {$scrapingSummary['total_urls']}\n";
+                $prompt .= "Successfully scraped: {$scrapingSummary['successful_scrapes']}\n";
+                $prompt .= "Failed to scrape: {$scrapingSummary['failed_scrapes']}\n";
+                $prompt .= "Success rate: {$scrapingSummary['success_rate']}%\n";
+                
+                if ($scrapingSummary['failed_scrapes'] > 0) {
+                    $prompt .= "\nFAILED URLS (These could not be accessed due to anti-bot protection, server errors, or other issues):\n";
+                    foreach ($scrapingSummary['failed_urls'] as $failed) {
+                        $prompt .= "- {$failed['url']}: {$failed['error']}";
+                        if ($failed['status_code']) {
+                            $prompt .= " (HTTP {$failed['status_code']})";
+                        }
+                        $prompt .= "\n";
+                    }
+                    $prompt .= "\nNote: For failed URLs, rely on your existing knowledge about the topic or source.\n";
+                }
+            }
+            
             // Add actual scraped content if available
             if ($scrapedContent && count($scrapedContent) > 0) {
-                $prompt .= "\nACTUAL CONTENT FROM SOURCES:\n";
-                $prompt .= "The following is the real content extracted from the provided URLs. Use this actual data in your analysis:\n\n";
+                $prompt .= "\nACTUAL CONTENT FROM SUCCESSFULLY SCRAPED SOURCES:\n";
+                $prompt .= "The following is the real content extracted from the accessible URLs. Use this actual data in your analysis:\n\n";
                 
                 foreach ($scrapedContent as $index => $source) {
                     if ($source['status'] === 'success' && !empty($source['content'])) {
@@ -217,12 +266,6 @@ class GeminiService
                         }
                         $prompt .= "Content: {$source['content']}\n";
                         $prompt .= "Word Count: {$source['word_count']}\n";
-                        $prompt .= "==================\n\n";
-                    } else {
-                        $prompt .= "=== SOURCE " . ($index + 1) . " ===\n";
-                        $prompt .= "URL: {$source['url']}\n";
-                        $prompt .= "Status: Failed to scrape - {$source['error']}\n";
-                        $prompt .= "Note: Use your existing knowledge about this topic/source\n";
                         $prompt .= "==================\n\n";
                     }
                 }

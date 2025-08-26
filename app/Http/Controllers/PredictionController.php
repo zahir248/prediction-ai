@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Prediction;
 use App\Services\GeminiService;
 use App\Services\FileProcessingService;
+use App\Services\WebScrapingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -14,11 +15,13 @@ class PredictionController extends Controller
 {
     protected $geminiService;
     protected $fileProcessingService;
+    protected $webScrapingService;
 
-    public function __construct(GeminiService $geminiService, FileProcessingService $fileProcessingService)
+    public function __construct(GeminiService $geminiService, FileProcessingService $fileProcessingService, WebScrapingService $webScrapingService)
     {
         $this->geminiService = $geminiService;
         $this->fileProcessingService = $fileProcessingService;
+        $this->webScrapingService = $webScrapingService;
     }
 
     public function index()
@@ -566,6 +569,87 @@ class PredictionController extends Controller
             
             return redirect()->back()
                 ->with('error', 'Error deleting prediction. Please try again.');
+        }
+    }
+
+    /**
+     * Validate source URLs before submission
+     */
+    public function validateUrls(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'urls' => 'required|array|min:1',
+            'urls.*' => 'required|string|max:500'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $urls = array_filter($request->urls); // Remove empty URLs
+            
+            if (empty($urls)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No valid URLs provided'
+                ], 422);
+            }
+
+            // Validate URLs using the web scraping service
+            $validationResults = $this->webScrapingService->validateUrlsForUser($urls);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $validationResults
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('URL validation error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error validating URLs: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Test URL validation functionality
+     */
+    public function testUrlValidation()
+    {
+        $testUrls = [
+            'https://www.google.com', // Should be accessible
+            'https://www.bharian.com.my/sukan/lain-lain/2025/08/1437447/sorakan-malaysia-boleh-iringi-emas-ke-16-negara', // The problematic URL from logs
+            'https://httpbin.org/status/404', // Should return 404
+            'https://httpbin.org/status/403', // Should return 403
+            'https://invalid-domain-that-does-not-exist-12345.com', // Should fail to connect
+        ];
+        
+        try {
+            $validationResults = $this->webScrapingService->validateUrlsForUser($testUrls);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'URL validation test completed',
+                'test_urls' => $testUrls,
+                'results' => $validationResults
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'URL validation test failed: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
     }
 }

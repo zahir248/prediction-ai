@@ -83,53 +83,6 @@
                     @enderror
                 </div>
 
-                <!-- File Upload Section -->
-                <div style="margin-bottom: 32px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Upload Files (Optional)
-                    </label>
-                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 20px; border-radius: 12px; border: 2px solid #bfdbfe;">
-                        <div style="margin-bottom: 16px;">
-                            <input type="file" 
-                                   id="uploaded_files" 
-                                   name="uploaded_files[]" 
-                                   multiple
-                                   accept=".pdf,.xlsx,.xls,.csv,.txt"
-                                   style="width: 100%; padding: 16px 20px; border: 2px solid #bfdbfe; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: white; cursor: pointer;"
-                                   onchange="updateFileList()">
-                        </div>
-                        
-                        <div id="file-list" style="display: none;">
-                            <h4 style="font-weight: 600; color: #1e40af; margin-bottom: 12px; font-size: 16px;">Selected Files:</h4>
-                            <div id="file-items" style="margin-bottom: 16px;"></div>
-                        </div>
-                        
-                        <div style="color: #1e40af; font-size: 14px; line-height: 1.6;">
-                            <p style="margin-bottom: 8px;"><strong>Supported Formats:</strong></p>
-                            <ul style="margin: 0; padding-left: 20px; margin-bottom: 12px;">
-                                <li style="margin-bottom: 4px;">📄 PDF Documents (.pdf)</li>
-                                <li style="margin-bottom: 4px;">📊 Excel Spreadsheets (.xlsx, .xls)</li>
-                                <li style="margin-bottom: 4px;">📋 CSV Files (.csv)</li>
-                                <li style="margin-bottom: 0px;">📝 Text Files (.txt)</li>
-                            </ul>
-                            <p style="margin: 0; font-size: 13px;"><strong>Note:</strong> Maximum file size: 10MB per file. The AI will extract and analyze text content from these files along with your input data.</p>
-                        </div>
-                    </div>
-                    @error('uploaded_files.*')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
-                    @if($errors->has('uploaded_files.*'))
-                        <div style="margin-top: 8px; padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
-                            <p style="color: #dc2626; font-size: 14px; margin: 0; font-weight: 600;">File Upload Errors:</p>
-                            <ul style="color: #dc2626; font-size: 13px; margin: 8px 0 0 0; padding-left: 20px;">
-                                @foreach($errors->get('uploaded_files.*') as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-                </div>
-
                 <!-- Source URLs Field -->
                 <div style="margin-bottom: 32px;">
                     <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -139,7 +92,7 @@
                         <div class="source-url-row" style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
                             <input type="url" 
                                    name="source_urls[]" 
-                                   style="flex: 1; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
+                                    style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
                                    placeholder="https://example.com/article or https://news.example.com/report"
                                    pattern="https?://.+">
                             <button type="button" 
@@ -150,12 +103,33 @@
                             </button>
                         </div>
                     </div>
+                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
                     <button type="button" 
                             id="add-source-url" 
-                            style="margin-top: 12px; padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;"
+                                style="padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; min-width: 140px; justify-content: center;"
                             onclick="addSourceUrlField()">
                         ➕ Add Another Source
                     </button>
+                        <button type="button" 
+                                id="validate-urls-btn" 
+                                style="padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; min-width: 140px; justify-content: center;"
+                                onclick="validateUrls()">
+                            🔍 Validate URLs
+                        </button>
+                        
+                    </div>
+                    
+                    <!-- URL Validation Results -->
+                    <div id="url-validation-results" style="display: none; margin-top: 16px; padding: 16px; border-radius: 12px; border: 1px solid #e5e7eb;">
+                        <div id="validation-loading" style="display: none; text-align: center; padding: 20px;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                                <div style="width: 20px; height: 20px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <span style="color: #3b82f6; font-weight: 600;">Validating URLs...</span>
+                            </div>
+                        </div>
+                        <div id="validation-content" style="display: none;"></div>
+                    </div>
+                    
                     <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Add links to articles, reports, or sources that provide additional context for your analysis. The AI will automatically fetch and read the actual content from these URLs, then explicitly cite specific facts, numbers, and insights from the source material in the analysis.</p>
                     @error('source_urls')
                         <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
@@ -189,7 +163,7 @@
                 </div>
 
                 <!-- Submit Buttons -->
-                <div style="display: flex; justify-content: center; gap: 16px; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
+                 <div class="submit-buttons-container" style="display: flex; justify-content: center; gap: 16px; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
                     <a href="{{ route('predictions.index') }}" style="display: inline-block; padding: 16px 32px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease;">
                         Cancel
                     </a>
@@ -228,272 +202,93 @@
         box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
     }
     
-    /* Responsive design improvements */
     @media (max-width: 768px) {
-        div[style*="padding: 32px 16px"] {
-            padding: 24px 12px !important;
-        }
-        
-        div[style*="max-width: 800px"] {
-            max-width: 100% !important;
-        }
-        
-        div[style*="margin-bottom: 40px"] {
-            margin-bottom: 32px !important;
-        }
-        
-        div[style*="padding: 40px"] {
-            padding: 32px 24px !important;
-        }
-        
-        div[style*="font-size: 36px"] {
-            font-size: 28px !important;
-        }
-        
-        div[style*="font-size: 18px"] {
+         .source-url-row {
+             flex-direction: column;
+             gap: 8px;
+         }
+         
+         .remove-source-url {
+             width: 100%;
+         }
+         
+         /* Better touch targets for mobile */
+         button, a {
+             min-width: 44px;
+         }
+         
+                   /* Source URLs responsive improvements */
+          #add-source-url, #validate-urls-btn {
+              width: 100%;
+              justify-content: center;
+              padding: 16px 20px;
+              font-size: 16px;
+              min-height: 48px;
+          }
+          
+          /* Submit buttons responsive improvements */
+          .submit-buttons-container a, .submit-buttons-container button[type="submit"] {
+              width: 100%;
+              justify-content: center;
+              padding: 16px 20px;
+              font-size: 16px;
+              min-height: 48px;
+              text-align: center;
+          }
+         
+         /* URL input field mobile optimization */
+         input[name="source_urls[]"] {
             font-size: 16px !important;
-        }
-        
-        div[style*="margin-bottom: 32px"] {
-            margin-bottom: 24px !important;
-        }
-        
-        div[style*="padding: 16px 20px"] {
             padding: 14px 16px !important;
-        }
-        
-        div[style*="font-size: 16px"] {
-            font-size: 15px !important;
-        }
-        
-        div[style*="padding: 24px"] {
-            padding: 20px !important;
-        }
-        
-        div[style*="font-size: 18px"] {
-            font-size: 16px !important;
-        }
-        
-        div[style*="font-size: 14px"] {
-            font-size: 13px !important;
-        }
-        
-        div[style*="padding: 16px 32px"] {
-            padding: 12px 24px !important;
-        }
-        
-        div[style*="gap: 16px"] {
-            gap: 12px !important;
-        }
-        
-        /* Stack buttons vertically on mobile */
-        div[style*="justify-content: flex-end"] {
-            justify-content: center !important;
-            flex-direction: column !important;
-        }
-        
-        div[style*="justify-content: flex-end"] > * {
-            width: 100% !important;
-            text-align: center !important;
-        }
-    }
-    
-    @media (max-width: 640px) {
-        div[style*="padding: 32px 16px"] {
-            padding: 20px 8px !important;
-        }
-        
-        div[style*="padding: 40px"] {
-            padding: 24px 20px !important;
-        }
-        
-        div[style*="margin-bottom: 40px"] {
-            margin-bottom: 24px !important;
-        }
-        
-        div[style*="font-size: 36px"] {
-            font-size: 24px !important;
-        }
-        
-        div[style*="font-size: 18px"] {
-            font-size: 14px !important;
-        }
-        
-        div[style*="margin-bottom: 32px"] {
-            margin-bottom: 20px !important;
-        }
-        
-        div[style*="padding: 16px 20px"] {
-            padding: 12px 14px !important;
-        }
-        
-        div[style*="font-size: 16px"] {
-            font-size: 14px !important;
-        }
-        
-        div[style*="padding: 24px"] {
-            padding: 16px !important;
-        }
-        
-        div[style*="font-size: 18px"] {
-            font-size: 15px !important;
-        }
-        
-        div[style*="font-size: 14px"] {
-            font-size: 12px !important;
-        }
-        
-        div[style*="padding: 16px 32px"] {
-            padding: 10px 20px !important;
-        }
-        
-        div[style*="gap: 16px"] {
-            gap: 8px !important;
-        }
-        
-        div[style*="width: 64px"] {
-            width: 56px !important;
-        }
-        
-        div[style*="height: 64px"] {
-            height: 56px !important;
-        }
-        
-        div[style*="font-size: 28px"] {
-            font-size: 24px !important;
-        }
-        
-        /* Reduce textarea rows on mobile */
-        textarea[rows="8"] {
-            rows: 6 !important;
+             min-height: 48px;
+         }
+         
+                   /* Button container mobile layout */
+          div[style*="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;"] {
+              flex-direction: column;
+              gap: 8px;
+          }
+          
+          /* Submit buttons container mobile layout */
+          .submit-buttons-container {
+              flex-direction: column;
+              gap: 12px;
         }
     }
     
     @media (max-width: 480px) {
-        div[style*="padding: 32px 16px"] {
-            padding: 16px 4px !important;
-        }
-        
-        div[style*="padding: 40px"] {
-            padding: 20px 16px !important;
-        }
-        
-        div[style*="margin-bottom: 40px"] {
-            margin-bottom: 20px !important;
-        }
-        
-        div[style*="font-size: 36px"] {
-            font-size: 20px !important;
-        }
-        
-        div[style*="font-size: 18px"] {
-            font-size: 12px !important;
-        }
-        
-        div[style*="margin-bottom: 32px"] {
-            margin-bottom: 16px !important;
-        }
-        
-        div[style*="padding: 16px 20px"] {
-            padding: 10px 12px !important;
-        }
-        
-        div[style*="font-size: 16px"] {
-            font-size: 13px !important;
-        }
-        
-        div[style*="padding: 24px"] {
-            padding: 12px !important;
-        }
-        
-        div[style*="font-size: 18px"] {
-            font-size: 14px !important;
-        }
-        
-        div[style*="font-size: 14px"] {
-            font-size: 11px !important;
-        }
-        
-        div[style*="padding: 16px 32px"] {
-            padding: 8px 16px !important;
-        }
-        
-        div[style*="gap: 16px"] {
-            gap: 6px !important;
-        }
-        
-        div[style*="width: 64px"] {
-            width: 48px !important;
-        }
-        
-        div[style*="height: 64px"] {
-            height: 48px !important;
-        }
-        
-        div[style*="font-size: 28px"] {
-            font-size: 20px !important;
-        }
-        
-        /* Further reduce textarea rows on very small screens */
-        textarea[rows="8"] {
-            rows: 4 !important;
-        }
-        
-        /* Adjust list padding on very small screens */
-        ul[style*="padding-left: 20px"] {
-            padding-left: 16px !important;
-        }
-    }
-    
-    /* Touch-friendly improvements for mobile */
-    @media (max-width: 768px) {
-        input, textarea, button, a {
+         /* Extra small devices */
+         #add-source-url, #validate-urls-btn {
+             padding: 14px 16px;
+             font-size: 15px;
+             min-height: 44px;
+         }
+         
+         input[name="source_urls[]"] {
+             padding: 12px 14px !important;
+             font-size: 15px !important;
+             min-height: 44px;
+         }
+         
+         /* Reduce margins for very small screens */
+         .source-url-row {
+             margin-bottom: 8px;
+         }
+         
+                   div[style*="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;"] {
+              margin-top: 8px;
+              gap: 6px;
+          }
+          
+          /* Submit buttons extra small devices */
+          .submit-buttons-container a, .submit-buttons-container button[type="submit"] {
+              padding: 14px 16px;
+              font-size: 15px;
             min-height: 44px;
         }
         
-        input, textarea {
-            font-size: 16px !important; /* Prevents zoom on iOS */
-        }
-        
-        /* Improve form spacing on mobile */
-        .form-group {
-            margin-bottom: 20px !important;
-        }
-    }
-    
-    /* Input focus effects */
-    input:focus, textarea:focus {
-        outline: none;
-        border-color: #667eea !important;
-        background: white !important;
-        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1) !important;
-        transform: translateY(-2px);
-    }
-    
-    /* Button hover effects */
-    button:hover, a:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
-    }
-    
-    /* Smooth transitions */
-    * {
-        transition: all 0.3s ease;
-    }
-    
-    /* Improve form accessibility on mobile */
-    @media (max-width: 768px) {
-        label {
-            font-size: 13px !important;
-        }
-        
-        input::placeholder, textarea::placeholder {
-            font-size: 14px !important;
-        }
-        
-        /* Better touch targets for mobile */
-        button, a {
-            min-width: 44px;
+          .submit-buttons-container {
+              gap: 8px;
         }
     }
 </style>
@@ -516,7 +311,7 @@ function addSourceUrlField() {
         newRow.innerHTML = `
             <input type="url" 
                    name="source_urls[]" 
-                   style="flex: 1; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
+                    style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
                    placeholder="https://example.com/article or https://news.example.com/report"
                    pattern="https?://.+">
             <button type="button" 
@@ -576,178 +371,245 @@ function updateRemoveButtonVisibility() {
             }
         }
     });
-    
 }
 
-// File upload functions
-function updateFileList() {
-    const fileInput = document.getElementById('uploaded_files');
-    const fileList = document.getElementById('file-list');
-    const fileItems = document.getElementById('file-items');
-    
-    if (fileInput.files.length > 0) {
-        fileList.style.display = 'block';
-        fileItems.innerHTML = '';
-        
-        Array.from(fileInput.files).forEach((file, index) => {
-            const fileItem = document.createElement('div');
-            fileItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #bfdbfe; border-radius: 8px; margin-bottom: 8px;';
-            
-            const fileInfo = document.createElement('div');
-            fileInfo.innerHTML = `
-                <div style="font-weight: 600; color: #1e40af;">${file.name}</div>
-                <div style="font-size: 12px; color: #64748b;">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
-            `;
-            
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.innerHTML = '🗑️';
-            removeBtn.style.cssText = 'padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: all 0.3s ease;';
-            removeBtn.onclick = () => removeFile(index);
-            
-            fileItem.appendChild(fileInfo);
-            fileItem.appendChild(removeBtn);
-            fileItems.appendChild(fileItem);
-        });
-    } else {
-        fileList.style.display = 'none';
-    }
-}
 
-function removeFile(index) {
-    const fileInput = document.getElementById('uploaded_files');
-    const dt = new DataTransfer();
+
+// URL validation function
+function validateUrls() {
+    console.log('validateUrls function called');
     
-    Array.from(fileInput.files).forEach((file, i) => {
-        if (i !== index) {
-            dt.items.add(file);
+    const urlInputs = document.querySelectorAll('input[name="source_urls[]"]');
+    console.log('Found URL inputs:', urlInputs.length);
+    
+    const urls = [];
+    
+    // Collect all non-empty URLs
+    urlInputs.forEach((input, index) => {
+        const url = input.value.trim();
+        console.log(`URL ${index + 1}: "${url}"`);
+        if (url) {
+            urls.push(url);
         }
     });
     
-    fileInput.files = dt.files;
-    updateFileList();
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    const apiStatus = document.getElementById('api-status');
+    console.log('Collected URLs:', urls);
     
-    // Check if user is authenticated
-    console.log('User authenticated:', {{ auth()->check() ? 'true' : 'false' }});
+    if (urls.length === 0) {
+        alert('Please add at least one URL to validate.');
+        return;
+    }
     
-    // Check API status
-    checkApiStatus();
+    // Show validation area and loading
+    const validationResults = document.getElementById('url-validation-results');
+    const validationLoading = document.getElementById('validation-loading');
+    const validationContent = document.getElementById('validation-content');
     
-    // Source URLs functionality
-    setupSourceUrls();
+    if (!validationResults || !validationLoading || !validationContent) {
+        console.error('Validation elements not found:', {
+            validationResults: !!validationResults,
+            validationLoading: !!validationLoading,
+            validationContent: !!validationContent
+        });
+        alert('Error: Validation elements not found. Please refresh the page and try again.');
+        return;
+    }
     
-    function checkApiStatus() {
-        apiStatus.textContent = 'Checking...';
-        apiStatus.style.color = '#92400e';
-        
-        // Get CSRF token
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        
-        // Make actual API test call with proper headers
-        fetch('/predictions/api/test', {
-            method: 'GET',
+    validationResults.style.display = 'block';
+    validationLoading.style.display = 'block';
+    validationContent.style.display = 'none';
+    
+    // Get CSRF token from the form (try multiple methods)
+    let token = null;
+    
+    // Method 1: Try to get from hidden input
+    const tokenInput = document.querySelector('input[name="_token"]');
+    if (tokenInput) {
+        token = tokenInput.value;
+        console.log('CSRF token found from input:', token ? 'Yes' : 'No');
+    }
+    
+    // Method 2: Try to get from meta tag
+    if (!token) {
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            token = metaToken.getAttribute('content');
+            console.log('CSRF token found from meta:', token ? 'Yes' : 'No');
+        }
+    }
+    
+    // Method 3: Try to get from any hidden input that might contain the token
+    if (!token) {
+        const allHiddenInputs = document.querySelectorAll('input[type="hidden"]');
+        for (const input of allHiddenInputs) {
+            if (input.value && input.value.length > 20) { // CSRF tokens are usually long
+                token = input.value;
+                console.log('CSRF token found from hidden input:', token ? 'Yes' : 'No');
+                break;
+            }
+        }
+    }
+    
+    if (!token) {
+        console.error('CSRF token not found by any method');
+        alert('Error: CSRF token not found. Please refresh the page and try again.');
+        return;
+    }
+    
+         const validationUrl = '{{ url("/predictions/validate-urls") }}';
+     console.log('Sending validation request to:', validationUrl);
+     console.log('Request payload:', { urls: urls });
+    
+         // Send validation request
+     fetch(validationUrl, {
+        method: 'POST',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': token || ''
-            },
-            credentials: 'same-origin' // Include cookies for authentication
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({ urls: urls })
         })
         .then(response => {
             console.log('Response status:', response.status);
             console.log('Response headers:', response.headers);
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
             return response.json();
         })
         .then(data => {
-            console.log('API test response:', data);
+        console.log('Validation response:', data);
+        validationLoading.style.display = 'none';
+        validationContent.style.display = 'block';
+        
             if (data.success) {
-                if (data.api_status === 'connected') {
-                    apiStatus.textContent = 'Available';
-                    apiStatus.style.color = '#059669';
-                } else if (data.api_status === 'failed') {
-                    apiStatus.textContent = 'API Connection Failed';
-                    apiStatus.style.color = '#dc2626';
+            displayValidationResults(data.data);
                 } else {
-                    apiStatus.textContent = 'Unknown Status: ' + data.api_status;
-                    apiStatus.style.color = '#dc2626';
-                }
-            } else {
-                apiStatus.textContent = 'Error: ' + (data.error || data.message || 'Unknown error');
-                apiStatus.style.color = '#dc2626';
+            validationContent.innerHTML = `
+                <div style="color: #dc2626; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                    <strong>Validation Error:</strong> ${data.message || 'Unknown error occurred'}
+                </div>
+            `;
             }
         })
         .catch(error => {
-            console.error('API test failed:', error);
-            apiStatus.textContent = 'Connection Error: ' + error.message;
-            apiStatus.style.color = '#dc2626';
-        });
+        console.error('Validation error:', error);
+        validationLoading.style.display = 'none';
+        validationContent.style.display = 'block';
+        validationContent.innerHTML = `
+            <div style="color: #dc2626; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                <strong>Network Error:</strong> ${error.message}
+            </div>
+        `;
+    });
+}
+
+function displayValidationResults(data) {
+    const validationContent = document.getElementById('validation-content');
+    
+    let html = `
+        <div style="margin-bottom: 16px;">
+            <h4 style="margin: 0 0 12px 0; color: #374151; font-size: 16px;">URL Validation Results</h4>
+            <div style="display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                <div style="padding: 8px 16px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; color: #0369a1;">
+                    <strong>Total:</strong> ${data.summary.total_urls}
+                </div>
+                <div style="padding: 8px 16px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 8px; color: #166534;">
+                    <strong>Accessible:</strong> ${data.summary.accessible_count}
+                </div>
+                <div style="padding: 8px 16px; background: #fef2f2; border: 1px solid #ef4444; border-radius: 8px; color: #dc2626;">
+                    <strong>Inaccessible:</strong> ${data.summary.inaccessible_count}
+                </div>
+                <div style="padding: 8px 16px; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; color: #d97706;">
+                    <strong>Success Rate:</strong> ${data.summary.success_rate}%
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Display recommendations
+    if (data.recommendations && data.recommendations.length > 0) {
+        html += `
+            <div style="margin-bottom: 16px; padding: 16px; background: #f0f9ff; border-radius: 8px; border: 1px solid #0ea5e9;">
+                <h5 style="margin: 0 0 8px 0; color: #0369a1; font-size: 14px;">💡 Recommendations</h5>
+                <ul style="margin: 0; padding-left: 20px; color: #0369a1; font-size: 14px;">
+                    ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+            </div>
+        `;
     }
     
-    // Manual test function
-    function testApiManually() {
-        console.log('Manual API test started');
-        
-        // Test simple endpoint first
-        fetch('/predictions/simple-test')
-            .then(response => {
-                console.log('Simple test response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Simple test response:', data);
-                alert('Simple test: ' + JSON.stringify(data, null, 2));
-            })
-            .catch(error => {
-                console.error('Simple test failed:', error);
-                alert('Simple test failed: ' + error.message);
-            });
-        
-        // Test main API endpoint
-        fetch('/predictions/api/test')
-            .then(response => {
-                console.log('Main API test response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Main API test response:', data);
-                alert('Main API test: ' + JSON.stringify(data, null, 2));
-            })
-            .catch(error => {
-                console.error('Main API test failed:', error);
-                alert('Main API test failed: ' + error.message);
-            });
+    // Display accessible URLs
+    if (data.accessible_urls && data.accessible_urls.length > 0) {
+        html += `
+            <div style="margin-bottom: 16px;">
+                <h5 style="margin: 0 0 8px 0; color: #166534; font-size: 14px;">✅ Accessible URLs</h5>
+                ${data.accessible_urls.map(url => `
+                    <div style="padding: 8px 12px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; margin-bottom: 4px; font-size: 14px; color: #166534;">
+                        ${url.url} <span style="float: right; font-size: 12px;">${url.response_time}ms</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
     
-    function setupSourceUrls() {
-        const addButton = document.getElementById('add-source-url');
-        const container = document.getElementById('source-urls-container');
+         // Display inaccessible URLs with errors
+     if (data.inaccessible_urls && data.inaccessible_urls.length > 0) {
+         html += `
+             <div style="margin-bottom: 16px;">
+                 <h5 style="margin: 0 0 8px 0; color: #dc2626; font-size: 14px;">❌ Inaccessible URLs</h5>
+                 ${data.inaccessible_urls.map(url => `
+                     <div style="padding: 8px 12px; background: #fef2f2; border: 1px solid #ef4444; border-radius: 6px; margin-bottom: 4px; font-size: 14px; color: #dc2626;">
+                         <div style="font-weight: 600;">${url.url}</div>
+                         <div style="font-size: 12px; margin-top: 4px;">${url.error}</div>
+                         ${url.status_code ? `<div style="font-size: 12px; color: #9ca3af;">Status: ${url.status_code}</div>` : ''}
+                     </div>
+                 `).join('')}
+                 
+                 <!-- AI General Knowledge Notice -->
+                 <div style="margin-top: 12px; padding: 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; color: #0369a1; font-size: 13px;">
+                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                         <span style="font-size: 16px;">🤖</span>
+                         <strong>AI Analysis Note:</strong>
+                     </div>
+                     <p style="margin: 0; line-height: 1.4;">
+                         For inaccessible URLs, the AI will use its general knowledge and training data to provide relevant insights. 
+                         While this may not include the most recent specific details from these sources, it will still deliver comprehensive 
+                         analysis based on available information.
+                     </p>
+                 </div>
+             </div>
+         `;
+     }
+    
+    validationContent.innerHTML = html;
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded, initializing...');
         
         // Set up initial remove button visibility
         updateRemoveButtonVisibility();
-    }
 
     // Show loading indicator when form is submitted
     const form = document.querySelector('form');
     const loadingIndicator = document.getElementById('loadingIndicator');
     
+    if (form && loadingIndicator) {
     form.addEventListener('submit', function() {
         loadingIndicator.style.display = 'block';
         
         // Disable the submit button
         const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
         submitButton.disabled = true;
         submitButton.textContent = '🔄 Processing...';
         submitButton.style.opacity = '0.7';
         submitButton.style.cursor = 'not-allowed';
+            }
     });
+    }
+    
+    console.log('Initialization complete');
 });
 </script>
 @endsection

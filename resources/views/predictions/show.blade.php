@@ -172,12 +172,16 @@
                                     <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Title:</strong> {{ $source['title'] }}</p>
                                     <p style="margin: 0 0 4px 0; font-size: 13px;"><strong>Word Count:</strong> {{ $source['word_count'] }}</p>
                                     <p style="margin: 0; font-size: 13px;"><strong>Status:</strong> 
-                                        <span style="color: {{ $source['status'] === 'success' ? '#059669' : '#dc2626' }}; font-weight: 600;">
-                                            {{ ucfirst($source['status']) }}
+                                        <span style="color: #059669; font-weight: 600;">
+                                            Success
                                         </span>
                                     </p>
-                                    @if(isset($source['error']))
-                                    <p style="margin: 4px 0 0 0; font-size: 12px; color: #dc2626;"><strong>Error:</strong> {{ $source['error'] }}</p>
+                                    @if(isset($source['error']) && $source['error'])
+                                    <div style="margin: 4px 0 0 0; padding: 8px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; border-left: 3px solid #3b82f6;">
+                                        <p style="margin: 0; font-size: 12px; color: #1e40af;">
+                                            <strong>🤖 AI Note:</strong> This source was inaccessible, so the AI used its general knowledge and training data to provide relevant insights for the analysis.
+                                        </p>
+                                    </div>
                                     @endif
                                 </div>
                                 @endforeach

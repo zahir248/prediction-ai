@@ -44,6 +44,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/simple-test', [PredictionController::class, 'simpleTest'])->name('predictions.simple-test');
     Route::get('/predictions/debug-auth', [PredictionController::class, 'debugAuth'])->name('predictions.debug-auth');
     Route::get('/predictions/test-delete/{prediction}', [PredictionController::class, 'testDelete'])->name('predictions.test-delete');
+    Route::post('/predictions/validate-urls', [PredictionController::class, 'validateUrls'])->name('predictions.validate-urls');
+    Route::get('/predictions/test-url-validation', [PredictionController::class, 'testUrlValidation'])->name('predictions.test-url-validation');
     
     // Parameterized routes must come LAST
     Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');
