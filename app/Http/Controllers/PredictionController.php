@@ -156,6 +156,9 @@ class PredictionController extends Controller
             'model_used' => 'pending' // Set default model
         ]);
 
+        // Record start time for processing time calculation
+        $startTime = microtime(true);
+
         try {
             // Process with AI using combined input data (original + extracted from files)
             $result = $this->geminiService->analyzeText(
@@ -165,11 +168,15 @@ class PredictionController extends Controller
                 $request->prediction_horizon
             );
             
+            // Calculate actual processing time
+            $processingTime = round(microtime(true) - $startTime, 3);
+            
             // Log the result for debugging
             \Log::info('AI Analysis Result', [
                 'analysis_type' => 'prediction-analysis',
                 'result' => $result,
-                'prediction_id' => $prediction->id
+                'prediction_id' => $prediction->id,
+                'processing_time' => $processingTime
             ]);
             
             // Debug the result structure
@@ -188,17 +195,23 @@ class PredictionController extends Controller
                 // We have a properly structured response
                 $confidenceScore = $this->extractConfidenceScore($result, 'prediction-analysis');
                 
+                // Try to get API timing from the result metadata if available
+                $apiTiming = $result['api_metadata']['api_response_time'] ?? null;
+                $finalProcessingTime = $apiTiming !== null ? $apiTiming : $processingTime;
+                
                 // Log the confidence score for debugging
                 \Log::info('Extracted Confidence Score', [
                     'confidence_score' => $confidenceScore,
-                    'analysis_type' => 'prediction-analysis'
+                    'analysis_type' => 'prediction-analysis',
+                    'api_timing' => $apiTiming,
+                    'total_processing_time' => $finalProcessingTime
                 ]);
                 
                 $prediction->update([
                     'prediction_result' => $result,
                     'confidence_score' => is_numeric($confidenceScore) ? (float) $confidenceScore : 0.75,
                     'model_used' => 'gemini-2.5-flash',
-                    'processing_time' => 40.0, // Approximate from log
+                    'processing_time' => $finalProcessingTime, // Use API timing if available, otherwise total processing time
                     'status' => $this->validateStatus('completed')
                 ]);
 
@@ -211,11 +224,15 @@ class PredictionController extends Controller
                 \Log::warning('Processing raw response from AI');
                 \Log::info('Raw response length: ' . strlen($result['raw_response']));
                 
+                // Try to get API timing from the result metadata if available
+                $apiTiming = $result['api_metadata']['api_response_time'] ?? null;
+                $finalProcessingTime = $apiTiming !== null ? $apiTiming : $processingTime;
+                
                 $prediction->update([
                     'prediction_result' => $result,
                     'confidence_score' => 0.60, // Lower confidence for raw responses
                     'model_used' => 'gemini-2.5-flash',
-                    'processing_time' => 40.0,
+                    'processing_time' => $finalProcessingTime, // Use API timing if available, otherwise total processing time
                     'status' => $this->validateStatus('completed_with_warnings')
                 ]);
 
@@ -228,7 +245,7 @@ class PredictionController extends Controller
                     'status' => $this->validateStatus('failed'),
                     'confidence_score' => 0.0,
                     'model_used' => 'failed',
-                    'processing_time' => 0.0
+                    'processing_time' => $processingTime // Use actual calculated processing time even for failures
                 ]);
 
                 $errorMessage = isset($result['error']) ? $result['error'] : 'Analysis failed due to unknown error';
@@ -237,11 +254,14 @@ class PredictionController extends Controller
                     ->withInput();
             }
         } catch (\Exception $e) {
+            // Calculate processing time even for exceptions
+            $processingTime = round(microtime(true) - $startTime, 3);
+            
             $prediction->update([
                 'status' => $this->validateStatus('failed'),
                 'confidence_score' => 0.0, // Set default confidence for exceptions
                 'model_used' => 'error',
-                'processing_time' => 0.0
+                'processing_time' => $processingTime // Use actual calculated processing time
             ]);
             
             return redirect()->back()
@@ -479,14 +499,145 @@ class PredictionController extends Controller
             return 0.75;
         }
         
+        // Try to extract confidence score from various possible locations in the result
+        $confidenceScore = null;
+        
+        // Check for confidence_score field
+        if (isset($result['confidence_score']) && is_numeric($result['confidence_score'])) {
+            $confidenceScore = (float) $result['confidence_score'];
+        }
+        // Check for confidence field
+        elseif (isset($result['confidence']) && is_numeric($result['confidence'])) {
+            $confidenceScore = (float) $result['confidence'];
+        }
+        // Check for confidence_level field (might be text like "High (85-90%)")
+        elseif (isset($result['confidence_level'])) {
+            $confidenceScore = $this->parseConfidenceLevel($result['confidence_level']);
+        }
+        // Check for confidence in nested result structure
+        elseif (isset($result['result']['confidence_score']) && is_numeric($result['result']['confidence_score'])) {
+            $confidenceScore = (float) $result['result']['confidence_score'];
+        }
+        elseif (isset($result['result']['confidence']) && is_numeric($result['result']['confidence'])) {
+            $confidenceScore = (float) $result['result']['confidence'];
+        }
+        // Check for confidence in API metadata
+        elseif (isset($result['api_metadata']['confidence_score']) && is_numeric($result['api_metadata']['confidence_score'])) {
+            $confidenceScore = (float) $result['api_metadata']['confidence_score'];
+        }
+        // Check for confidence in scraping metadata
+        elseif (isset($result['scraping_metadata']['confidence_score']) && is_numeric($result['scraping_metadata']['confidence_score'])) {
+            $confidenceScore = (float) $result['scraping_metadata']['confidence_score'];
+        }
+        
+        // If we found a valid confidence score, return it
+        if ($confidenceScore !== null && $confidenceScore >= 0 && $confidenceScore <= 1) {
+            return $confidenceScore;
+        }
+        
+        // Fallback logic based on analysis type and result quality
         switch ($analysisType) {
             case 'prediction-analysis':
-                // For prediction analysis, we might not have a confidence score
-                return 0.90; // Updated to 0.90 after model upgrade
+                // For prediction analysis, analyze the result quality to estimate confidence
+                return $this->estimateConfidenceFromResult($result);
                 
             default:
                 return 0.75;
         }
+    }
+    
+    /**
+     * Parse confidence level from text descriptions like "High (85-90%)"
+     */
+    protected function parseConfidenceLevel($confidenceLevel)
+    {
+        if (is_numeric($confidenceLevel)) {
+            return (float) $confidenceLevel;
+        }
+        
+        if (is_string($confidenceLevel)) {
+            // Extract percentage from text like "High (85-90%)"
+            if (preg_match('/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*%/', $confidenceLevel, $matches)) {
+                // Take the average of the range
+                return (float) (($matches[1] + $matches[2]) / 2) / 100;
+            }
+            
+            // Extract single percentage like "85%"
+            if (preg_match('/(\d+(?:\.\d+)?)\s*%/', $confidenceLevel, $matches)) {
+                return (float) $matches[1] / 100;
+            }
+            
+            // Map text descriptions to confidence scores
+            $textConfidence = [
+                'very high' => 0.95,
+                'high' => 0.85,
+                'medium-high' => 0.75,
+                'medium' => 0.65,
+                'medium-low' => 0.55,
+                'low' => 0.45,
+                'very low' => 0.35
+            ];
+            
+            $level = strtolower(trim($confidenceLevel));
+            foreach ($textConfidence as $text => $score) {
+                if (strpos($level, $text) !== false) {
+                    return $score;
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Estimate confidence based on result quality and completeness
+     */
+    protected function estimateConfidenceFromResult($result)
+    {
+        $confidence = 0.75; // Base confidence
+        
+        // Check if we have all essential fields
+        $essentialFields = ['title', 'executive_summary', 'predictions'];
+        $hasEssentialFields = true;
+        foreach ($essentialFields as $field) {
+            if (!isset($result[$field]) || empty($result[$field])) {
+                $hasEssentialFields = false;
+                break;
+            }
+        }
+        
+        if ($hasEssentialFields) {
+            $confidence += 0.10; // Bonus for having essential fields
+        }
+        
+        // Check for additional detailed fields
+        $detailedFields = ['key_factors', 'risk_assessment', 'recommendations', 'policy_implications'];
+        $detailedFieldCount = 0;
+        foreach ($detailedFields as $field) {
+            if (isset($result[$field]) && !empty($result[$field])) {
+                $detailedFieldCount++;
+            }
+        }
+        
+        // Add confidence based on number of detailed fields
+        $confidence += min(0.10, $detailedFieldCount * 0.02);
+        
+        // Check if predictions are specific and actionable
+        if (isset($result['predictions']) && is_array($result['predictions'])) {
+            $specificPredictions = 0;
+            foreach ($result['predictions'] as $prediction) {
+                if (strlen($prediction) > 20) { // More than just a few words
+                    $specificPredictions++;
+                }
+            }
+            
+            if ($specificPredictions >= 3) {
+                $confidence += 0.05; // Bonus for specific predictions
+            }
+        }
+        
+        // Ensure confidence is within valid range
+        return max(0.0, min(1.0, $confidence));
     }
 
     public function debugPredictionOwnership($predictionId)

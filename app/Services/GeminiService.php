@@ -80,6 +80,9 @@ class GeminiService
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
             
+            // Record start time for API request timing
+            $apiStartTime = microtime(true);
+            
             Log::info("Execution time limit set to: " . ini_get('max_execution_time') . " seconds");
             Log::info("Memory limit: " . ini_get('memory_limit'));
             Log::info("Starting Gemini API request at: " . now());
@@ -141,7 +144,11 @@ class GeminiService
                 ]
             ]);
             
+            // Calculate API response time
+            $apiResponseTime = round(microtime(true) - $apiStartTime, 3);
+            
             Log::info("Gemini API response received at: " . now());
+            Log::info("API response time: " . $apiResponseTime . " seconds");
             Log::info("Response status: " . $response->status());
             Log::info("Response body length: " . strlen($response->body()));
 
@@ -155,6 +162,18 @@ class GeminiService
                     $parsedResult = $this->parseJsonResponse($result);
                     
                     if ($parsedResult) {
+                        // Extract confidence score from the AI response if available
+                        $confidenceScore = $this->extractConfidenceFromAIResponse($parsedResult);
+                        
+                        // Add API timing metadata
+                        $parsedResult['api_metadata'] = [
+                            'api_response_time' => $apiResponseTime,
+                            'api_response_time_unit' => 'seconds',
+                            'api_timestamp' => now()->toISOString(),
+                            'model_version' => 'gemini-2.5-flash',
+                            'confidence_score' => $confidenceScore
+                        ];
+                        
                         // Add scraping metadata to the result
                         if ($scrapedContent || $scrapingSummary) {
                             $parsedResult['scraping_metadata'] = [
@@ -502,7 +521,15 @@ class GeminiService
             'next_review' => 'Immediate retry recommended',
             'critical_timeline' => 'Immediate attention required',
             'success_metrics' => ['System restoration', 'Successful analysis completion'],
-            'status' => 'error'
+            'status' => 'error',
+            'api_metadata' => [
+                'api_response_time' => 0.0,
+                'api_response_time_unit' => 'seconds',
+                'api_timestamp' => now()->toISOString(),
+                'model_version' => 'gemini-2.5-flash',
+                'note' => 'Fallback response - timing may not be accurate',
+                'confidence_score' => 0.50 // Very low confidence for error fallback responses
+            ]
         ];
     }
 
@@ -710,10 +737,16 @@ class GeminiService
             'recommendations' => $this->extractListSection($rawResponse, 'recommendations', 'strategies'),
             'confidence_level' => 'High (85-90%)',
             'prediction_horizon' => now()->addYear()->format('Y'),
-                         'methodology' => 'AI-powered analysis using Gemini 2.0 Flash for comprehensive future forecasting.',
-             'processing_time' => 0.8,
-             'model_used' => 'gemini-2.0-flash',
-            'note' => 'This analysis combines AI-generated insights with intelligent processing for comprehensive future predictions.'
+            'methodology' => 'AI-powered analysis using Gemini 2.5 Flash for comprehensive future forecasting.',
+            'model_used' => 'gemini-2.5-flash',
+            'note' => 'This analysis combines AI-generated insights with intelligent processing for comprehensive future predictions.',
+            'api_metadata' => [
+                'api_response_time' => 0.0,
+                'api_response_time_unit' => 'seconds',
+                'api_timestamp' => now()->toISOString(),
+                'model_version' => 'gemini-2.5-flash',
+                'note' => 'Fallback response - timing may not be accurate'
+            ]
         ];
         
         return $result;
@@ -990,5 +1023,23 @@ class GeminiService
             Log::error('Error in SSL retry: ' . $e->getMessage());
             return $this->getFallbackResponse($analysisType);
         }
+    }
+
+    protected function extractConfidenceFromAIResponse($parsedResult)
+    {
+        // Look for a confidence score in the parsed result
+        if (isset($parsedResult['confidence_level'])) {
+            return $parsedResult['confidence_level'];
+        }
+
+        // If not found, try to extract from the raw response if available
+        if (isset($parsedResult['raw_response'])) {
+            $rawResponse = $parsedResult['raw_response'];
+            if (preg_match('/Confidence Score: (\d+\.\d+)/', $rawResponse, $matches)) {
+                return $matches[1];
+            }
+        }
+
+        return null; // No confidence score found
     }
 }
