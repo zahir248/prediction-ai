@@ -199,7 +199,7 @@ class PredictionController extends Controller
                     'confidence_score' => is_numeric($confidenceScore) ? (float) $confidenceScore : 0.75,
                     'model_used' => 'gemini-2.5-flash',
                     'processing_time' => 40.0, // Approximate from log
-                    'status' => 'completed'
+                    'status' => $this->validateStatus('completed')
                 ]);
 
                 $successMessage = 'Prediction completed successfully using Google Gemini AI!';
@@ -216,7 +216,7 @@ class PredictionController extends Controller
                     'confidence_score' => 0.60, // Lower confidence for raw responses
                     'model_used' => 'gemini-2.5-flash',
                     'processing_time' => 40.0,
-                    'status' => 'completed_with_warnings'
+                    'status' => $this->validateStatus('completed_with_warnings')
                 ]);
 
                 $warningMessage = 'Prediction completed with warnings. The AI response may be incomplete due to processing limitations.';
@@ -225,7 +225,7 @@ class PredictionController extends Controller
                     ->with('warning', $warningMessage);
             } else {
                 $prediction->update([
-                    'status' => 'failed',
+                    'status' => $this->validateStatus('failed'),
                     'confidence_score' => 0.0,
                     'model_used' => 'failed',
                     'processing_time' => 0.0
@@ -238,7 +238,7 @@ class PredictionController extends Controller
             }
         } catch (\Exception $e) {
             $prediction->update([
-                'status' => 'failed',
+                'status' => $this->validateStatus('failed'),
                 'confidence_score' => 0.0, // Set default confidence for exceptions
                 'model_used' => 'error',
                 'processing_time' => 0.0
@@ -281,6 +281,28 @@ class PredictionController extends Controller
         return view('predictions.history', compact('predictions'));
     }
     
+    /**
+     * Validate status value before updating
+     */
+    private function validateStatus($status)
+    {
+        $validStatuses = [
+            \App\Models\Prediction::STATUS_PENDING,
+            \App\Models\Prediction::STATUS_PROCESSING, 
+            \App\Models\Prediction::STATUS_COMPLETED,
+            \App\Models\Prediction::STATUS_COMPLETED_WITH_WARNINGS,
+            \App\Models\Prediction::STATUS_FAILED,
+            \App\Models\Prediction::STATUS_CANCELLED
+        ];
+        
+        if (!in_array($status, $validStatuses)) {
+            \Log::error('Invalid status attempted: ' . $status);
+            throw new \InvalidArgumentException('Invalid status value: ' . $status);
+        }
+        
+        return $status;
+    }
+
     public function fixData()
     {
         // Fix any existing predictions with null confidence scores
