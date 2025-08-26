@@ -10,6 +10,7 @@ class Prediction extends Model
     use HasFactory;
 
     // Prediction horizon constants
+    const HORIZON_NEXT_TWO_DAYS = 'next_two_days';
     const HORIZON_NEXT_TWO_WEEKS = 'next_two_weeks';
     const HORIZON_NEXT_MONTH = 'next_month';
     const HORIZON_THREE_MONTHS = 'three_months';
@@ -29,6 +30,7 @@ class Prediction extends Model
     public static function getHorizonOptions()
     {
         return [
+            self::HORIZON_NEXT_TWO_DAYS => 'Next Two Days',
             self::HORIZON_NEXT_TWO_WEEKS => 'Next Two Weeks',
             self::HORIZON_NEXT_MONTH => 'Next Month',
             self::HORIZON_THREE_MONTHS => '3 Months',

@@ -111,7 +111,7 @@ class PredictionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'topic' => 'required|string|max:255',
-            'prediction_horizon' => 'required|in:next_two_weeks,next_month,three_months,six_months,twelve_months,two_years',
+            'prediction_horizon' => 'required|in:next_two_days,next_two_weeks,next_month,three_months,six_months,twelve_months,two_years',
             'input_data' => 'required|string|min:10',
             'source_urls' => 'nullable|array',
             'source_urls.*' => 'nullable|url|max:500',
