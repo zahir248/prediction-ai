@@ -12,6 +12,7 @@ class GeminiService
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
     protected $webScrapingService;
     protected $sslVerify;
+    protected $currentPredictionHorizon;
 
     public function __construct(WebScrapingService $webScrapingService)
     {
@@ -71,6 +72,9 @@ class GeminiService
                 }
             }
 
+            // Store the current prediction horizon for fallback responses
+            $this->currentPredictionHorizon = $predictionHorizon;
+            
             $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon);
             
             // Set execution time limit to 5 minutes for long AI requests
@@ -202,6 +206,7 @@ class GeminiService
     protected function getHorizonText($horizon)
     {
         $horizonMap = [
+            'next_two_days' => 'Next Two Days',
             'next_two_weeks' => 'Next Two Weeks',
             'next_month' => 'Next Month',
             'three_months' => 'Next 3 Months',
@@ -285,7 +290,7 @@ class GeminiService
         $prompt .= "{\n";
         $prompt .= "  \"title\": \"[Comprehensive Title: Topic + Time Period + Key Focus Areas]\",\n";
         $prompt .= "  \"executive_summary\": \"[3-4 sentence executive summary covering key predictions, risks, and strategic implications]\",\n";
-        $prompt .= "  \"prediction_horizon\": \"[Specific time period: e.g., 'Next 6-12 months' or 'Q1-Q4 2025']\",\n";
+        $prompt .= "  \"prediction_horizon\": \"[Specific time period: e.g., 'Next Two Days' or 'Next Two Weeks' or 'Next Month' or 'Next 3 Months' or 'Next 6 Months' or 'Next 12 Months' or 'Next 2 Years']\",\n";
         $prompt .= "  \"current_situation\": \"[Detailed analysis of current state, trends, and context that inform predictions]\",\n";
         $prompt .= "  \"key_factors\": [\n";
         $prompt .= "    \"[Factor 1: Specific, actionable factor with brief explanation]\",\n";
@@ -527,7 +532,7 @@ class GeminiService
         $defaults = [
             'title' => $result['title'] ?? "AI-Generated Prediction Analysis for " . substr($text ?? '', 0, 50),
             'executive_summary' => $result['executive_summary'] ?? "Comprehensive AI analysis completed using Google Gemini 2.0 Flash. This analysis provides strategic insights and future predictions based on advanced pattern recognition and trend analysis.",
-            'prediction_horizon' => $result['prediction_horizon'] ?? "Next 6-12 months",
+            'prediction_horizon' => $result['prediction_horizon'] ?? $this->getHorizonText($this->currentPredictionHorizon ?? 'next_month'),
             'current_situation' => $result['current_situation'] ?? "Analysis provided by Google Gemini AI model with comprehensive data processing and trend analysis.",
             'key_factors' => $result['key_factors'] ?? ["AI-powered analysis", "Advanced pattern recognition", "Comprehensive trend analysis", "Strategic forecasting", "Data-driven insights", "Future scenario modeling"],
             'predictions' => $result['predictions'] ?? ["AI-generated predictions with timeline analysis", "Strategic forecasting with probability assessment", "Trend-based future outcomes", "Risk-adjusted predictions", "Opportunity identification", "Threat assessment and timeline", "Market evolution predictions", "Technology adoption forecasts", "Policy impact analysis", "Economic trend projections"],
@@ -579,7 +584,7 @@ class GeminiService
         return [
             'title' => "Comprehensive AI Prediction Analysis for " . substr($text, 0, 50),
             'executive_summary' => "This comprehensive analysis provides strategic insights and future predictions based on advanced AI analysis using Google Gemini 2.0 Flash. The analysis covers key trends, risks, opportunities, and strategic recommendations for informed decision-making.",
-            'prediction_horizon' => "Next 6-12 months",
+            'prediction_horizon' => $this->getHorizonText($this->currentPredictionHorizon ?? 'next_month'),
             'current_situation' => "Analysis completed using advanced AI algorithms with comprehensive data processing and trend analysis capabilities. The system leverages multiple data points to identify patterns and generate strategic insights.",
             'key_factors' => [
                 "AI-powered comprehensive analysis",
