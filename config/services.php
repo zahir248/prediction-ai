@@ -23,7 +23,11 @@ return [
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
-        'ssl_verify' => env('GEMINI_SSL_VERIFY', true), // Set to false for development environments
+        'ssl_verify' => env('GEMINI_SSL_VERIFY', true),
+        'max_retries' => env('GEMINI_MAX_RETRIES', 2),
+        'initial_token_limit' => env('GEMINI_INITIAL_TOKEN_LIMIT', 8192),
+        'reduced_token_limit' => env('GEMINI_REDUCED_TOKEN_LIMIT', 4096),
+        'enable_truncation_detection' => env('GEMINI_ENABLE_TRUNCATION_DETECTION', true),
     ],
 
     'postmark' => [

@@ -162,6 +162,22 @@ class GeminiService
                     $parsedResult = $this->parseJsonResponse($result);
                     
                     if ($parsedResult) {
+                        // Check if this is a partial response due to truncation
+                        if (isset($parsedResult['status']) && $parsedResult['status'] === 'partial') {
+                            Log::warning("Received partial response, attempting retry with reduced prompt");
+                            
+                            // Try retry with reduced prompt if enabled and we haven't exceeded retry limit
+                            if ($this->enableTruncationDetection) {
+                                $retryResult = $this->retryWithReducedPrompt($prompt, $scrapedContent, $sourceUrls, $analysisType, $predictionHorizon);
+                                if ($retryResult) {
+                                    Log::info("Retry successful, returning complete response");
+                                    return $retryResult;
+                                }
+                            }
+                            
+                            Log::warning("Retry failed, returning partial response");
+                        }
+                        
                         // Extract confidence score from the AI response if available
                         $confidenceScore = $this->extractConfidenceFromAIResponse($parsedResult);
                         
@@ -195,6 +211,17 @@ class GeminiService
                         }
                         
                         return $parsedResult;
+                    }
+                    
+                    // If parsing failed, check if response appears truncated and try retry
+                    if ($this->enableTruncationDetection && $this->isResponseTruncated($result)) {
+                        Log::warning("Response appears truncated, attempting retry with reduced prompt");
+                        
+                        $retryResult = $this->retryWithReducedPrompt($prompt, $scrapedContent, $sourceUrls, $analysisType, $predictionHorizon);
+                        if ($retryResult) {
+                            Log::info("Retry successful, returning complete response");
+                            return $retryResult;
+                        }
                     }
                     
                     return $result;
@@ -425,8 +452,18 @@ class GeminiService
                 Log::info("Original JSON length: " . strlen($jsonString));
                 Log::info("JSON preview: " . substr($jsonString, -200)); // Show end of JSON
                 
-                $jsonString = $this->fixTruncatedJson($jsonString);
-                Log::info("Fixed JSON length: " . strlen($jsonString));
+                // Try multiple repair strategies
+                $jsonString = $this->repairJsonWithMultipleStrategies($jsonString);
+                Log::info("Repaired JSON length: " . strlen($jsonString));
+                
+                // If still not valid, try to extract partial content
+                if (!$this->isValidJson($jsonString)) {
+                    Log::warning("JSON repair failed, attempting to extract partial content");
+                    $partialResult = $this->extractPartialContent($jsonString);
+                    if ($partialResult) {
+                        return $partialResult;
+                    }
+                }
             }
             
             $decoded = json_decode($jsonString, true);
@@ -436,6 +473,16 @@ class GeminiService
             } else {
                 Log::error("JSON decode error: " . json_last_error_msg());
                 Log::error("JSON string: " . substr($jsonString, 0, 500) . "...");
+                
+                // Try one more repair attempt with error-specific fixes
+                $finalRepair = $this->repairJsonByErrorType($jsonString, json_last_error());
+                if ($finalRepair && $this->isValidJson($finalRepair)) {
+                    $decoded = json_decode($finalRepair, true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        Log::info("JSON successfully repaired after error-specific fixes");
+                        return $decoded;
+                    }
+                }
             }
         } catch (\Exception $e) {
             Log::error("Exception in parseJsonResponse: " . $e->getMessage());
@@ -487,6 +534,336 @@ class GeminiService
         }
         
         Log::info("JSON fix: Added " . ($closeBraces - substr_count($jsonString, '}') + ($openBraces - $closeBraces)) . " closing braces");
+        
+        return $jsonString;
+    }
+
+    private function repairJsonWithMultipleStrategies($jsonString)
+    {
+        Log::info("Applying multiple JSON repair strategies...");
+        
+        // Strategy 1: Basic truncation fix
+        $repaired = $this->fixTruncatedJson($jsonString);
+        
+        // Strategy 2: Fix common syntax errors
+        $repaired = $this->fixSyntaxErrors($repaired);
+        
+        // Strategy 3: Fix UTF-8 encoding issues
+        $repaired = $this->fixUtf8Errors($repaired);
+        
+        // Strategy 4: Repair unbalanced braces and brackets
+        $repaired = $this->repairUnbalancedBraces($repaired);
+        
+        // Strategy 5: Remove trailing commas and fix incomplete strings
+        $repaired = $this->removeTrailingCommas($repaired);
+        $repaired = $this->fixIncompleteStrings($repaired);
+        
+        Log::info("Multiple repair strategies completed");
+        return $repaired;
+    }
+
+    private function isResponseTruncated($response)
+    {
+        // Check for common signs of truncation
+        $truncationIndicators = [
+            'incomplete' => !preg_match('/\}$/', $response), // Missing closing brace
+            'unclosed_quotes' => substr_count($response, '"') % 2 !== 0, // Odd number of quotes
+            'unclosed_brackets' => substr_count($response, '[') !== substr_count($response, ']'), // Unbalanced brackets
+            'unclosed_braces' => substr_count($response, '{') !== substr_count($response, '}'), // Unbalanced braces
+            'ends_with_comma' => preg_match('/,\s*$/', $response), // Ends with comma
+            'incomplete_string' => preg_match('/"[^"]*$/', $response), // Incomplete string at end
+        ];
+        
+        $isTruncated = false;
+        foreach ($truncationIndicators as $indicator => $value) {
+            if ($value) {
+                Log::info("Truncation indicator detected: {$indicator}");
+                $isTruncated = true;
+            }
+        }
+        
+        return $isTruncated;
+    }
+
+    private function retryWithReducedPrompt($originalPrompt, $scrapedContent, $sourceUrls, $analysisType, $predictionHorizon)
+    {
+        try {
+            Log::info("Retrying with reduced prompt to avoid truncation");
+            
+            // Create a simplified prompt with fewer requirements
+            $reducedPrompt = $this->createReducedPrompt($originalPrompt, $predictionHorizon);
+            
+            // Reduce maxOutputTokens to ensure complete response
+            $response = Http::timeout(300)->withOptions([
+                'verify' => $this->sslVerify,
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                    CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
+                ]
+            ])->withHeaders([
+                'x-goog-api-key' => $this->apiKey,
+                'Content-Type' => 'application/json'
+            ])->post($this->baseUrl, [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => $reducedPrompt
+                            ]
+                        ]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'topK' => 40,
+                    'topP' => 0.95,
+                    'maxOutputTokens' => 4096, // Reduced from 8192
+                ],
+                'safetySettings' => [
+                    [
+                        'category' => 'HARM_CATEGORY_HARASSMENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ]
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    $result = $data['candidates'][0]['content']['parts'][0]['text'];
+                    
+                    // Try to parse JSON response
+                    $parsedResult = $this->parseJsonResponse($result);
+                    
+                    if ($parsedResult) {
+                        // Add metadata indicating this was a retry
+                        $parsedResult['api_metadata'] = [
+                            'api_response_time' => 0.0,
+                            'api_response_time_unit' => 'seconds',
+                            'api_timestamp' => now()->toISOString(),
+                            'model_version' => 'gemini-2.5-flash',
+                            'note' => 'Response from retry with reduced prompt to avoid truncation'
+                        ];
+                        
+                        // Add scraping metadata
+                        if ($scrapedContent) {
+                            $parsedResult['scraping_metadata'] = [
+                                'total_sources' => count($sourceUrls),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'scraped_at' => now()->toISOString(),
+                                'note' => 'Retry response - some metadata may be simplified'
+                            ];
+                        }
+                        
+                        return $parsedResult;
+                    }
+                }
+            }
+            
+            Log::warning("Retry with reduced prompt also failed");
+            return null;
+            
+        } catch (\Exception $e) {
+            Log::error("Error in retry with reduced prompt: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    private function createReducedPrompt($originalPrompt, $predictionHorizon)
+    {
+        // Create a simplified version of the prompt that's less likely to cause truncation
+        $reducedPrompt = "You are an expert AI prediction analyst. Please analyze the following text and provide a prediction analysis.\n\n";
+        
+        // Extract the main text to analyze (first part of original prompt)
+        if (preg_match('/Text to analyze: (.*?)(?=\n\n|$)/s', $originalPrompt, $matches)) {
+            $reducedPrompt .= "Text to analyze: " . $matches[1] . "\n\n";
+        }
+        
+        if ($predictionHorizon) {
+            $horizonText = $this->getHorizonText($predictionHorizon);
+            $reducedPrompt .= "PREDICTION HORIZON: {$horizonText}\n\n";
+        }
+        
+        $reducedPrompt .= "Please provide your analysis in this JSON structure:\n";
+        $reducedPrompt .= "{\n";
+        $reducedPrompt .= '  "title": "Analysis Title",\n';
+        $reducedPrompt .= '  "executive_summary": "Brief summary",\n';
+        $reducedPrompt .= '  "key_factors": ["Factor 1", "Factor 2"],\n';
+        $reducedPrompt .= '  "predictions": ["Prediction 1", "Prediction 2"],\n';
+        $reducedPrompt .= '  "risk_assessment": [{"risk": "Risk description", "level": "Medium", "mitigation": "Mitigation strategy"}],\n';
+        $reducedPrompt .= '  "recommendations": ["Recommendation 1", "Recommendation 2"]\n';
+        $reducedPrompt .= "}\n\n";
+        $reducedPrompt .= "Focus on the most important insights and keep responses concise but complete.";
+        
+        return $reducedPrompt;
+    }
+
+    private function extractPartialContent($jsonString)
+    {
+        try {
+            // Try to extract what we can from the partial JSON
+            $partialData = [];
+            
+            // Extract title if available
+            if (preg_match('/"title"\s*:\s*"([^"]+)"/', $jsonString, $matches)) {
+                $partialData['title'] = $matches[1];
+            }
+            
+            // Extract executive summary if available
+            if (preg_match('/"executive_summary"\s*:\s*"([^"]+)"/', $jsonString, $matches)) {
+                $partialData['executive_summary'] = $matches[1];
+            }
+            
+            // Extract key factors if available
+            if (preg_match('/"key_factors"\s*:\s*\[(.*?)\]/s', $jsonString, $matches)) {
+                $factors = $this->extractArrayItems($matches[1]);
+                if ($factors) {
+                    $partialData['key_factors'] = $factors;
+                }
+            }
+            
+            // Extract predictions if available
+            if (preg_match('/"predictions"\s*:\s*\[(.*?)\]/s', $jsonString, $matches)) {
+                $predictions = $this->extractArrayItems($matches[1]);
+                if ($predictions) {
+                    $partialData['predictions'] = $predictions;
+                }
+            }
+            
+            if (!empty($partialData)) {
+                $partialData['note'] = 'This is a partial response due to API truncation. Some content may be incomplete.';
+                $partialData['status'] = 'partial';
+                return $partialData;
+            }
+        } catch (\Exception $e) {
+            Log::warning("Failed to extract partial content: " . $e->getMessage());
+        }
+        
+        return null;
+    }
+
+    private function extractArrayItems($arrayString)
+    {
+        $items = [];
+        $currentItem = '';
+        $inQuotes = false;
+        $braceCount = 0;
+        $bracketCount = 0;
+        
+        for ($i = 0; $i < strlen($arrayString); $i++) {
+            $char = $arrayString[$i];
+            
+            if ($char === '"' && ($i === 0 || $arrayString[$i-1] !== '\\')) {
+                $inQuotes = !$inQuotes;
+            }
+            
+            if (!$inQuotes) {
+                if ($char === '{') $braceCount++;
+                if ($char === '}') $braceCount--;
+                if ($char === '[') $bracketCount++;
+                if ($char === ']') $bracketCount--;
+            }
+            
+            if ($char === ',' && !$inQuotes && $braceCount === 0 && $bracketCount === 0) {
+                $item = trim($currentItem);
+                if (!empty($item)) {
+                    $items[] = $this->cleanString($item);
+                }
+                $currentItem = '';
+            } else {
+                $currentItem .= $char;
+            }
+        }
+        
+        // Add the last item
+        $item = trim($currentItem);
+        if (!empty($item)) {
+            $items[] = $this->cleanString($item);
+        }
+        
+        return $items;
+    }
+
+    private function cleanString($str)
+    {
+        // Remove quotes and clean up the string
+        $str = trim($str);
+        if (preg_match('/^"(.*)"$/', $str, $matches)) {
+            $str = $matches[1];
+        }
+        return $str;
+    }
+
+    private function repairJsonByErrorType($jsonString, $errorType)
+    {
+        switch ($errorType) {
+            case JSON_ERROR_SYNTAX:
+                return $this->fixSyntaxErrors($jsonString);
+            case JSON_ERROR_STATE_MISMATCH:
+                return $this->fixStateMismatch($jsonString);
+            case JSON_ERROR_UTF8:
+                return $this->fixUtf8Errors($jsonString);
+            default:
+                return $jsonString;
+        }
+    }
+
+    private function fixSyntaxErrors($jsonString)
+    {
+        // Fix common syntax errors
+        $jsonString = preg_replace('/,\s*([}\]])/', '$1', $jsonString); // Remove trailing commas
+        $jsonString = preg_replace('/\s+/', ' ', $jsonString); // Normalize whitespace
+        
+        return $jsonString;
+    }
+
+    private function fixStateMismatch($jsonString)
+    {
+        // This usually means unbalanced braces/brackets
+        return $this->repairUnbalancedBraces($jsonString);
+    }
+
+    private function fixUtf8Errors($jsonString)
+    {
+        // Remove invalid UTF-8 characters
+        $jsonString = mb_convert_encoding($jsonString, 'UTF-8', 'UTF-8');
+        $jsonString = preg_replace('/[\x00-\x1F\x7F]/', '', $jsonString);
+        
+        return $jsonString;
+    }
+
+    private function repairUnbalancedBraces($jsonString)
+    {
+        // Count and balance braces/brackets
+        $openBraces = substr_count($jsonString, '{');
+        $closeBraces = substr_count($jsonString, '}');
+        $openBrackets = substr_count($jsonString, '[');
+        $closeBrackets = substr_count($jsonString, ']');
+        
+        // Close arrays first
+        while ($openBrackets > $closeBrackets) {
+            $jsonString .= ']';
+            $closeBrackets++;
+        }
+        
+        // Close objects
+        while ($openBraces > $closeBraces) {
+            $jsonString .= '}';
+            $closeBraces++;
+        }
         
         return $jsonString;
     }
@@ -1041,5 +1418,30 @@ class GeminiService
         }
 
         return null; // No confidence score found
+    }
+
+    private function removeTrailingCommas($jsonString)
+    {
+        // Remove trailing commas before closing braces and brackets
+        $jsonString = preg_replace('/,\s*([}\]])/s', '$1', $jsonString);
+        
+        // Remove trailing comma at the very end
+        $jsonString = rtrim($jsonString, ',');
+        
+        return $jsonString;
+    }
+
+    private function fixIncompleteStrings($jsonString)
+    {
+        // Find incomplete strings at the end and remove them
+        if (preg_match('/.*"[^"]*$/s', $jsonString)) {
+            // Find the last complete quoted string
+            $lastQuotePos = strrpos($jsonString, '"', -2);
+            if ($lastQuotePos !== false) {
+                $jsonString = substr($jsonString, 0, $lastQuotePos + 1);
+            }
+        }
+        
+        return $jsonString;
     }
 }
