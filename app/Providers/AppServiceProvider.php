@@ -15,6 +15,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(WebScrapingService::class, function ($app) {
             return new WebScrapingService();
         });
+        
+        // Register Excel facade alias
+        $this->app->alias('Excel', \Maatwebsite\Excel\Facades\Excel::class);
     }
 
     /**

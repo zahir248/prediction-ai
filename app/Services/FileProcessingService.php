@@ -44,7 +44,7 @@ class FileProcessingService
     /**
      * Process a single file
      */
-    protected function processFile(UploadedFile $file): ?array
+    public function processFile(UploadedFile $file): ?array
     {
         $fileName = $file->getClientOriginalName();
         $fileExtension = strtolower($file->getClientOriginalExtension());

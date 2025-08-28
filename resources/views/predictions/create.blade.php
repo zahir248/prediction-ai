@@ -137,6 +137,58 @@
                     @enderror
                 </div>
 
+                <!-- File Uploads Field -->
+                <div style="margin-bottom: 32px;">
+                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        📁 Upload Files (Optional)
+                    </label>
+                    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 16px; border: 2px dashed #cbd5e1; transition: all 0.3s ease;">
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+                            <h3 style="font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 18px;">Upload Supporting Documents</h3>
+                            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
+                                Upload Excel spreadsheets, PDF reports, CSV data, or text files to enhance your prediction analysis
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <input type="file" 
+                                   id="uploaded_files" 
+                                   name="uploaded_files[]" 
+                                   multiple
+                                   accept=".pdf,.xlsx,.xls,.csv,.txt"
+                                   style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: white; cursor: pointer;"
+                                   onchange="handleFileSelection(this)">
+                            <p style="color: #64748b; font-size: 12px; margin-top: 8px; margin-bottom: 0; text-align: center;">
+                                Supported formats: PDF, Excel (.xlsx, .xls), CSV, TXT • Max file size: 10MB per file
+                            </p>
+                        </div>
+                        
+                        <!-- File Preview Area -->
+                        <div id="file-preview-container" style="display: none;">
+                            <h4 style="font-weight: 600; color: #374151; margin-bottom: 16px; font-size: 16px; text-align: center;">Selected Files</h4>
+                            <div id="file-preview-list" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                        
+                        <!-- File Upload Benefits -->
+                        <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px;">
+                            <h4 style="font-weight: 600; color: #1e40af; margin-bottom: 12px; font-size: 16px;">🚀 How Files Enhance Your Analysis</h4>
+                            <div style="color: #475569; font-size: 14px; line-height: 1.6;">
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <li style="margin-bottom: 6px;"><strong>Excel/CSV:</strong> AI extracts numerical data, trends, and patterns for quantitative analysis</li>
+                                    <li style="margin-bottom: 6px;"><strong>PDF Reports:</strong> AI reads and analyzes structured reports, research papers, and documents</li>
+                                    <li style="margin-bottom: 6px;"><strong>Text Files:</strong> AI processes additional context, notes, or detailed information</li>
+                                    <li style="margin-bottom: 0;"><strong>Combined Analysis:</strong> AI integrates all data sources for comprehensive predictions</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @error('uploaded_files')
+                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Analysis Type Info -->
                 <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid #bfdbfe;">
                     <h3 style="font-weight: 600; color: #1e40af; margin-bottom: 16px; font-size: 18px;">📋 Prediction Analysis Information</h3>
@@ -255,6 +307,40 @@
               flex-direction: column;
               gap: 12px;
         }
+        
+        /* File upload section mobile optimization */
+        #uploaded_files {
+            font-size: 16px !important;
+            padding: 14px 16px !important;
+            min-height: 48px;
+        }
+        
+        /* File preview container mobile layout */
+        #file-preview-container {
+            padding: 16px;
+        }
+        
+        #file-preview-list {
+            max-height: 150px;
+        }
+        
+        /* File item mobile layout */
+        #file-preview-list > div {
+            flex-direction: column;
+            gap: 8px;
+            align-items: stretch;
+        }
+        
+        #file-preview-list > div > div:first-child {
+            justify-content: flex-start;
+        }
+        
+        #file-preview-list button {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+            min-height: 44px;
+        }
     }
     
     @media (max-width: 480px) {
@@ -295,6 +381,103 @@
 </style>
 
 <script>
+// File handling functions
+function handleFileSelection(input) {
+    const files = input.files;
+    const previewContainer = document.getElementById('file-preview-container');
+    const previewList = document.getElementById('file-preview-list');
+    
+    if (files.length > 0) {
+        previewContainer.style.display = 'block';
+        previewList.innerHTML = '';
+        
+        Array.from(files).forEach((file, index) => {
+            const fileItem = createFilePreviewItem(file, index);
+            previewList.appendChild(fileItem);
+        });
+    } else {
+        previewContainer.style.display = 'none';
+    }
+}
+
+function createFilePreviewItem(file, index) {
+    const fileItem = document.createElement('div');
+    fileItem.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;';
+    
+    const fileInfo = document.createElement('div');
+    fileInfo.style.cssText = 'display: flex; align-items: center; gap: 12px; flex: 1;';
+    
+    // File icon based on type
+    const icon = getFileIcon(file.name);
+    const iconDiv = document.createElement('div');
+    iconDiv.style.cssText = 'font-size: 24px;';
+    iconDiv.textContent = icon;
+    
+    const fileDetails = document.createElement('div');
+    fileDetails.style.cssText = 'flex: 1;';
+    
+    const fileName = document.createElement('div');
+    fileName.style.cssText = 'font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 4px;';
+    fileName.textContent = file.name;
+    
+    const fileSize = document.createElement('div');
+    fileSize.style.cssText = 'color: #64748b; font-size: 12px;';
+    fileSize.textContent = formatFileSize(file.size);
+    
+    fileDetails.appendChild(fileName);
+    fileDetails.appendChild(fileSize);
+    
+    fileInfo.appendChild(iconDiv);
+    fileInfo.appendChild(fileDetails);
+    
+    // Remove button
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.style.cssText = 'padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.3s ease; min-width: 60px;';
+    removeBtn.textContent = 'Remove';
+    removeBtn.onclick = function() {
+        removeFile(index);
+    };
+    
+    fileItem.appendChild(fileInfo);
+    fileItem.appendChild(removeBtn);
+    
+    return fileItem;
+}
+
+function getFileIcon(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'pdf': return '📄';
+        case 'xlsx': case 'xls': return '📊';
+        case 'csv': return '📈';
+        case 'txt': return '📝';
+        default: return '📁';
+    }
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function removeFile(index) {
+    const input = document.getElementById('uploaded_files');
+    const dt = new DataTransfer();
+    
+    Array.from(input.files).forEach((file, i) => {
+        if (i !== index) {
+            dt.items.add(file);
+        }
+    });
+    
+    input.files = dt.files;
+    handleFileSelection(input);
+}
+
 // Global functions for source URLs
 function addSourceUrlField() {
     try {
