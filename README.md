@@ -1,4 +1,4 @@
-# AI Prediction Analysis System
+# NUJUM - AI Prediction Analysis System
 
 A sophisticated Laravel-based AI prediction analysis system that provides comprehensive insights and forecasting capabilities across any topic or domain. This system leverages advanced AI models to deliver structured analysis including executive summaries, future predictions, policy implications, risk assessments, and strategic recommendations.
 

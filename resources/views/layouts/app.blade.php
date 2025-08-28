@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }} - AI Predictions</title>
+    <title>{{ config('app.name', 'NUJUM') }} - AI Prediction System</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('image/logo3.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('image/logo3.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('image/logo3.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('image/logo3.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('image/logo3.png') }}">
+    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
@@ -647,6 +654,11 @@
                 font-size: 1.125rem;
             }
             
+            .nav-brand img {
+                width: 48px !important;
+                height: 48px !important;
+            }
+            
             .nav-user {
                 gap: 12px;
             }
@@ -676,6 +688,11 @@
                 font-size: 1rem;
             }
             
+            .nav-brand img {
+                width: 40px !important;
+                height: 40px !important;
+            }
+            
             .card {
                 padding: 16px;
                 margin-bottom: 16px;
@@ -689,7 +706,6 @@
             .px-8 { padding-left: 20px; padding-right: 20px; }
             
             .space-x-4 > * + * { margin-left: 12px; }
-            .space-y-4 > * + * { margin-top: 12px; }
             .space-y-6 > * + * { margin-top: 20px; }
             .space-y-8 > * + * { margin-top: 28px; }
         }
@@ -698,6 +714,13 @@
             .nav-content {
                 padding: 0 8px;
             }
+            
+            .nav-brand img {
+                width: 32px !important;
+                height: 32px !important;
+            }
+            
+
             
             .nav-user {
                 gap: 8px;
@@ -757,8 +780,8 @@
             <div class="nav-content">
                 <div style="display: flex; align-items: center;">
                     <div class="nav-brand">
-                        <a href="{{ route('predictions.index') }}" class="nav-brand">
-                            AI Predictions
+                        <a href="{{ route('predictions.index') }}" class="nav-brand" style="display: flex; align-items: center;">
+                            <img src="{{ asset('image/logo2.png') }}" alt="NUJUM Logo" style="width: 60px; height: 60px; object-fit: contain;">
                         </a>
                     </div>
                     <div class="nav-links hidden-mobile">

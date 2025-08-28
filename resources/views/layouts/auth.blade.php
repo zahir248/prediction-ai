@@ -5,8 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }} - AI Predictions</title>
+    <title>{{ config('app.name', 'NUJUM') }} - AI Prediction System</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('image/logo3.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('image/logo3.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('image/logo3.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('image/logo3.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('image/logo3.png') }}">
+    
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

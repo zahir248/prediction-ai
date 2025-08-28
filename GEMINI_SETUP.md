@@ -36,7 +36,7 @@ GEMINI_SSL_VERIFY=false
 
 ### API Integration
 
-The application uses `GeminiService` for all AI predictions. The service:
+The NUJUM application uses `GeminiService` for all AI predictions. The service:
 
 1. **Sends structured prompts** to Gemini API
 2. **Requests JSON responses** for consistent data format
@@ -156,4 +156,4 @@ For issues or questions:
 
 ---
 
-**Note**: This integration provides a robust, production-ready AI prediction system with Google's latest AI technology with pure Gemini API integration.
+**Note**: This integration provides a robust, production-ready AI prediction system (NUJUM) with Google's latest AI technology with pure Gemini API integration.

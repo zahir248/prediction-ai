@@ -27,7 +27,7 @@
                 </h3>
             </div>
             <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6; font-size: 16px;">
-                Our advanced AI-powered prediction analysis system provides comprehensive insights and forecasting capabilities 
+                Our advanced AI-powered prediction analysis system (NUJUM) provides comprehensive insights and forecasting capabilities 
                 across any domain with instant, professional-grade results powered by Google Gemini 2.0 Flash.
             </p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">

@@ -6,7 +6,7 @@
     <div style="text-align: center; margin-bottom: 48px;">
         <h1 class="text-responsive-4xl" style="font-weight: 800; color: #1e293b; margin-bottom: 16px;">Responsive Design Test</h1>
         <p class="text-responsive-lg" style="color: #64748b; max-width: 800px; margin: 0 auto; line-height: 1.6;">
-            This page demonstrates all the responsive design features and utilities available in the AI Predictions app.
+            This page demonstrates all the responsive design features and utilities available in the NUJUM app.
         </p>
     </div>
 

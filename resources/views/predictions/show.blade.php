@@ -484,7 +484,7 @@
                             <span style="font-size: 64px; color: #ef4444; opacity: 0.7;">❌</span>
                         </div>
                         <h3 style="font-size: 24px; font-weight: 700; color: #991b1b; margin-bottom: 16px;">Analysis Failed</h3>
-                        <p style="color: #64748b; line-height: 1.6; margin: 0;">The AI prediction analysis could not be completed. Please try again or contact support.</p>
+                        <p style="color: #64748b; line-height: 1.6; margin: 0;">The NUJUM AI prediction analysis could not be completed. Please try again or contact support.</p>
                     </div>
                 </div>
                 @elseif($prediction->status === 'processing')

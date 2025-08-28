@@ -1293,7 +1293,7 @@ class GeminiService
             'prediction-analysis' => [
                 'name' => 'Advanced Prediction Analysis',
                 'model' => 'gemini-2.0-flash',
-                'description' => 'Professional AI-powered prediction analysis system using Google Gemini 2.0 Flash for comprehensive future forecasting and strategic insights across any topic or domain'
+                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using Google Gemini 2.0 Flash for comprehensive future forecasting and strategic insights across any topic or domain'
             ]
         ];
     }

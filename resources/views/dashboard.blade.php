@@ -145,7 +145,7 @@
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; padding: 48px; text-align: center; box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);">
             <h2 style="font-size: 36px; font-weight: 700; color: white; margin-bottom: 16px;">Ready to Transform Your Data?</h2>
             <p style="color: rgba(255, 255, 255, 0.9); font-size: 18px; margin-bottom: 32px; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.6;">
-                Experience enterprise-level AI prediction analysis powered by Google Gemini 2.0 Flash. 
+                Experience enterprise-level AI prediction analysis powered by NUJUM and Google Gemini 2.0 Flash. 
                 Create your first professional analysis in minutes.
             </p>
             <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 20px 40px; background: white; color: #667eea; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 18px; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);">

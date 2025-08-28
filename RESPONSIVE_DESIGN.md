@@ -1,8 +1,8 @@
-# Responsive Design System for AI Predictions App
+# Responsive Design System for NUJUM App
 
 ## Overview
 
-The AI Predictions app has been completely redesigned with a comprehensive responsive design system that ensures optimal user experience across all devices and screen sizes. This system follows a mobile-first approach and provides consistent, accessible, and touch-friendly interfaces.
+The NUJUM app has been completely redesigned with a comprehensive responsive design system that ensures optimal user experience across all devices and screen sizes. This system follows a mobile-first approach and provides consistent, accessible, and touch-friendly interfaces.
 
 ## Key Features
 
@@ -373,4 +373,4 @@ Visit `/responsive-test` to see all responsive features in action:
 - Adaptive spacing
 - Horizontal table scrolling
 
-This responsive design system ensures that the AI Predictions app provides an excellent user experience across all devices and screen sizes, following modern web development best practices and accessibility standards.
+This responsive design system ensures that the NUJUM app provides an excellent user experience across all devices and screen sizes, following modern web development best practices and accessibility standards.

@@ -1,19 +1,18 @@
 @extends('layouts.auth')
 
 @section('content')
-<div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 16px; overflow: hidden;">
-    <div style="max-width: 400px; width: 100%;">
+<div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px 16px; overflow-x: hidden;">
+    <div style="max-width: 380px; width: 100%;">
         <!-- Logo/Brand Section -->
         <div style="text-align: center; margin-bottom: 24px;">
-            <div style="width: 56px; height: 56px; background: rgba(255, 255, 255, 0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; backdrop-filter: blur(10px);">
-                <span style="font-size: 24px; font-weight: bold; color: white;">🤖</span>
+            <div style="margin: 0 auto 12px;">
+                <img src="{{ asset('image/logo.png') }}" alt="NUJUM Logo" style="width: 140px; height: 140px; object-fit: contain;">
             </div>
-            <h1 style="font-size: 24px; font-weight: 700; color: white; margin-bottom: 6px;">AI Predictions</h1>
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Sign in to your account</p>
         </div>
 
         <!-- Login Form Card -->
-        <div style="background: white; border-radius: 18px; padding: 28px; box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25); backdrop-filter: blur(10px);">
+        <div style="background: white; border-radius: 18px; padding: 32px 28px; box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25); backdrop-filter: blur(10px);">
             <form action="{{ route('login') }}" method="POST">
                 @csrf
                 
@@ -23,7 +22,7 @@
                         Email Address
                     </label>
                     <input id="email" name="email" type="email" required 
-                           style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;"
+                           style="width: 100%; padding: 16px 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb; box-sizing: border-box;"
                            placeholder="Enter your email"
                            value="{{ old('email') }}">
                 </div>
@@ -34,7 +33,7 @@
                         Password
                     </label>
                     <input id="password" name="password" type="password" required 
-                           style="width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;"
+                           style="width: 100%; padding: 16px 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb; box-sizing: border-box;"
                            placeholder="Enter your password">
                 </div>
 
@@ -53,7 +52,7 @@
 
                 <!-- Submit Button -->
                 <button type="submit" 
-                        style="width: 100%; padding: 14px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                        style="width: 100%; padding: 16px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
                     Sign In
                 </button>
             </form>
@@ -62,17 +61,17 @@
         <!-- Footer -->
         <div style="text-align: center; margin-top: 20px;">
             <p style="color: rgba(255, 255, 255, 0.7); font-size: 11px;">
-                © 2024 AI Predictions. All rights reserved.
+                © 2024 NUJUM. All rights reserved.
             </p>
         </div>
     </div>
 </div>
 
 <style>
-    /* Ensure no scrolling */
+    /* Ensure proper mobile layout */
     body, html {
-        overflow: hidden;
-        height: 100vh;
+        overflow-x: hidden;
+        min-height: 100vh;
         margin: 0;
         padding: 0;
     }
@@ -91,12 +90,8 @@
             margin-bottom: 20px !important;
         }
         
-        div[style*="padding: 28px"] {
+        div[style*="padding: 32px 28px"] {
             padding: 24px 20px !important;
-        }
-        
-        div[style*="font-size: 24px"] {
-            font-size: 22px !important;
         }
         
         div[style*="font-size: 14px"] {
@@ -111,7 +106,7 @@
             margin-bottom: 18px !important;
         }
         
-        div[style*="padding: 14px 16px"] {
+        div[style*="padding: 16px 18px"] {
             padding: 12px 14px !important;
         }
         
@@ -119,7 +114,7 @@
             font-size: 14px !important;
         }
         
-        div[style*="padding: 14px 20px"] {
+        div[style*="padding: 16px 20px"] {
             padding: 12px 18px !important;
         }
         
@@ -133,16 +128,12 @@
             padding: 12px 8px !important;
         }
         
-        div[style*="padding: 28px"] {
+        div[style*="padding: 32px 28px"] {
             padding: 20px 16px !important;
         }
         
         div[style*="margin-bottom: 24px"] {
             margin-bottom: 16px !important;
-        }
-        
-        div[style*="font-size: 24px"] {
-            font-size: 20px !important;
         }
         
         div[style*="font-size: 14px"] {
@@ -157,7 +148,7 @@
             margin-bottom: 16px !important;
         }
         
-        div[style*="padding: 14px 16px"] {
+        div[style*="padding: 16px 18px"] {
             padding: 10px 12px !important;
         }
         
@@ -165,24 +156,12 @@
             font-size: 13px !important;
         }
         
-        div[style*="padding: 14px 20px"] {
+        div[style*="padding: 16px 20px"] {
             padding: 10px 16px !important;
         }
         
         div[style*="margin-top: 20px"] {
             margin-top: 12px !important;
-        }
-        
-        div[style*="width: 56px"] {
-            width: 48px !important;
-        }
-        
-        div[style*="height: 56px"] {
-            height: 48px !important;
-        }
-        
-        div[style*="font-size: 24px"] {
-            font-size: 20px !important;
         }
     }
     
@@ -191,16 +170,12 @@
             padding: 8px 4px !important;
         }
         
-        div[style*="padding: 28px"] {
+        div[style*="padding: 32px 28px"] {
             padding: 16px 12px !important;
         }
         
         div[style*="margin-bottom: 24px"] {
             margin-bottom: 12px !important;
-        }
-        
-        div[style*="font-size: 24px"] {
-            font-size: 18px !important;
         }
         
         div[style*="font-size: 14px"] {
@@ -215,7 +190,7 @@
             margin-bottom: 12px !important;
         }
         
-        div[style*="padding: 14px 16px"] {
+        div[style*="padding: 16px 18px"] {
             padding: 8px 10px !important;
         }
         
@@ -223,32 +198,83 @@
             font-size: 12px !important;
         }
         
-        div[style*="padding: 14px 20px"] {
+        div[style*="padding: 16px 20px"] {
             padding: 8px 14px !important;
         }
         
         div[style*="margin-top: 20px"] {
             margin-top: 8px !important;
         }
-        
-        div[style*="width: 56px"] {
-            width: 40px !important;
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 360px) {
+        div[style*="padding: 20px 16px"] {
+            padding: 6px 2px !important;
         }
         
-        div[style*="height: 56px"] {
-            height: 40px !important;
+        div[style*="padding: 32px 28px"] {
+            padding: 14px 10px !important;
         }
         
-        div[style*="font-size: 24px"] {
-            font-size: 18px !important;
+        div[style*="margin-bottom: 24px"] {
+            margin-bottom: 10px !important;
         }
         
-        div[style*="font-size: 13px"] {
+        div[style*="font-size: 14px"] {
             font-size: 10px !important;
         }
         
-        div[style*="font-size: 11px"] {
-            font-size: 9px !important;
+        div[style*="padding: 16px 18px"] {
+            padding: 6px 8px !important;
+        }
+        
+        div[style*="font-size: 15px"] {
+            font-size: 11px !important;
+        }
+        
+        div[style*="padding: 16px 20px"] {
+            padding: 6px 12px !important;
+        }
+    }
+    
+    /* Landscape orientation for mobile */
+    @media (max-height: 500px) and (orientation: landscape) {
+        div[style*="min-height: 100vh"] {
+            min-height: 100vh !important;
+            padding: 10px 16px !important;
+        }
+        
+        div[style*="margin-bottom: 24px"] {
+            margin-bottom: 12px !important;
+        }
+        
+        div[style*="padding: 32px 28px"] {
+            padding: 20px 16px !important;
+        }
+        
+        img[alt="NUJUM Logo"] {
+            width: 60px !important;
+            height: 60px !important;
+        }
+    }
+    
+    /* Large screen optimization */
+    @media (min-width: 1200px) {
+        img[alt="NUJUM Logo"] {
+            width: 180px !important;
+            height: 180px !important;
+        }
+        
+        div[style*="margin-bottom: 24px"] {
+            margin-bottom: 32px !important;
+        }
+    }
+    
+    @media (min-width: 1600px) {
+        img[alt="NUJUM Logo"] {
+            width: 200px !important;
+            height: 200px !important;
         }
     }
     
@@ -261,6 +287,34 @@
         input {
             font-size: 16px !important; /* Prevents zoom on iOS */
         }
+        
+        img[alt="NUJUM Logo"] {
+            width: 120px !important;
+            height: 120px !important;
+        }
+        
+        /* Improve form spacing on tablets */
+        div[style*="margin-bottom: 18px"] {
+            margin-bottom: 20px !important;
+        }
+        
+        div[style*="margin-bottom: 20px"] {
+            margin-bottom: 22px !important;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        img[alt="NUJUM Logo"] {
+            width: 100px !important;
+            height: 100px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        img[alt="NUJUM Logo"] {
+            width: 80px !important;
+            height: 80px !important;
+        }
     }
     
     /* Focus and hover effects */
@@ -270,6 +324,28 @@
         background: white !important;
         box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1) !important;
         transform: translateY(-2px);
+    }
+    
+    /* Better mobile input styling */
+    @media (max-width: 480px) {
+        input, button {
+            border-radius: 8px !important;
+        }
+        
+        .login-card {
+            margin: 0 8px !important;
+        }
+    }
+    
+    /* Improved mobile spacing */
+    @media (max-width: 640px) {
+        .logo-section {
+            margin-bottom: 16px !important;
+        }
+        
+        .form-card {
+            margin: 0 12px !important;
+        }
     }
     
     button:hover {
@@ -294,6 +370,22 @@
         
         input::placeholder {
             font-size: 13px !important;
+        }
+        
+        /* Better touch targets */
+        button {
+            min-height: 48px !important;
+        }
+        
+        input {
+            min-height: 48px !important;
+        }
+    }
+    
+    /* Prevent zoom on iOS for inputs */
+    @media (max-width: 480px) {
+        input[type="email"], input[type="password"] {
+            font-size: 16px !important;
         }
     }
 </style>
