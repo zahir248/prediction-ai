@@ -140,7 +140,7 @@
                 <!-- File Uploads Field -->
                 <div style="margin-bottom: 32px;">
                     <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        📁 Upload Files (Optional)
+                        Upload Files (Optional)
                     </label>
                     <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 16px; border: 2px dashed #cbd5e1; transition: all 0.3s ease;">
                         <div style="text-align: center; margin-bottom: 20px;">
