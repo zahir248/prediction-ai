@@ -12,57 +12,6 @@
             </p>
         </div>
 
-        <!-- Quick Actions Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 48px;">
-            <!-- Create New Analysis Card -->
-            <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; border: 1px solid #e2e8f0;">
-                <div style="text-align: center;">
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);">
-                        <span style="font-size: 28px; color: white;">➕</span>
-                    </div>
-                    <h3 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Create New Analysis</h3>
-                    <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">
-                        Start a comprehensive AI-powered prediction analysis with your data
-                    </p>
-                    <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                        Get Started →
-                    </a>
-                </div>
-            </div>
-
-            <!-- View History Card -->
-            <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; border: 1px solid #e2e8f0;">
-                <div style="text-align: center;">
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);">
-                        <span style="font-size: 28px; color: white;">📊</span>
-                    </div>
-                    <h3 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">View History</h3>
-                    <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">
-                        Access your complete analysis history and review past predictions
-                    </p>
-                    <a href="{{ route('predictions.history') }}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
-                        View History →
-                    </a>
-                </div>
-            </div>
-
-            <!-- Analytics Dashboard Card -->
-            <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; border: 1px solid #e2e8f0;">
-                <div style="text-align: center;">
-                    <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 8px 20px rgba(6, 182, 212, 0.3);">
-                        <span style="font-size: 28px; color: white;">📈</span>
-                    </div>
-                    <h3 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Analytics Dashboard</h3>
-                    <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">
-                        Comprehensive overview of your prediction analyses and insights
-                    </p>
-                    <a href="{{ route('predictions.index') }}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);">
-                        View Dashboard →
-                    </a>
-                </div>
-            </div>
-        </div>
-
         <!-- AI Capabilities Section -->
         <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); margin-bottom: 48px; border: 1px solid #e2e8f0;">
             <div style="text-align: center; margin-bottom: 40px;">

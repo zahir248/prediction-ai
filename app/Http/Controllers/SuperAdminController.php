@@ -41,7 +41,7 @@ class SuperAdminController extends Controller
      */
     public function admins(): View
     {
-        $admins = User::whereIn('role', ['admin', 'superadmin'])
+        $admins = User::where('role', 'admin')
             ->withCount('predictions')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
@@ -355,5 +355,32 @@ class SuperAdminController extends Controller
         }
 
         return array_reverse($logs);
+    }
+
+    /**
+     * Update superadmin profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = auth()->user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        // Update basic info
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        // Update password if provided
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 }

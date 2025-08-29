@@ -6,35 +6,17 @@
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4">
         <div class="mb-3 mb-sm-0">
             <h1 class="h3 mb-1 text-dark fw-bold">Admin Management</h1>
-            <p class="text-muted mb-0">Manage admin and superadmin users</p>
+            <p class="text-muted mb-0">Manage admin only</p>
         </div>
         <div class="d-flex flex-column flex-sm-row gap-2">
             <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#addAdminModal">
                 <i class="bi bi-plus-circle me-2"></i>Add Admin
-            </button>
-            <button class="btn btn-outline-success btn-sm">
-                <i class="bi bi-download me-2"></i>Export
             </button>
         </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100 stats-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                                        <div class="bg-danger bg-opacity-10 rounded-3 p-3 me-3">
-                    <i class="bi bi-shield-lock text-danger fs-3"></i>
-                </div>
-                        <div class="flex-grow-1">
-                            <h6 class="text-muted mb-1 fw-semibold">Regular Admins</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'admin')->count() }}</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm h-100 stats-card">
                 <div class="card-body">
@@ -54,12 +36,12 @@
             <div class="card border-0 shadow-sm h-100 stats-card">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="bg-info bg-opacity-10 rounded-3 p-3 me-3">
-                            <i class="bi bi-shield text-info fs-3"></i>
-                        </div>
+                                        <div class="bg-danger bg-opacity-10 rounded-3 p-3 me-3">
+                    <i class="bi bi-shield-lock text-danger fs-3"></i>
+                </div>
                         <div class="flex-grow-1">
-                            <h6 class="text-muted mb-1 fw-semibold">Total Admins</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ $admins->total() }}</h2>
+                            <h6 class="text-muted mb-1 fw-semibold">Admins</h6>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'admin')->count() }}</h2>
                         </div>
                     </div>
                 </div>
@@ -86,7 +68,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <div class="row g-3 search-filter-row">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-5">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="bi bi-search text-muted"></i>
@@ -94,21 +76,14 @@
                         <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search admins...">
                     </div>
                 </div>
-                <div class="col-12 col-md-3">
-                    <select class="form-select" id="roleFilter">
-                        <option value="">All Roles</option>
-                        <option value="admin">Admin</option>
-                        <option value="superadmin">Super Admin</option>
-                    </select>
-                </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-4">
                     <select class="form-select" id="statusFilter">
                         <option value="">All Status</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-3">
                     <button class="btn btn-outline-secondary w-100" id="clearFilters">
                         <i class="bi bi-x-circle me-2"></i>Clear
                     </button>
@@ -124,11 +99,7 @@
                 <h5 class="card-title mb-0 fw-semibold">
                     <i class="bi bi-people text-danger me-2"></i>Admin Users
                 </h5>
-                <div class="d-flex gap-2 mt-2 mt-sm-0">
-                    <button class="btn btn-outline-danger btn-sm" id="bulkActions" disabled>
-                        <i class="bi bi-gear me-2"></i>Bulk Actions
-                    </button>
-                </div>
+
             </div>
         </div>
         <div class="card-body p-0">
@@ -136,13 +107,9 @@
                 <table class="table table-hover mb-0" id="adminsTable">
                     <thead class="table-light">
                         <tr>
-                            <th class="border-0 px-3 py-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="selectAll">
-                                </div>
-                            </th>
+
                             <th class="border-0 px-3 py-3">Admin</th>
-                            <th class="border-0 px-3 py-3">Role</th>
+
                             <th class="border-0 px-3 py-3">Status</th>
                             <th class="border-0 px-3 py-3 d-none d-md-table-cell">Last Login</th>
                             <th class="border-0 px-3 py-3 d-none d-lg-table-cell">Joined</th>
@@ -152,11 +119,7 @@
                     <tbody>
                         @forelse($admins as $admin)
                             <tr data-admin-id="{{ $admin->id }}" data-role="{{ $admin->role }}" data-status="{{ $admin->last_login_at && ($admin->last_login_at instanceof \Carbon\Carbon || is_string($admin->last_login_at)) ? 'active' : 'inactive' }}">
-                                <td class="px-3 py-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input admin-checkbox" type="checkbox" value="{{ $admin->id }}">
-                                    </div>
-                                </td>
+
                                 <td class="px-3 py-3">
                                     <div class="d-flex align-items-center">
                                         <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3">
@@ -169,13 +132,7 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-3 py-3">
-                                    <span class="badge bg-{{ $admin->role === 'superadmin' ? 'danger' : 'primary' }} rounded-pill">
-                                        <i class="bi bi-{{ $admin->role === 'superadmin' ? 'shield-check' : 'shield-lock' }} me-1"></i>
-                                        <span class="d-none d-sm-inline">{{ ucfirst($admin->role) }}</span>
-                                        <span class="d-inline d-sm-none">{{ ucfirst($admin->role === 'superadmin' ? 'SA' : 'Admin') }}</span>
-                                    </span>
-                                </td>
+
                                 <td class="px-3 py-3">
                                     @if($admin->last_login_at && ($admin->last_login_at instanceof \Carbon\Carbon || is_string($admin->last_login_at)))
                                         <span class="badge bg-success rounded-pill">
@@ -231,7 +188,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-5">
+                                <td colspan="5" class="text-center py-5">
                                     <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
                                         <i class="bi bi-people text-muted fs-1"></i>
                                     </div>
@@ -344,7 +301,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-warning" onclick="openEditModal()">
                     <i class="bi bi-pencil me-2"></i>Edit Admin
@@ -387,9 +344,9 @@
                         <small class="text-muted">Minimum 8 characters if changing</small>
                     </div>
                 </div>
-                <div class="modal-footer">
+                                <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-danger">Update Admin</button>
+                                                    <button type="submit" class="btn btn-danger">Update Admin</button>
                 </div>
             </form>
         </div>
@@ -414,7 +371,7 @@
                     <p class="text-muted small mt-2">This action cannot be undone and will permanently remove the user from the system.</p>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer justify-content-center">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <form id="deleteAdminForm" method="POST" class="d-inline">
                     @csrf
@@ -476,7 +433,6 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
-    const roleFilter = document.getElementById('roleFilter');
     const statusFilter = document.getElementById('statusFilter');
     const clearFilters = document.getElementById('clearFilters');
     const table = document.getElementById('adminsTable');
@@ -484,68 +440,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
-        const roleValue = roleFilter.value;
         const statusValue = statusFilter.value;
 
         rows.forEach(row => {
-            const name = row.querySelector('td:nth-child(2) h6').textContent.toLowerCase();
-            const email = row.querySelector('td:nth-child(2) small').textContent.toLowerCase();
-            const role = row.dataset.role;
+            const name = row.querySelector('td:nth-child(1) h6').textContent.toLowerCase();
+            const email = row.querySelector('td:nth-child(1) small').textContent.toLowerCase();
             const status = row.dataset.status;
 
             const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
-            const matchesRole = !roleValue || role === roleValue;
             const matchesStatus = !statusValue || status === statusValue;
 
-            row.style.display = matchesSearch && matchesRole && matchesStatus ? '' : 'none';
+            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
         });
     }
 
     searchInput.addEventListener('input', filterTable);
-    roleFilter.addEventListener('change', filterTable);
     statusFilter.addEventListener('change', filterTable);
 
     clearFilters.addEventListener('click', function() {
         searchInput.value = '';
-        roleFilter.value = '';
         statusFilter.value = '';
         filterTable();
     });
-
-    // Bulk actions
-    const selectAll = document.getElementById('selectAll');
-    const adminCheckboxes = document.querySelectorAll('.admin-checkbox');
-    const bulkActions = document.getElementById('bulkActions');
-
-    selectAll.addEventListener('change', function() {
-        adminCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        updateBulkActions();
-    });
-
-    adminCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateBulkActions);
-    });
-
-    function updateBulkActions() {
-        const checkedCount = document.querySelectorAll('.admin-checkbox:checked').length;
-        bulkActions.disabled = checkedCount === 0;
-        if (checkedCount > 0) {
-            bulkActions.innerHTML = `<i class="bi bi-gear me-2"></i>Bulk Actions (${checkedCount})`;
-        } else {
-            bulkActions.innerHTML = `<i class="bi bi-gear me-2"></i>Bulk Actions`;
-        }
-    }
 });
 
 function editAdmin(adminId) {
     // Get admin data and populate edit modal
     const adminRow = document.querySelector(`tr[data-admin-id="${adminId}"]`);
     if (adminRow) {
-        const name = adminRow.querySelector('td:nth-child(2) h6').textContent;
-        const email = adminRow.querySelector('td:nth-child(2) small').textContent;
-        const role = adminRow.querySelector('td:nth-child(3) .badge').textContent.trim();
+        const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
+        const email = adminRow.querySelector('td:nth-child(1) small').textContent;
+        const role = 'admin';
         
         // Populate edit form
         document.getElementById('editAdminName').value = name;
@@ -571,7 +496,7 @@ function deleteAdmin(adminId) {
     // Get admin data and populate delete modal
     const adminRow = document.querySelector(`tr[data-admin-id="${adminId}"]`);
     if (adminRow) {
-        const name = adminRow.querySelector('td:nth-child(2) h6').textContent;
+        const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
         
         // Populate delete modal
         document.getElementById('deleteAdminName').textContent = name;
@@ -589,12 +514,12 @@ function viewAdminDetails(adminId) {
     // Get admin data and populate show modal
     const adminRow = document.querySelector(`tr[data-admin-id="${adminId}"]`);
     if (adminRow) {
-        const name = adminRow.querySelector('td:nth-child(2) h6').textContent;
-        const email = adminRow.querySelector('td:nth-child(2) small').textContent;
-        const role = adminRow.querySelector('td:nth-child(3) .badge').textContent.trim();
-        const status = adminRow.querySelector('td:nth-child(4) .badge').textContent.trim();
-        const lastLogin = adminRow.querySelector('td:nth-child(5) small')?.textContent || 'Never';
-        const joined = adminRow.querySelector('td:nth-child(6) small')?.textContent || 'Unknown';
+        const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
+        const email = adminRow.querySelector('td:nth-child(1) small').textContent;
+        const role = 'admin';
+        const status = adminRow.querySelector('td:nth-child(2) .badge').textContent.trim();
+        const lastLogin = adminRow.querySelector('td:nth-child(3) small')?.textContent || 'Never';
+        const joined = adminRow.querySelector('td:nth-child(4) small')?.textContent || 'Unknown';
         
         // Populate show modal
         document.getElementById('showAdminName').textContent = name;

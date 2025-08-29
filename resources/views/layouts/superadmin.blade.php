@@ -132,6 +132,14 @@
         .user-info {
             padding: 1.25rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .user-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .user-avatar {
@@ -437,7 +445,7 @@
                 </div>
                 
                 <!-- User Info -->
-                <div class="user-info">
+                <div class="user-info" onclick="showUpdateProfileModal()" style="cursor: pointer;">
                     <div class="d-flex align-items-center">
                         <div class="user-avatar">
                             <i class="bi bi-person"></i>
@@ -445,6 +453,9 @@
                         <div class="flex-grow-1">
                             <h6 class="text-white mb-1 fw-semibold">{{ Auth::user()->name }}</h6>
                             <small class="text-white-50">{{ ucfirst(Auth::user()->role) }}</small>
+                        </div>
+                        <div class="ms-2">
+                            <i class="bi bi-pencil text-white-50"></i>
                         </div>
                     </div>
                 </div>
@@ -546,7 +557,7 @@
                             <p class="text-muted mb-0">You will be redirected to the superadmin login page</p>
                         </div>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer justify-content-center">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <form action="{{ route('superadmin.logout') }}" method="POST" class="d-inline">
                             @csrf
@@ -555,6 +566,49 @@
                             </button>
                         </form>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Update Profile Modal -->
+        <div class="modal fade" id="updateProfileModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-primary">
+                            <i class="bi bi-person-gear me-2"></i>Update Profile
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ route('superadmin.profile.update') }}" method="POST" id="updateProfileForm">
+                        @csrf
+                        @method('PUT')
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label for="updateName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="updateName" name="name" value="{{ Auth::user()->name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="updateEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="updateEmail" name="email" value="{{ Auth::user()->email }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="updatePassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="updatePassword" name="password" minlength="8">
+                                <small class="text-muted">Leave blank to keep current password</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="updatePasswordConfirmation" class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-control" id="updatePasswordConfirmation" name="password_confirmation" minlength="8">
+                            </div>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="updateProfileBtn">
+                                <i class="bi bi-check-circle me-2"></i>Update Profile
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -601,6 +655,38 @@
             const logoutModal = new bootstrap.Modal(document.getElementById('logoutModal'));
             logoutModal.show();
         }
+
+        function showUpdateProfileModal() {
+            const updateProfileModal = new bootstrap.Modal(document.getElementById('updateProfileModal'));
+            updateProfileModal.show();
+        }
+
+        // Add form validation for profile update
+        document.addEventListener('DOMContentLoaded', function() {
+            const updateProfileForm = document.getElementById('updateProfileForm');
+            const updatePassword = document.getElementById('updatePassword');
+            const updatePasswordConfirmation = document.getElementById('updatePasswordConfirmation');
+            const updateProfileBtn = document.getElementById('updateProfileBtn');
+
+            if (updateProfileForm) {
+                updateProfileForm.addEventListener('submit', function(e) {
+                    const password = updatePassword.value;
+                    const passwordConfirmation = updatePasswordConfirmation.value;
+
+                    // Check if passwords match when password is provided
+                    if (password && password !== passwordConfirmation) {
+                        e.preventDefault();
+                        alert('Password confirmation does not match!');
+                        updatePasswordConfirmation.focus();
+                        return false;
+                    }
+
+                    // Disable button to prevent double submission
+                    updateProfileBtn.disabled = true;
+                    updateProfileBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Updating...';
+                });
+            }
+        });
     </script>
 </body>
 </html>

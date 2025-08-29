@@ -97,6 +97,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/predictions/{prediction}', [SuperAdminController::class, 'showPrediction'])->name('predictions.show');
     Route::get('/logs', [SuperAdminController::class, 'logs'])->name('logs');
     Route::get('/system-health', [SuperAdminController::class, 'getSystemHealth'])->name('system-health');
+    Route::put('/profile', [SuperAdminController::class, 'updateProfile'])->name('profile.update');
 });
 
 require __DIR__.'/auth.php';

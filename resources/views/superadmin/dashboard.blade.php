@@ -8,14 +8,6 @@
             <h1 class="h3 mb-1 text-dark fw-bold">Super Admin Dashboard</h1>
             <p class="text-muted mb-0">System overview and management console</p>
         </div>
-        <div class="d-flex flex-column flex-sm-row gap-2">
-            <button class="btn btn-outline-danger btn-sm">
-                <i class="bi bi-download me-2"></i>Export Report
-            </button>
-            <button class="btn btn-danger btn-sm">
-                <i class="bi bi-plus-circle me-2"></i>Quick Action
-            </button>
-        </div>
     </div>
 
     <!-- Stats Cards -->
@@ -29,7 +21,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">Total Admins</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::whereIn('role', ['admin', 'superadmin'])->count() }}</h2>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'admin')->count() }}</h2>
                         </div>
                     </div>
                 </div>
@@ -43,7 +35,7 @@
                             <i class="bi bi-people text-success fs-3"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h6 class="text-muted mb-1 fw-semibold">Total Users</h6>
+                            <h6 class="text-muted mb-1 fw-semibold">Total Clients</h6>
                             <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->count() }}</h2>
                         </div>
                     </div>
@@ -80,113 +72,6 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100 stats-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-primary bg-opacity-10 rounded-3 p-3 me-3">
-                            <i class="bi bi-calendar-check text-primary fs-3"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h6 class="text-muted mb-1 fw-semibold">Today's Predictions</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\Prediction::whereDate('created_at', today())->count() }}</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions and System Status -->
-    <div class="row g-3 mb-4">
-        <!-- Quick Actions -->
-        <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="card-title mb-0 fw-semibold">
-                        <i class="bi bi-lightning text-warning me-2"></i>Quick Actions
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-6">
-                            <a href="{{ route('superadmin.admins.index') }}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
-                                <i class="bi bi-shield-lock text-danger fs-2 mb-2"></i>
-                                <span class="fw-semibold">Manage Admins</span>
-                                <small class="text-muted">Add, edit, or remove admin users</small>
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <a href="{{ route('superadmin.users.index') }}" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
-                                <i class="bi bi-person-badge text-success fs-2 mb-2"></i>
-                                <span class="fw-semibold">Manage Clients</span>
-                                <small class="text-muted">View and manage client accounts</small>
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <a href="{{ route('superadmin.settings') }}" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
-                                <i class="bi bi-gear text-info fs-2 mb-2"></i>
-                                <span class="fw-semibold">System Settings</span>
-                                <small class="text-muted">Configure system parameters</small>
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <a href="{{ route('superadmin.logs') }}" class="btn btn-outline-warning w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
-                                <i class="bi bi-journal-text text-warning fs-2 mb-2"></i>
-                                <span class="fw-semibold">System Logs</span>
-                                <small class="text-muted">Monitor system activity</small>
-                            </a>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <a href="{{ route('superadmin.predictions.index') }}" class="btn btn-outline-danger w-100 h-100 d-flex flex-column align-items-center justify-content-center p-3">
-                                <i class="bi bi-graph-up text-danger fs-2 mb-2"></i>
-                                <span class="fw-semibold">View Predictions</span>
-                                <small class="text-muted">Monitor all predictions</small>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- System Status -->
-        <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="card-title mb-0 fw-semibold">
-                        <i class="bi bi-activity text-success me-2"></i>System Status
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex flex-column gap-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Database</span>
-                            <span class="badge bg-success rounded-pill">
-                                <i class="bi bi-check-circle me-1"></i>Online
-                            </span>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Cache</span>
-                            <span class="badge bg-success rounded-pill">
-                                <i class="bi bi-check-circle me-1"></i>Active
-                            </span>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Queue</span>
-                            <span class="badge bg-warning rounded-pill">
-                                <i class="bi bi-exclamation-triangle me-1"></i>Pending
-                            </span>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-between">
-                            <span class="text-muted">Storage</span>
-                            <span class="badge bg-success rounded-pill">
-                                <i class="bi bi-check-circle me-1"></i>Available
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Recent Predictions and System Activity -->
@@ -210,7 +95,7 @@
                                     <tr>
                                         <th class="border-0 px-3 py-3">User</th>
                                         <th class="border-0 px-3 py-3">Role</th>
-                                        <th class="border-0 px-3 py-3">Prediction</th>
+                                        <th class="border-0 px-3 py-3">Topic Name</th>
                                         <th class="border-0 px-3 py-3">Date</th>
                                         <th class="border-0 px-3 py-3">Status</th>
                                     </tr>
@@ -235,8 +120,8 @@
                                             </span>
                                         </td>
                                         <td class="px-3 py-3">
-                                            <div class="text-truncate" style="max-width: 200px;">
-                                                {{ $prediction->prediction_text }}
+                                            <div style="max-width: 300px; word-wrap: break-word;">
+                                                {{ $prediction->topic }}
                                             </div>
                                         </td>
                                         <td class="px-3 py-3">
@@ -283,114 +168,105 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                @php
+                                    $recentActivities = collect();
+                                    
+                                    // Get recent user logins
+                                    $recentLogins = \App\Models\User::whereNotNull('last_login_at')
+                                        ->orderBy('last_login_at', 'desc')
+                                        ->take(3)
+                                        ->get()
+                                        ->map(function($user) {
+                                            return [
+                                                'type' => 'login',
+                                                'user' => $user,
+                                                'time' => $user->last_login_at,
+                                                'status' => 'success',
+                                                'icon' => 'bi-person-check',
+                                                'color' => 'primary',
+                                                'action' => 'User Login'
+                                            ];
+                                        });
+                                    
+                                    // Get recent predictions
+                                    $recentPredictions = \App\Models\Prediction::with('user')
+                                        ->orderBy('created_at', 'desc')
+                                        ->take(3)
+                                        ->get()
+                                        ->map(function($prediction) {
+                                            return [
+                                                'type' => 'prediction',
+                                                'user' => $prediction->user,
+                                                'time' => $prediction->created_at,
+                                                'status' => $prediction->status,
+                                                'icon' => 'bi-graph-up',
+                                                'color' => 'success',
+                                                'action' => 'New Prediction'
+                                            ];
+                                        });
+                                    
+                                    // Get recent user creations
+                                    $recentUsers = \App\Models\User::orderBy('created_at', 'desc')
+                                        ->take(3)
+                                        ->get()
+                                        ->map(function($user) {
+                                            return [
+                                                'type' => 'user_created',
+                                                'user' => $user,
+                                                'time' => $user->created_at,
+                                                'status' => 'success',
+                                                'icon' => 'bi-person-plus',
+                                                'color' => 'info',
+                                                'action' => 'User Created'
+                                            ];
+                                        });
+                                    
+                                    // Combine and sort by time
+                                    $recentActivities = $recentLogins->concat($recentPredictions)->concat($recentUsers)
+                                        ->sortByDesc('time')
+                                        ->take(5);
+                                @endphp
+                                
+                                @forelse($recentActivities as $activity)
                                 <tr>
                                     <td class="px-3 py-3">
                                         <div class="d-flex align-items-center">
-                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                                <i class="bi bi-person-plus text-primary"></i>
+                                            <div class="bg-{{ $activity['color'] }} bg-opacity-10 rounded-circle p-2 me-3">
+                                                <i class="bi {{ $activity['icon'] }} text-{{ $activity['color'] }}"></i>
                                             </div>
-                                            <span class="fw-semibold">User Login</span>
+                                            <span class="fw-semibold">{{ $activity['action'] }}</span>
                                         </div>
                                     </td>
                                     <td class="px-3 py-3">
-                                        <small class="text-muted">admin@example.com</small>
+                                        <small class="text-muted">{{ $activity['user']->email }}</small>
                                     </td>
                                     <td class="px-3 py-3">
-                                        <small class="text-muted">2 minutes ago</small>
+                                        <small class="text-muted">{{ $activity['time']->diffForHumans() }}</small>
                                     </td>
                                     <td class="px-3 py-3">
-                                        <span class="badge bg-success rounded-pill">Success</span>
+                                        @if($activity['type'] === 'prediction')
+                                            <span class="badge bg-{{ $activity['status'] === 'completed' ? 'success' : ($activity['status'] === 'processing' ? 'warning' : 'secondary') }} rounded-pill">
+                                                {{ ucfirst($activity['status']) }}
+                                            </span>
+                                        @else
+                                            <span class="badge bg-success rounded-pill">
+                                                <i class="bi bi-check-circle me-1"></i>Success
+                                            </span>
+                                        @endif
                                     </td>
                                 </tr>
+                                @empty
                                 <tr>
-                                    <td class="px-3 py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-warning bg-opacity-10 rounded-circle p-2 me-3">
-                                                <i class="bi bi-gear text-warning"></i>
-                                            </div>
-                                            <span class="fw-semibold">Settings Update</span>
-                                        </td>
-                                    <td class="px-3 py-3">
-                                        <small class="text-muted">superadmin@example.com</small>
-                                    </td>
-                                    <td class="px-3 py-3">
-                                        <small class="text-muted">15 minutes ago</small>
-                                    </td>
-                                    <td class="px-3 py-3">
-                                        <span class="badge bg-success rounded-pill">Success</span>
+                                    <td colspan="4" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="bi bi-clock-history fs-4 d-block mb-2"></i>
+                                            No recent activity
+                                        </div>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <td class="px-3 py-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-info bg-opacity-10 rounded-circle p-2 me-3">
-                                                <i class="bi bi-database text-info"></i>
-                                            </div>
-                                            <span class="fw-semibold">Database Backup</span>
-                                        </td>
-                                    <td class="px-3 py-3">
-                                        <small class="text-muted">System</small>
-                                    </td>
-                                    <td class="px-3 py-3">
-                                        <small class="text-muted">1 hour ago</small>
-                                    </td>
-                                    <td class="px-3 py-3">
-                                        <span class="badge bg-success rounded-pill">Success</span>
-                                    </td>
-                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- System Health -->
-        <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0 py-3">
-                    <h5 class="card-title mb-0 fw-semibold">
-                        <i class="bi bi-heart-pulse text-danger me-2"></i>System Health
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex flex-column gap-3">
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted">CPU Usage</span>
-                                <span class="fw-semibold">45%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 45%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted">Memory Usage</span>
-                                <span class="fw-semibold">62%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-warning" style="width: 62%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted">Disk Space</span>
-                                <span class="fw-semibold">78%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-danger" style="width: 78%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text-muted">Network</span>
-                                <span class="fw-semibold">23%</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 23%"></div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

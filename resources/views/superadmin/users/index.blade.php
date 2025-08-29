@@ -8,14 +8,11 @@
             <h1 class="h3 mb-1 text-dark fw-bold">Client Management</h1>
             <p class="text-muted mb-0">Manage client accounts and their activities</p>
         </div>
-        <div class="d-flex flex-column flex-sm-row gap-2">
-            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
-                <i class="bi bi-plus-circle me-2"></i>Add Client
-            </button>
-            <button class="btn btn-outline-success btn-sm">
-                <i class="bi bi-download me-2"></i>Export
-            </button>
-        </div>
+                 <div class="d-flex flex-column flex-sm-row gap-2">
+             <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
+                 <i class="bi bi-plus-circle me-2"></i>Add Client
+             </button>
+         </div>
     </div>
 
     <!-- Stats Cards -->
@@ -50,21 +47,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card border-0 shadow-sm h-100 stats-card">
-                <div class="card-body">
-                    <div class="d-flex align-items-center">
-                        <div class="bg-info bg-opacity-10 rounded-3 p-3 me-3">
-                            <i class="bi bi-graph-up text-info fs-3"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h6 class="text-muted mb-1 fw-semibold">Total Predictions</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\Prediction::count() }}</h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card border-0 shadow-sm h-100 stats-card">
                 <div class="card-body">
@@ -124,24 +107,17 @@
                 <h5 class="card-title mb-0 fw-semibold">
                     <i class="bi bi-person-badge text-danger me-2"></i>Client Accounts
                 </h5>
-                <div class="d-flex gap-2 mt-2 mt-sm-0">
-                    <button class="btn btn-outline-danger btn-sm" id="bulkActions" disabled>
-                        <i class="bi bi-gear me-2"></i>Bulk Actions
-                    </button>
-                </div>
+                                 <div class="d-flex gap-2 mt-2 mt-sm-0">
+                     
+                 </div>
             </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0" id="usersTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="border-0 px-3 py-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="selectAll">
-                                </div>
-                            </th>
-                            <th class="border-0 px-3 py-3">Client</th>
+                                         <thead class="table-light">
+                         <tr>
+                             <th class="border-0 px-3 py-3">Client</th>
                             <th class="border-0 px-3 py-3">Status</th>
                             <th class="border-0 px-3 py-3 d-none d-md-table-cell">Predictions</th>
                             <th class="border-0 px-3 py-3 d-none d-lg-table-cell">Last Login</th>
@@ -151,13 +127,8 @@
                     </thead>
                     <tbody>
                         @forelse($users as $user)
-                        <tr data-user-id="{{ $user->id }}" data-status="{{ $user->last_login_at && ($user->last_login_at instanceof \Carbon\Carbon || is_string($user->last_login_at)) ? 'active' : 'inactive' }}" data-activity="{{ $user->predictions_count > 0 ? 'with_predictions' : 'no_predictions' }}">
-                            <td class="px-3 py-3">
-                                <div class="form-check">
-                                    <input class="form-check-input user-checkbox" type="checkbox" value="{{ $user->id }}">
-                                </div>
-                            </td>
-                            <td class="px-3 py-3">
+                                                 <tr data-user-id="{{ $user->id }}" data-status="{{ $user->last_login_at && ($user->last_login_at instanceof \Carbon\Carbon || is_string($user->last_login_at)) ? 'active' : 'inactive' }}" data-activity="{{ $user->predictions_count > 0 ? 'with_predictions' : 'no_predictions' }}">
+                             <td class="px-3 py-3">
                                 <div class="d-flex align-items-center">
                                     <div class="bg-danger bg-opacity-10 rounded-circle p-2 me-3">
                                         <i class="bi bi-person text-danger"></i>
@@ -226,15 +197,15 @@
                             </td>
                         </tr>
                         @empty
-                        <tr>
-                            <td colspan="7" class="text-center py-5">
-                                <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
-                                    <i class="bi bi-person-badge text-muted fs-1"></i>
-                                </div>
-                                <h6 class="text-muted mb-2">No clients found</h6>
-                                <p class="text-muted small mb-0">Clients will appear here when created by administrators</p>
-                            </td>
-                        </tr>
+                                                 <tr>
+                             <td colspan="6" class="text-center py-5">
+                                 <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
+                                     <i class="bi bi-person-badge text-muted fs-1"></i>
+                                 </div>
+                                 <h6 class="text-muted mb-2">No clients found</h6>
+                                 <p class="text-muted small mb-0">Clients will appear here when created by administrators</p>
+                             </td>
+                         </tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -298,12 +269,12 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-warning" onclick="openEditClientModal()">
-                    <i class="bi bi-pencil me-2"></i>Edit Client
-                </button>
-            </div>
+                         <div class="modal-footer justify-content-center">
+                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                 <button type="button" class="btn btn-warning" onclick="openEditClientModal()">
+                     <i class="bi bi-pencil me-2"></i>Edit Client
+                 </button>
+             </div>
         </div>
     </div>
 </div>
@@ -334,10 +305,10 @@
                         <small class="text-muted">Minimum 8 characters if changing</small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-danger">Update Client</button>
-                </div>
+                                 <div class="modal-footer justify-content-center">
+                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                     <button type="submit" class="btn btn-danger">Update Client</button>
+                 </div>
             </form>
         </div>
     </div>
@@ -361,16 +332,16 @@
                     <p class="text-muted small mt-2">This action cannot be undone and will permanently remove the client and all their predictions from the system.</p>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteUserForm" method="POST" class="d-inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-2"></i>Delete Client
-                    </button>
-                </form>
-            </div>
+                         <div class="modal-footer justify-content-center">
+                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                 <form id="deleteUserForm" method="POST" class="d-inline">
+                     @csrf
+                     @method('DELETE')
+                     <button type="submit" class="btn btn-danger">
+                         <i class="bi bi-trash me-2"></i>Delete Client
+                     </button>
+                 </form>
+             </div>
         </div>
     </div>
 </div>
@@ -468,9 +439,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusValue = statusFilter.value;
         const activityValue = activityFilter.value;
 
-        rows.forEach(row => {
-            const name = row.querySelector('td:nth-child(2) h6').textContent.toLowerCase();
-            const email = row.querySelector('td:nth-child(2) small').textContent.toLowerCase();
+                 rows.forEach(row => {
+             const name = row.querySelector('td:nth-child(1) h6').textContent.toLowerCase();
+             const email = row.querySelector('td:nth-child(1) small').textContent.toLowerCase();
             const status = row.dataset.status;
             const activity = row.dataset.activity;
 
@@ -493,43 +464,19 @@ document.addEventListener('DOMContentLoaded', function() {
         filterTable();
     });
 
-    // Bulk actions
-    const selectAll = document.getElementById('selectAll');
-    const userCheckboxes = document.querySelectorAll('.user-checkbox');
-    const bulkActions = document.getElementById('bulkActions');
-
-    selectAll.addEventListener('change', function() {
-        userCheckboxes.forEach(checkbox => {
-            checkbox.checked = this.checked;
-        });
-        updateBulkActions();
-    });
-
-    userCheckboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateBulkActions);
-    });
-
-    function updateBulkActions() {
-        const checkedCount = document.querySelectorAll('.user-checkbox:checked').length;
-        bulkActions.disabled = checkedCount === 0;
-        if (checkedCount > 0) {
-            bulkActions.innerHTML = `<i class="bi bi-gear me-2"></i>Bulk Actions (${checkedCount})`;
-        } else {
-            bulkActions.innerHTML = `<i class="bi bi-gear me-2"></i>Bulk Actions`;
-        }
-    }
+    
 });
 
 function viewClientDetails(userId) {
-    // Get client data and populate show modal
-    const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
-    if (userRow) {
-        const name = userRow.querySelector('td:nth-child(2) h6').textContent;
-        const email = userRow.querySelector('td:nth-child(2) small').textContent;
-        const status = userRow.querySelector('td:nth-child(3) .badge').textContent.trim();
-        const predictions = userRow.querySelector('td:nth-child(4) .badge')?.textContent.trim() || '0';
-        const lastLogin = userRow.querySelector('td:nth-child(5) small')?.textContent || 'Never';
-        const joined = userRow.querySelector('td:nth-child(6) small')?.textContent || 'Unknown';
+     // Get client data and populate show modal
+     const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
+     if (userRow) {
+         const name = userRow.querySelector('td:nth-child(1) h6').textContent;
+         const email = userRow.querySelector('td:nth-child(1) small').textContent;
+         const status = userRow.querySelector('td:nth-child(2) .badge').textContent.trim();
+         const predictions = userRow.querySelector('td:nth-child(3) .badge')?.textContent.trim() || '0';
+         const lastLogin = userRow.querySelector('td:nth-child(4) small')?.textContent || 'Never';
+         const joined = userRow.querySelector('td:nth-child(5) small')?.textContent || 'Unknown';
         
         // Populate show modal
         document.getElementById('showUserName').textContent = name;
@@ -550,11 +497,11 @@ function viewClientDetails(userId) {
 }
 
 function editClient(userId) {
-    // Get client data and populate edit modal
-    const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
-    if (userRow) {
-        const name = userRow.querySelector('td:nth-child(2) h6').textContent;
-        const email = userRow.querySelector('td:nth-child(2) small').textContent;
+     // Get client data and populate edit modal
+     const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
+     if (userRow) {
+         const name = userRow.querySelector('td:nth-child(1) h6').textContent;
+         const email = userRow.querySelector('td:nth-child(1) small').textContent;
         
         // Populate edit form
         document.getElementById('editUserName').value = name;
@@ -576,10 +523,10 @@ function editClient(userId) {
 }
 
 function deleteClient(userId) {
-    // Get client data and populate delete modal
-    const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
-    if (userRow) {
-        const name = userRow.querySelector('td:nth-child(2) h6').textContent;
+     // Get client data and populate delete modal
+     const userRow = document.querySelector(`tr[data-user-id="${userId}"]`);
+     if (userRow) {
+         const name = userRow.querySelector('td:nth-child(1) h6').textContent;
         
         // Populate delete modal
         document.getElementById('deleteUserName').textContent = name;
