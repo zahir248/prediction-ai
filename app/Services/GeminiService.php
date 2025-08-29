@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +14,8 @@ class GeminiService
     protected $webScrapingService;
     protected $sslVerify;
     protected $currentPredictionHorizon;
+    protected $enableTruncationDetection = true;
+    protected $model = 'gemini-2.5-flash';
 
     public function __construct(WebScrapingService $webScrapingService)
     {
@@ -75,7 +78,7 @@ class GeminiService
             // Store the current prediction horizon for fallback responses
             $this->currentPredictionHorizon = $predictionHorizon;
             
-            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon);
+            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary);
             
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
@@ -264,7 +267,7 @@ class GeminiService
         return $horizonMap[$horizon] ?? 'Next Month';
     }
 
-    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null)
+    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null)
     {
         $prompt = "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.\n\n";
         $prompt .= "Text to analyze: {$text}\n\n";
@@ -283,7 +286,7 @@ class GeminiService
             }
             
             // Add scraping summary if available
-            if (isset($scrapingSummary)) {
+            if (isset($scrapingSummary) && $scrapingSummary) {
                 $prompt .= "\nSCRAPING SUMMARY:\n";
                 $prompt .= "Total URLs provided: {$scrapingSummary['total_urls']}\n";
                 $prompt .= "Successfully scraped: {$scrapingSummary['successful_scrapes']}\n";
@@ -915,7 +918,7 @@ class GeminiService
         // If we have structured JSON data, use it directly
         if (is_array($result) && isset($result['title'])) {
             // Ensure all required fields are present
-            $result = $this->ensureCompleteStructure($result);
+            $result = $this->ensureCompleteStructure($result, $text);
             return $result;
         }
         
@@ -931,11 +934,11 @@ class GeminiService
         return $this->createComprehensiveFallback($text);
     }
 
-    protected function ensureCompleteStructure($result)
+    protected function ensureCompleteStructure($result, $text = null)
     {
         $defaults = [
             'title' => $result['title'] ?? "AI-Generated Prediction Analysis for " . substr($text ?? '', 0, 50),
-            'executive_summary' => $result['executive_summary'] ?? "Comprehensive AI analysis completed using Google Gemini 2.0 Flash. This analysis provides strategic insights and future predictions based on advanced pattern recognition and trend analysis.",
+            'executive_summary' => $result['executive_summary'] ?? "Comprehensive AI analysis completed using Google Gemini 2.5 Flash. This analysis provides strategic insights and future predictions based on advanced pattern recognition and trend analysis.",
             'prediction_horizon' => $result['prediction_horizon'] ?? $this->getHorizonText($this->currentPredictionHorizon ?? 'next_month'),
             'current_situation' => $result['current_situation'] ?? "Analysis provided by Google Gemini AI model with comprehensive data processing and trend analysis.",
             'key_factors' => $result['key_factors'] ?? ["AI-powered analysis", "Advanced pattern recognition", "Comprehensive trend analysis", "Strategic forecasting", "Data-driven insights", "Future scenario modeling"],
@@ -969,7 +972,7 @@ class GeminiService
             'recommendations' => $result['recommendations'] ?? ["Implement continuous monitoring systems", "Establish regular review cycles", "Develop contingency plans", "Build stakeholder communication channels", "Create success measurement frameworks", "Establish risk mitigation protocols", "Develop adaptive strategy frameworks", "Implement feedback loops"],
             'strategic_implications' => $result['strategic_implications'] ?? ["Strategic planning implications", "Resource allocation considerations", "Risk management requirements", "Stakeholder engagement needs", "Performance measurement frameworks", "Adaptive strategy requirements"],
             'confidence_level' => $result['confidence_level'] ?? 'High (90-95%)/Medium (75-89%)/Low (60-74%)',
-            'methodology' => $result['methodology'] ?? 'AI-powered analysis using Google Gemini 2.0 Flash for comprehensive future forecasting. Includes pattern recognition, trend analysis, and strategic scenario modeling.',
+            'methodology' => $result['methodology'] ?? 'AI-powered analysis using Google Gemini 2.5 Flash for comprehensive future forecasting. Includes pattern recognition, trend analysis, and strategic scenario modeling.',
             'data_sources' => $result['data_sources'] ?? ["AI pattern recognition", "Trend analysis algorithms", "Historical data modeling", "External factor assessment"],
             'assumptions' => $result['assumptions'] ?? ["Current trends continue", "No major external disruptions", "Data quality remains consistent", "Model accuracy maintains current levels"],
             'note' => $result['note'] ?? 'This analysis was generated by Google Gemini AI with comprehensive processing. Review all predictions and recommendations in context of your specific situation.',
@@ -987,7 +990,7 @@ class GeminiService
     {
         return [
             'title' => "Comprehensive AI Prediction Analysis for " . substr($text, 0, 50),
-            'executive_summary' => "This comprehensive analysis provides strategic insights and future predictions based on advanced AI analysis using Google Gemini 2.0 Flash. The analysis covers key trends, risks, opportunities, and strategic recommendations for informed decision-making.",
+            'executive_summary' => "This comprehensive analysis provides strategic insights and future predictions based on advanced AI analysis using Google Gemini 2.5 Flash. The analysis covers key trends, risks, opportunities, and strategic recommendations for informed decision-making.",
             'prediction_horizon' => $this->getHorizonText($this->currentPredictionHorizon ?? 'next_month'),
             'current_situation' => "Analysis completed using advanced AI algorithms with comprehensive data processing and trend analysis capabilities. The system leverages multiple data points to identify patterns and generate strategic insights.",
             'key_factors' => [
@@ -1071,7 +1074,7 @@ class GeminiService
                 "Adaptive strategy development is essential for long-term success"
             ],
             'confidence_level' => 'High (85-90%)',
-            'methodology' => 'AI-powered comprehensive analysis using Google Gemini 2.0 Flash for strategic future forecasting. Includes advanced pattern recognition, trend analysis, risk assessment, and strategic scenario modeling with continuous validation.',
+            'methodology' => 'AI-powered comprehensive analysis using Google Gemini 2.5 Flash for strategic future forecasting. Includes advanced pattern recognition, trend analysis, risk assessment, and strategic scenario modeling with continuous validation.',
             'data_sources' => [
                 "Advanced AI pattern recognition algorithms",
                 "Comprehensive trend analysis and forecasting models",
@@ -1292,8 +1295,8 @@ class GeminiService
         return [
             'prediction-analysis' => [
                 'name' => 'Advanced Prediction Analysis',
-                'model' => 'gemini-2.0-flash',
-                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using Google Gemini 2.0 Flash for comprehensive future forecasting and strategic insights across any topic or domain'
+                'model' => 'gemini-2.5-flash',
+                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using Google Gemini 2.5 Flash for comprehensive future forecasting and strategic insights across any topic or domain'
             ]
         ];
     }

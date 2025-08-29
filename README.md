@@ -24,7 +24,7 @@ The system provides comprehensive prediction analysis with the following structu
 
 ## Available Models
 
-- **Prediction Analysis**: `gemini-2.0-flash` - Advanced AI model for comprehensive prediction analysis with structured insights and forecasting across any topic
+- **Prediction Analysis**: `gemini-2.5-flash` - Advanced AI model for comprehensive prediction analysis with structured insights and forecasting across any topic
 
 ## Usage
 
