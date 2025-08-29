@@ -72,10 +72,14 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
     Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::patch('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.destroy');
     Route::get('/predictions', [AdminController::class, 'predictions'])->name('predictions.index');
     Route::get('/predictions/{prediction}', [AdminController::class, 'showPrediction'])->name('predictions.show');
     Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.update-role');
+    Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
 });
 
 // Superadmin routes

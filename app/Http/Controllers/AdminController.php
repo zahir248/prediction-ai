@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Prediction;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -75,5 +76,90 @@ class AdminController extends Controller
         $user->update(['role' => $request->role]);
 
         return redirect()->back()->with('success', 'Client role updated successfully.');
+    }
+
+    /**
+     * Store new client
+     */
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password),
+            'role' => 'user',
+        ]);
+
+        return redirect()->route('admin.users.index')->with('success', 'Client created successfully.');
+    }
+
+    /**
+     * Update client
+     */
+    public function updateUser(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8',
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('admin.users.index')->with('success', 'Client updated successfully.');
+    }
+
+    /**
+     * Delete client
+     */
+    public function deleteUser(User $user)
+    {
+        // Delete all predictions associated with the user
+        $user->predictions()->delete();
+        
+        // Delete the user
+        $user->delete();
+
+        return redirect()->route('admin.users.index')->with('success', 'Client deleted successfully.');
+    }
+
+    /**
+     * Update admin profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+        ];
+
+        if ($request->filled('password')) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        Auth::user()->update($data);
+
+        return redirect()->back()->with('success', 'Profile updated successfully.');
     }
 }
