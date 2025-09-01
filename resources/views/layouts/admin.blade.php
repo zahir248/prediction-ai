@@ -470,6 +470,12 @@
                             <span>Predictions</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.analytics.*') ? 'active' : '' }}" href="{{ route('admin.analytics.index') }}">
+                            <i class="bi bi-bar-chart"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
                 </ul>
                 
                 <!-- Bottom Actions -->

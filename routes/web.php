@@ -36,6 +36,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/create', [PredictionController::class, 'create'])->name('predictions.create');
     Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
     Route::get('/predictions/history', [PredictionController::class, 'history'])->name('predictions.history');
+    Route::get('/predictions/analytics', [PredictionController::class, 'analytics'])->name('predictions.analytics');
     Route::get('/predictions/fix-data', [PredictionController::class, 'fixData'])->name('predictions.fix-data');
     Route::get('/predictions/debug-data', [PredictionController::class, 'debugData'])->name('predictions.debug-data');
     Route::get('/predictions/debug-auth', [PredictionController::class, 'debugAuth'])->name('predictions.debug-auth');
@@ -80,6 +81,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/predictions/{prediction}', [AdminController::class, 'showPrediction'])->name('predictions.show');
     Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.update-role');
     Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
+    
+    // Analytics routes
+    Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/data', [App\Http\Controllers\Admin\AnalyticsController::class, 'getData'])->name('analytics.data');
+    Route::get('/analytics/export', [App\Http\Controllers\Admin\AnalyticsController::class, 'export'])->name('analytics.export');
+    Route::get('/analytics/user/{userId}', [App\Http\Controllers\Admin\AnalyticsController::class, 'getUserAnalytics'])->name('analytics.user');
 });
 
 // Superadmin routes

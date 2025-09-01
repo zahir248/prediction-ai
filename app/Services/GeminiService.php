@@ -26,7 +26,7 @@ class GeminiService
         $this->sslVerify = config('services.gemini.ssl_verify', !app()->environment('local', 'development'));
     }
 
-    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null)
+    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null)
     {
         try {
             // Validate API key
@@ -149,6 +149,11 @@ class GeminiService
             
             // Calculate API response time
             $apiResponseTime = round(microtime(true) - $apiStartTime, 3);
+            
+            // Update analytics if provided
+            if ($analytics) {
+                $this->updateAnalyticsWithApiResponse($analytics, $response, $apiResponseTime);
+            }
             
             Log::info("Gemini API response received at: " . now());
             Log::info("API response time: " . $apiResponseTime . " seconds");
@@ -1306,6 +1311,49 @@ class GeminiService
         $cacheKey = 'gemini_rate_limit_' . $this->model;
         cache()->forget($cacheKey);
         return true;
+    }
+
+    /**
+     * Update analytics with API response data
+     */
+    protected function updateAnalyticsWithApiResponse($analytics, $response, $apiResponseTime)
+    {
+        try {
+            $responseData = $response->json();
+            $outputTokens = 0;
+            
+            // Estimate output tokens from response
+            if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
+                $responseText = $responseData['candidates'][0]['content']['parts'][0]['text'];
+                $outputTokens = (int) ceil(strlen($responseText) / 4); // Rough approximation
+            }
+            
+            // Update analytics with API response data
+            $analytics->update([
+                'output_tokens' => $outputTokens,
+                'api_response_time' => $apiResponseTime,
+                'http_status_code' => $response->status(),
+                'retry_attempts' => $analytics->retry_attempts ?? 0,
+            ]);
+            
+            // Calculate total tokens and cost
+            $analytics->calculateTotalTokens();
+            $analytics->calculateEstimatedCost();
+            $analytics->save();
+            
+            Log::info('Analytics updated with API response data', [
+                'analytics_id' => $analytics->id,
+                'output_tokens' => $outputTokens,
+                'total_tokens' => $analytics->total_tokens,
+                'estimated_cost' => $analytics->estimated_cost
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to update analytics with API response', [
+                'analytics_id' => $analytics->id ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
+        }
     }
 
     protected function retryWithoutSSLVerification($prompt, $scrapedContent, $sourceUrls, $analysisType)

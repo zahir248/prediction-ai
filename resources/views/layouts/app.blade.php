@@ -788,7 +788,7 @@
                         <a href="{{ route('dashboard') }}" class="nav-link">
                             Dashboard
                         </a>
-                        <a href="{{ route('predictions.index') }}" class="nav-link">
+                        <a href="{{ route('predictions.analytics') }}" class="nav-link">
                             Analytics
                         </a>
                         <a href="{{ route('predictions.create') }}" class="nav-link">
@@ -831,7 +831,7 @@
                     <a href="{{ route('dashboard') }}" class="mobile-nav-link">
                         Dashboard
                     </a>
-                    <a href="{{ route('predictions.index') }}" class="mobile-nav-link">
+                    <a href="{{ route('predictions.analytics') }}" class="mobile-nav-link">
                         Analytics
                     </a>
                     <a href="{{ route('predictions.create') }}" class="mobile-nav-link">

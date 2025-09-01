@@ -6,6 +6,7 @@ use App\Models\Prediction;
 use App\Services\GeminiService;
 use App\Services\FileProcessingService;
 use App\Services\WebScrapingService;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -16,12 +17,14 @@ class PredictionController extends Controller
     protected $geminiService;
     protected $fileProcessingService;
     protected $webScrapingService;
+    protected $analyticsService;
 
-    public function __construct(GeminiService $geminiService, FileProcessingService $fileProcessingService, WebScrapingService $webScrapingService)
+    public function __construct(GeminiService $geminiService, FileProcessingService $fileProcessingService, WebScrapingService $webScrapingService, AnalyticsService $analyticsService)
     {
         $this->geminiService = $geminiService;
         $this->fileProcessingService = $fileProcessingService;
         $this->webScrapingService = $webScrapingService;
+        $this->analyticsService = $analyticsService;
     }
 
     public function index()
@@ -156,6 +159,15 @@ class PredictionController extends Controller
             'model_used' => 'pending' // Set default model
         ]);
 
+        // Start analytics tracking
+        $analytics = $this->analyticsService->startAnalysis($prediction, [
+            'text' => $combinedInputData,
+            'source_urls' => $sourceUrls,
+            'uploaded_files' => $uploadedFiles,
+            'analysis_type' => 'prediction-analysis',
+            'prediction_horizon' => $request->prediction_horizon
+        ]);
+
         // Record start time for processing time calculation
         $startTime = microtime(true);
 
@@ -165,7 +177,8 @@ class PredictionController extends Controller
                 $combinedInputData,
                 'prediction-analysis',
                 $sourceUrls,
-                $request->prediction_horizon
+                $request->prediction_horizon,
+                $analytics
             );
             
             // Calculate actual processing time
@@ -214,6 +227,13 @@ class PredictionController extends Controller
                     'processing_time' => $finalProcessingTime, // Use API timing if available, otherwise total processing time
                     'status' => $this->validateStatus('completed')
                 ]);
+
+                // Complete analytics tracking
+                if ($analytics) {
+                    $this->analyticsService->completeAnalysis($analytics, [
+                        'total_processing_time' => $finalProcessingTime
+                    ]);
+                }
 
                 $successMessage = 'Prediction completed successfully using Google Gemini AI!';
 
@@ -824,5 +844,18 @@ class PredictionController extends Controller
                 'trace' => $e->getTraceAsString()
             ], 500);
         }
+    }
+
+    /**
+     * Show user analytics
+     */
+    public function analytics(Request $request)
+    {
+        $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : now()->subMonth();
+        $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : now();
+
+        $analytics = $this->analyticsService->getUserAnalytics(Auth::user(), $startDate, $endDate);
+
+        return view('predictions.analytics', compact('analytics'));
     }
 }
