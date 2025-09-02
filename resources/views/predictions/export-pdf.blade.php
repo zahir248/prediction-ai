@@ -238,7 +238,6 @@
         <p style="color: #059669; font-weight: bold; margin: 10px 0;">Target Focus: {{ $prediction->target }}</p>
         @endif
         <p>Generated on {{ date('F d, Y \a\t g:i A') }}</p>
-        <p>Powered by Google Gemini AI</p>
     </div>
 
     <!-- Executive Summary -->
@@ -305,10 +304,7 @@
                     @endif
                 </div>
             </div>
-            <div class="info-row">
-                <div class="info-label">Model Used</div>
-                <div class="info-value">{{ $prediction->model_used ?? 'Not specified' }}</div>
-            </div>
+
             <div class="info-row">
                 <div class="info-label">Processing Time</div>
                 <div class="info-value">
@@ -901,8 +897,6 @@
         <p>For questions or support, please contact the system administrator</p>
     </div>
 
-    <div class="page-number">
-        Page 1 of 1
-    </div>
+
 </body>
 </html>
