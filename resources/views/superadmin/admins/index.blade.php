@@ -79,7 +79,7 @@
                 <div class="col-12 col-md-3">
                     <select class="form-select" id="organizationFilter">
                         <option value="">All Organizations</option>
-                        @foreach(\App\Models\User::whereIn('role', ['admin', 'superadmin'])->distinct('organization')->pluck('organization')->filter()->reject(function($org) { return strtolower($org) === 'isb'; }) as $org)
+                        @foreach(\App\Models\User::whereIn('role', ['admin', 'superadmin'])->distinct('organization')->pluck('organization')->filter()->reject(function($org) { return strtolower($org) === 'iesb'; }) as $org)
                             <option value="{{ $org }}">{{ $org }}</option>
                         @endforeach
                     </select>
