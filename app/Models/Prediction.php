@@ -55,6 +55,7 @@ class Prediction extends Model
 
     protected $fillable = [
         'topic',
+        'target',
         'input_data',
         'prediction_horizon',
         'source_urls',

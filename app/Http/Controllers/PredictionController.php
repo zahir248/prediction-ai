@@ -114,6 +114,7 @@ class PredictionController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'topic' => 'required|string|max:255',
+            'target' => 'nullable|string|max:1000',
             'prediction_horizon' => 'required|in:next_two_days,next_two_weeks,next_month,three_months,six_months,twelve_months,two_years',
             'input_data' => 'required|string|min:10',
             'source_urls' => 'nullable|array',
@@ -147,6 +148,7 @@ class PredictionController extends Controller
         // Create prediction record with fixed analysis type
         $prediction = Prediction::create([
             'topic' => $request->topic,
+            'target' => $request->target,
             'prediction_horizon' => $request->prediction_horizon,
             'input_data' => ['text' => $combinedInputData, 'analysis_type' => 'prediction-analysis'],
             'source_urls' => $sourceUrls,
@@ -178,7 +180,8 @@ class PredictionController extends Controller
                 'prediction-analysis',
                 $sourceUrls,
                 $request->prediction_horizon,
-                $analytics
+                $analytics,
+                $request->target
             );
             
             // Calculate actual processing time

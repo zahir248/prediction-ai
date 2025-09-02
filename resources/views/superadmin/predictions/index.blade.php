@@ -117,8 +117,9 @@
                                                  <tr>
                             <th class="border-0 px-3 py-3">User</th>
                            <th class="border-0 px-3 py-3">Role</th>
-                           <th class="border-0 px-3 py-3">Topic Name</th>
-                           <th class="border-0 px-3 py-3">Horizon</th>
+                                                       <th class="border-0 px-3 py-3">Topic Name</th>
+                            <th class="border-0 px-3 py-3">Target</th>
+                            <th class="border-0 px-3 py-3">Horizon</th>
                            <th class="border-0 px-3 py-3">Date</th>
                            <th class="border-0 px-3 py-3">Status</th>
                            <th class="border-0 px-3 py-3">Actions</th>
@@ -149,6 +150,11 @@
                                     </div>
                                 </td>
                                 <td class="px-3 py-3">
+                                    <div style="max-width: 300px; word-wrap: break-word;">
+                                        {{ $prediction->target ?: 'N/A' }}
+                                    </div>
+                                </td>
+                                <td class="px-3 py-3">
                                     <span class="badge bg-info rounded-pill">{{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}</span>
                                 </td>
                                 <td class="px-3 py-3">
@@ -170,7 +176,7 @@
                             </tr>
                         @empty
                                                          <tr>
-                                 <td colspan="7" class="text-center py-5">
+                                 <td colspan="8" class="text-center py-5">
                                      <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
                                          <i class="bi bi-graph-up text-danger fs-1"></i>
                                      </div>
@@ -221,9 +227,13 @@
                         <label class="form-label fw-semibold text-muted">Created Date</label>
                         <p class="mb-0" id="modalCreatedDate">Jan 1, 2024</p>
                     </div>
-                    <div class="col-12">
+                    <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold text-muted">Topic Name</label>
                         <p class="mb-0" id="modalPredictionText">Topic name here...</p>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold text-muted">Target</label>
+                        <p class="mb-0" id="modalPredictionTarget">Target here...</p>
                     </div>
                 </div>
             </div>
@@ -393,14 +403,16 @@ function viewPredictionDetails(predictionId) {
     const userName = predictionRow.querySelector('h6').textContent;
     const userEmail = predictionRow.querySelector('small').textContent;
     const userRole = predictionRow.querySelector('td:nth-child(2) .badge').textContent;
-    const createdDate = predictionRow.querySelector('td:nth-child(5) small').textContent;
+    const createdDate = predictionRow.querySelector('td:nth-child(6) small').textContent;
     const topicName = predictionRow.querySelector('td:nth-child(3) div').textContent;
+    const target = predictionRow.querySelector('td:nth-child(4) div').textContent;
     
     document.getElementById('modalUserName').textContent = userName;
     document.getElementById('modalUserEmail').textContent = userEmail;
     document.getElementById('modalUserRole').textContent = userRole;
     document.getElementById('modalCreatedDate').textContent = createdDate;
     document.getElementById('modalPredictionText').textContent = topicName;
+    document.getElementById('modalPredictionTarget').textContent = target;
     
     currentPredictionId = predictionId;
     

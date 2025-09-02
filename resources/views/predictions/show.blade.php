@@ -8,6 +8,11 @@
             <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
                 <div>
                     <h1 style="font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">{{ $prediction->topic }}</h1>
+                    @if($prediction->target)
+                        <p style="color: #059669; font-size: 18px; margin-bottom: 16px; font-weight: 500; background: #f0fdf4; padding: 12px 16px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                            🎯 <strong>Target:</strong> {{ $prediction->target }}
+                        </p>
+                    @endif
                     <p style="color: #64748b; font-size: 16px; margin: 0;">
                         Created on {{ $prediction->created_at->format('F d, Y \a\t g:i A') }}
                     </p>

@@ -26,7 +26,7 @@ class GeminiService
         $this->sslVerify = config('services.gemini.ssl_verify', !app()->environment('local', 'development'));
     }
 
-    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null)
+    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null)
     {
         try {
             // Validate API key
@@ -78,7 +78,7 @@ class GeminiService
             // Store the current prediction horizon for fallback responses
             $this->currentPredictionHorizon = $predictionHorizon;
             
-            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary);
+            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary, $target);
             
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
@@ -272,15 +272,20 @@ class GeminiService
         return $horizonMap[$horizon] ?? 'Next Month';
     }
 
-    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null)
+    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null, $target = null)
     {
         $prompt = "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.\n\n";
         $prompt .= "Text to analyze: {$text}\n\n";
         
+        if ($target) {
+            $prompt .= "TARGET: {$target}\n";
+            $prompt .= "Focus analysis on how predictions, risks, and implications affect {$target}.\n\n";
+        }
+        
         if ($predictionHorizon) {
             $horizonText = $this->getHorizonText($predictionHorizon);
-            $prompt .= "PREDICTION HORIZON: {$horizonText}\n";
-            $prompt .= "IMPORTANT: All your predictions, risk assessments, and strategic implications should be specifically tailored to this time period. Focus on what is most likely to happen within this timeframe.\n\n";
+            $prompt .= "HORIZON: {$horizonText}\n";
+            $prompt .= "Tailor all predictions and assessments to this timeframe.\n\n";
         }
         
         if ($sourceUrls && count($sourceUrls) > 0) {
@@ -330,61 +335,56 @@ class GeminiService
                 }
             }
             
-            $prompt .= "\nCRITICAL REQUIREMENTS FOR SOURCE INTEGRATION:\n";
-            $prompt .= "1. Throughout your analysis, explicitly reference these sources when they support or influence your predictions\n";
-            $prompt .= "2. Use phrases like 'According to Source 1...', 'Source 2 indicates...', 'Based on the analysis from Source 3...'\n";
-            $prompt .= "3. Show the direct connection between source information and your predictions\n";
-            $prompt .= "4. If sources provide conflicting information, acknowledge this and explain how you weighed the evidence\n";
-            $prompt .= "5. Include a dedicated 'Source Analysis' section explaining how each source contributed to your conclusions\n";
-            $prompt .= "6. Make it clear to readers which parts of your analysis are based on the provided sources vs. general knowledge\n";
-            $prompt .= "7. When possible, cite specific facts, numbers, or quotes from the scraped content\n\n";
+            $prompt .= "\nSOURCE INTEGRATION:\n";
+            $prompt .= "1. Reference sources when supporting predictions\n";
+            $prompt .= "2. Use 'Source 1...', 'Source 2...' format\n";
+            $prompt .= "3. Include 'Source Analysis' section\n";
+            $prompt .= "4. Cite specific facts/numbers from sources\n\n";
         }
         
-        $prompt .= "Please provide your analysis in the following comprehensive JSON structure:\n";
+        $prompt .= "Provide analysis in this JSON structure:\n";
         $prompt .= "{\n";
-        $prompt .= "  \"title\": \"[Comprehensive Title: Topic + Time Period + Key Focus Areas]\",\n";
-        $prompt .= "  \"executive_summary\": \"[3-4 sentence executive summary covering key predictions, risks, and strategic implications]\",\n";
-        $prompt .= "  \"prediction_horizon\": \"[Specific time period: e.g., 'Next Two Days' or 'Next Two Weeks' or 'Next Month' or 'Next 3 Months' or 'Next 6 Months' or 'Next 12 Months' or 'Next 2 Years']\",\n";
-        $prompt .= "  \"current_situation\": \"[Detailed analysis of current state, trends, and context that inform predictions]\",\n";
+        $prompt .= "  \"title\": \"[Topic + Time Period + Focus]\",\n";
+        $prompt .= "  \"executive_summary\": \"[3-4 sentence summary of key predictions, risks, implications]\",\n";
+        $prompt .= "  \"prediction_horizon\": \"[Time period]\",\n";
+        $prompt .= "  \"current_situation\": \"[Current state and trends analysis]\",\n";
         $prompt .= "  \"key_factors\": [\n";
-        $prompt .= "    \"[Factor 1: Specific, actionable factor with brief explanation]\",\n";
-        $prompt .= "    \"[Factor 2: Specific, actionable factor with brief explanation]\",\n";
-        $prompt .= "    \"[Factor 3: Specific, actionable factor with brief explanation]\",\n";
-        $prompt .= "    \"[Factor 4: Specific, actionable factor with brief explanation]\",\n";
-        $prompt .= "    \"[Factor 5: Specific, actionable factor with brief explanation]\",\n";
-        $prompt .= "    \"[Factor 6: Specific, actionable factor with brief explanation]\"\n";
+        $prompt .= "    \"[Factor 1: Specific, actionable factor]\",\n";
+        $prompt .= "    \"[Factor 2: Specific, actionable factor]\",\n";
+        $prompt .= "    \"[Factor 3: Specific, actionable factor]\",\n";
+        $prompt .= "    \"[Factor 4: Specific, actionable factor]\",\n";
+        $prompt .= "    \"[Factor 5: Specific, actionable factor]\",\n";
+        $prompt .= "    \"[Factor 6: Specific, actionable factor]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"predictions\": [\n";
-        $prompt .= "    \"[Prediction 1: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 2: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 3: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 4: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 5: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 6: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 7: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 8: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 9: Specific outcome with timeline and probability]\",\n";
-        $prompt .= "    \"[Prediction 10: Specific outcome with timeline and probability]\"\n";
+        $prompt .= "    \"[Prediction 1: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 2: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 3: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 4: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 5: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 6: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 7: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 8: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 9: Specific outcome with timeline]\",\n";
+        $prompt .= "    \"[Prediction 10: Specific outcome with timeline]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"risk_assessment\": [\n";
         $prompt .= "    {\n";
-        $prompt .= "      \"risk\": \"[Specific risk description with context]\",\n";
+        $prompt .= "      \"risk\": \"[Risk description]\",\n";
         $prompt .= "      \"level\": \"[Critical/High/Medium/Low]\",\n";
         $prompt .= "      \"probability\": \"[Very Likely/Likely/Possible/Unlikely]\",\n";
-        $prompt .= "      \"impact\": \"[Severe/Significant/Moderate/Minimal]\",\n";
-        $prompt .= "      \"timeline\": \"[When this risk is most likely to materialize]\",\n";
-        $prompt .= "      \"mitigation\": \"[Specific mitigation strategy with actionable steps]\"\n";
+        $prompt .= "      \"mitigation\": \"[Mitigation strategy]\"\n";
         $prompt .= "    }\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"recommendations\": [\n";
-        $prompt .= "    \"[Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Specific, actionable recommendation with expected outcome]\",\n";
-        $prompt .= "    \"[Specific, actionable recommendation with expected outcome]\"\n";
+        $prompt .= "    \"[Specific, actionable recommendation]\",\n";
+        $prompt .= "    \"[Specific, actionable recommendation]\",\n";
+        $prompt .= "    \"[Specific, actionable recommendation]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"strategic_implications\": [\n";
-        $prompt .= "    \"[Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Strategic business/organizational implication]\",\n";
-        $prompt .= "    \"[Strategic business/organizational implication]\"\n";
+        $prompt .= "    \"[Strategic implication]\",\n";
+        $prompt .= "    \"[Strategic implication]\",\n";
+        $prompt .= "    \"[Strategic implication]\"\n";
         $prompt .= "  ],\n";
         $prompt .= "  \"confidence_level\": \"[High (90-95%)/Medium (75-89%)/Low (60-74%)]\",\n";
         $prompt .= "  \"methodology\": \"[AI analysis approach, data sources, and validation methods]\",\n";
@@ -411,29 +411,29 @@ class GeminiService
         }
         
         $prompt .= "\n}\n\n";
-        $prompt .= "IMPORTANT INSTRUCTIONS:\n";
-        $prompt .= "1. Be SPECIFIC and ACTIONABLE - avoid vague statements\n";
-        $prompt .= "2. Include TIMELINES and PROBABILITIES for all predictions\n";
-        $prompt .= "3. Focus on FUTURE OUTCOMES with concrete details\n";
-        $prompt .= "4. Provide REALISTIC but INSIGHTFUL predictions based on current trends\n";
-        $prompt .= "5. Structure risks by probability, impact, and timeline\n";
-        $prompt .= "6. Make recommendations SPECIFIC and IMPLEMENTABLE\n";
-        $prompt .= "7. Include QUANTIFIABLE metrics where possible\n";
-        $prompt .= "8. Consider both OPPORTUNITIES and THREATS\n";
-        $prompt .= "9. Base analysis on LOGICAL REASONING and TREND ANALYSIS\n";
-        $prompt .= "10. Ensure all sections are COMPREHENSIVE and PROFESSIONAL\n";
+        $prompt .= "INSTRUCTIONS:\n";
+        $prompt .= "1. Be specific and actionable\n";
+        $prompt .= "2. Include timelines for predictions\n";
+        $prompt .= "3. Focus on future outcomes\n";
+        $prompt .= "4. Provide realistic predictions\n";
+        $prompt .= "5. Structure risks by probability and impact\n";
+        $prompt .= "6. Make recommendations implementable\n";
+        $prompt .= "7. Include quantifiable metrics where possible\n";
+        $prompt .= "8. Consider opportunities and threats\n";
+        $prompt .= "9. Base analysis on logical reasoning\n";
+        $prompt .= "10. Ensure comprehensive and professional analysis\n";
         
         if ($sourceUrls && count($sourceUrls) > 0) {
-            $prompt .= "11. CONSISTENTLY CITE SOURCES throughout the analysis using phrases like 'According to Source 1...', 'Source 2 indicates...'\n";
-            $prompt .= "12. Show DIRECT CONNECTIONS between source information and specific predictions\n";
-            $prompt .= "13. Include the source_analysis field explaining how each source contributed to conclusions\n";
+            $prompt .= "11. Cite sources using 'Source 1...', 'Source 2...'\n";
+            $prompt .= "12. Show connections between sources and predictions\n";
+            $prompt .= "13. Include source_analysis field\n";
             if ($scrapedContent) {
-                $prompt .= "14. Use ACTUAL DATA and QUOTES from the scraped content when available\n";
-                $prompt .= "15. Reference specific facts, numbers, and insights from the source content\n";
+                $prompt .= "14. Use actual data and quotes from sources\n";
+                $prompt .= "15. Reference specific facts and numbers\n";
             }
         }
         
-        $prompt .= "\nFocus on generating high-quality, professional-grade prediction analysis that would be suitable for executive decision-making and strategic planning.";
+        $prompt .= "\nGenerate high-quality, professional prediction analysis suitable for executive decision-making.";
         
         return $prompt;
     }

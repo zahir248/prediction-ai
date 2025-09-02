@@ -31,6 +31,22 @@
                     @enderror
                 </div>
 
+                <!-- Target Field -->
+                <div style="margin-bottom: 32px;">
+                    <label for="target" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        Target (Optional)
+                    </label>
+                    <textarea id="target" 
+                              name="target" 
+                              rows="3"
+                              style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb; resize: vertical; font-family: inherit;"
+                              placeholder="Specify the target that will be affected by this prediction (e.g., specific company, market sector, demographic group, etc.)">{{ old('target') }}</textarea>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Optional: Define the specific target or entity that your prediction analysis will focus on</p>
+                    @error('target')
+                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Prediction Horizon Field -->
                         <div style="margin-bottom: 32px;">
             <label for="prediction_horizon" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
