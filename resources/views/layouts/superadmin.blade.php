@@ -498,6 +498,12 @@
                             <span>System Logs</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('superadmin.analytics.*') ? 'active' : '' }}" href="{{ route('superadmin.analytics.index') }}">
+                            <i class="bi bi-clipboard-data"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
                 </ul>
                 
                 <!-- Bottom Actions -->

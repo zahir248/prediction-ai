@@ -109,6 +109,12 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/logs', [SuperAdminController::class, 'logs'])->name('logs');
     Route::get('/system-health', [SuperAdminController::class, 'getSystemHealth'])->name('system-health');
     Route::put('/profile', [SuperAdminController::class, 'updateProfile'])->name('profile.update');
+    
+    // Analytics routes
+    Route::get('/analytics', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/data', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'getData'])->name('analytics.data');
+    Route::get('/analytics/export', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'export'])->name('analytics.export');
+    Route::get('/analytics/user/{userId}', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'getUserAnalytics'])->name('analytics.user');
 });
 
 require __DIR__.'/auth.php';

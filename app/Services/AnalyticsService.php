@@ -181,6 +181,8 @@ class AnalyticsService
             
             'top_users_by_usage' => $this->getTopUsersByUsage($startDate, $endDate, $organization),
             
+            'organization_breakdown' => $this->getOrganizationBreakdown($startDate, $endDate, $organization),
+            
             'daily_usage_trend' => $this->getDailyUsageTrend($startDate, $endDate, $organization),
             
             'detailed_records' => $this->getDetailedRecords($startDate, $endDate, $organization),
@@ -270,12 +272,46 @@ class AnalyticsService
             $query = $query->byOrganization($organization);
         }
         
-        return $query->selectRaw('user_id, SUM(total_tokens) as total_tokens, COUNT(*) as analysis_count')
+        $users = $query->selectRaw('user_id, SUM(total_tokens) as total_tokens, COUNT(*) as analysis_count')
             ->groupBy('user_id')
             ->orderByDesc('total_tokens')
             ->limit(10)
             ->with('user:id,name,email')
             ->get();
+        
+        // Calculate percentages
+        $totalTokens = $users->sum('total_tokens');
+        return $users->map(function ($user) use ($totalTokens) {
+            $user->percentage = $totalTokens > 0 ? ($user->total_tokens / $totalTokens) * 100 : 0;
+            return $user;
+        });
+    }
+
+    /**
+     * Get organization breakdown
+     */
+    private function getOrganizationBreakdown($startDate, $endDate, $organization = null)
+    {
+        $query = AnalysisAnalytics::query()
+            ->whereBetween('analysis_analytics.created_at', [$startDate, $endDate]);
+        
+        if ($organization) {
+            $query = $query->byOrganization($organization);
+        }
+        
+        return $query->join('users', 'analysis_analytics.user_id', '=', 'users.id')
+            ->selectRaw('users.organization, COUNT(*) as count, SUM(analysis_analytics.total_tokens) as total_tokens, SUM(analysis_analytics.estimated_cost) as total_cost')
+            ->groupBy('users.organization')
+            ->orderByDesc('total_tokens')
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->organization => [
+                    'count' => $item->count,
+                    'total_tokens' => $item->total_tokens,
+                    'total_cost' => $item->total_cost
+                ]];
+            })
+            ->toArray();
     }
 
     /**
