@@ -226,8 +226,8 @@
                 <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid #bbf7d0;">
                     <h3 style="font-weight: 600; color: #166534; margin-bottom: 16px; font-size: 18px;">✅ System Status</h3>
                     <div style="color: #166534; font-size: 14px; line-height: 1.6;">
-                        <p style="margin-bottom: 8px;"><strong>AI System:</strong> Google Gemini Pro Prediction Engine</p>
-                        <p style="margin: 0;">Advanced AI-powered prediction analysis using Google Gemini Pro for comprehensive future forecasting and strategic insights.</p>
+                        <p style="margin-bottom: 8px;"><strong>AI System:</strong> Advanced AI Prediction Engine</p>
+                        <p style="margin: 0;">Advanced AI-powered prediction analysis for comprehensive future forecasting and strategic insights.</p>
                     </div>
                 </div>
 
