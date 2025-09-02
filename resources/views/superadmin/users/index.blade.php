@@ -69,7 +69,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <div class="row g-3 search-filter-row">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="bi bi-search text-muted"></i>
@@ -77,7 +77,15 @@
                         <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search clients...">
                     </div>
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
+                    <select class="form-select" id="organizationFilter">
+                        <option value="">All Organizations</option>
+                        @foreach(\App\Models\User::where('role', 'user')->distinct('organization')->pluck('organization')->filter() as $org)
+                            <option value="{{ $org }}">{{ $org }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
                     <select class="form-select" id="statusFilter">
                         <option value="">All Status</option>
                         <option value="active">Active</option>
@@ -118,6 +126,7 @@
                                          <thead class="table-light">
                          <tr>
                              <th class="border-0 px-3 py-3">Client</th>
+                             <th class="border-0 px-3 py-3">Organization</th>
                             <th class="border-0 px-3 py-3">Status</th>
                             <th class="border-0 px-3 py-3 d-none d-md-table-cell">Predictions</th>
                             <th class="border-0 px-3 py-3 d-none d-lg-table-cell">Last Login</th>
@@ -139,6 +148,13 @@
                                         <small class="text-muted d-inline d-sm-none">{{ Str::limit($user->email, 20) }}</small>
                                     </div>
                                 </div>
+                            </td>
+                            <td class="px-3 py-3">
+                                @if($user->organization)
+                                    <span class="badge bg-info rounded-pill">{{ $user->organization }}</span>
+                                @else
+                                    <span class="text-muted small">No Organization</span>
+                                @endif
                             </td>
                             <td class="px-3 py-3">
                                 @if($user->last_login_at && ($user->last_login_at instanceof \Carbon\Carbon || is_string($user->last_login_at)))
@@ -198,7 +214,7 @@
                         </tr>
                         @empty
                                                  <tr>
-                             <td colspan="6" class="text-center py-5">
+                             <td colspan="7" class="text-center py-5">
                                  <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
                                      <i class="bi bi-person-badge text-muted fs-1"></i>
                                  </div>
@@ -254,6 +270,11 @@
                     </div>
                     
                     <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold text-muted">Organization</label>
+                        <p class="mb-0" id="showUserOrganization">Organization Name</p>
+                    </div>
+                    
+                    <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold text-muted">Joined</label>
                         <p class="mb-0" id="showUserJoined">Jan 1, 2024</p>
                     </div>
@@ -298,6 +319,11 @@
                     <div class="mb-3">
                         <label class="form-label">Email</label>
                         <input type="email" class="form-control" name="email" id="editUserEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Organization</label>
+                        <input type="text" class="form-control" name="organization" id="editUserOrganization" placeholder="Enter organization name">
+                        <small class="text-muted">Optional - Leave blank if no organization</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password (leave blank to keep current)</label>
@@ -366,6 +392,11 @@
                         <input type="email" class="form-control" name="email" required>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Organization</label>
+                        <input type="text" class="form-control" name="organization" placeholder="Enter organization name">
+                        <small class="text-muted">Optional - Leave blank if no organization</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Password</label>
                         <input type="password" class="form-control" name="password" required minlength="8">
                         <small class="text-muted">Minimum 8 characters</small>
@@ -428,6 +459,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
+    const organizationFilter = document.getElementById('organizationFilter');
     const statusFilter = document.getElementById('statusFilter');
     const activityFilter = document.getElementById('activityFilter');
     const clearFilters = document.getElementById('clearFilters');
@@ -436,35 +468,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
+        const organizationValue = organizationFilter.value;
         const statusValue = statusFilter.value;
         const activityValue = activityFilter.value;
 
-                 rows.forEach(row => {
-             const name = row.querySelector('td:nth-child(1) h6').textContent.toLowerCase();
-             const email = row.querySelector('td:nth-child(1) small').textContent.toLowerCase();
+        rows.forEach(row => {
+            const name = row.querySelector('td:nth-child(1) h6').textContent.toLowerCase();
+            const email = row.querySelector('td:nth-child(1) small').textContent.toLowerCase();
+            const organization = row.querySelector('td:nth-child(2) .badge, td:nth-child(2) .small')?.textContent.toLowerCase() || '';
             const status = row.dataset.status;
             const activity = row.dataset.activity;
 
             const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            const matchesOrganization = !organizationValue || organization.includes(organizationValue.toLowerCase());
             const matchesStatus = !statusValue || status === statusValue;
             const matchesActivity = !activityValue || activity === activityValue;
 
-            row.style.display = matchesSearch && matchesStatus && matchesActivity ? '' : 'none';
+            row.style.display = matchesSearch && matchesOrganization && matchesStatus && matchesActivity ? '' : 'none';
         });
     }
 
     searchInput.addEventListener('input', filterTable);
+    organizationFilter.addEventListener('change', filterTable);
     statusFilter.addEventListener('change', filterTable);
     activityFilter.addEventListener('change', filterTable);
 
     clearFilters.addEventListener('click', function() {
         searchInput.value = '';
+        organizationFilter.value = '';
         statusFilter.value = '';
         activityFilter.value = '';
         filterTable();
     });
-
-    
 });
 
 function viewClientDetails(userId) {
@@ -473,15 +508,17 @@ function viewClientDetails(userId) {
      if (userRow) {
          const name = userRow.querySelector('td:nth-child(1) h6').textContent;
          const email = userRow.querySelector('td:nth-child(1) small').textContent;
-         const status = userRow.querySelector('td:nth-child(2) .badge').textContent.trim();
-         const predictions = userRow.querySelector('td:nth-child(3) .badge')?.textContent.trim() || '0';
-         const lastLogin = userRow.querySelector('td:nth-child(4) small')?.textContent || 'Never';
-         const joined = userRow.querySelector('td:nth-child(5) small')?.textContent || 'Unknown';
+         const organization = userRow.querySelector('td:nth-child(2) .badge')?.textContent || 'No Organization';
+         const status = userRow.querySelector('td:nth-child(3) .badge').textContent.trim();
+         const predictions = userRow.querySelector('td:nth-child(4) .badge')?.textContent.trim() || '0';
+         const lastLogin = userRow.querySelector('td:nth-child(5) small')?.textContent || 'Never';
+         const joined = userRow.querySelector('td:nth-child(6) small')?.textContent || 'Unknown';
         
         // Populate show modal
         document.getElementById('showUserName').textContent = name;
         document.getElementById('showUserEmail').textContent = email;
         document.getElementById('showUserRole').textContent = 'Client';
+        document.getElementById('showUserOrganization').textContent = organization;
         document.getElementById('showUserStatus').textContent = status;
         document.getElementById('showUserJoined').textContent = joined;
         document.getElementById('showUserLastLogin').textContent = lastLogin;
@@ -502,10 +539,12 @@ function editClient(userId) {
      if (userRow) {
          const name = userRow.querySelector('td:nth-child(1) h6').textContent;
          const email = userRow.querySelector('td:nth-child(1) small').textContent;
+         const organization = userRow.querySelector('td:nth-child(2) .badge')?.textContent || '';
         
         // Populate edit form
         document.getElementById('editUserName').value = name;
         document.getElementById('editUserEmail').value = email;
+        document.getElementById('editUserOrganization').value = organization;
         
         // Set form action
         document.getElementById('editUserForm').action = `/superadmin/users/${userId}`;

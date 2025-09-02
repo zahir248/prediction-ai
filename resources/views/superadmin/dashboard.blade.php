@@ -116,7 +116,7 @@
                                         </td>
                                         <td class="px-3 py-3">
                                             <span class="badge bg-{{ $prediction->user->role === 'superadmin' ? 'danger' : ($prediction->user->role === 'admin' ? 'primary' : 'secondary') }} rounded-pill">
-                                                {{ ucfirst($prediction->user->role) }}
+                                                {{ $prediction->user->role_with_organization }}
                                             </span>
                                         </td>
                                         <td class="px-3 py-3">

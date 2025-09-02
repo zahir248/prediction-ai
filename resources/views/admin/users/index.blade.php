@@ -41,7 +41,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">Active Clients</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->whereNotNull('last_login_at')->count() }}</h2>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->where('organization', Auth::user()->organization)->whereNotNull('last_login_at')->count() }}</h2>
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">New This Month</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->whereMonth('created_at', now()->month)->count() }}</h2>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->where('organization', Auth::user()->organization)->whereMonth('created_at', now()->month)->count() }}</h2>
                         </div>
                     </div>
                 </div>

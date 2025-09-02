@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'organization',
         'last_login_at',
     ];
 
@@ -92,5 +93,25 @@ class User extends Authenticatable
     public function trackLogin(): void
     {
         $this->update(['last_login_at' => now()]);
+    }
+
+    /**
+     * Get formatted role with organization
+     */
+    public function getRoleWithOrganizationAttribute(): string
+    {
+        if ($this->organization) {
+            return ucfirst($this->role) . ' of ' . $this->organization;
+        }
+        
+        return ucfirst($this->role);
+    }
+
+    /**
+     * Get display name for user (role with organization)
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->getRoleWithOrganizationAttribute();
     }
 }

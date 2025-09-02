@@ -23,8 +23,9 @@ class AnalyticsController extends Controller
     {
         $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : now()->subMonth();
         $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : now();
+        $organization = Auth::user()->organization;
 
-        $analytics = $this->analyticsService->getSystemAnalytics($startDate, $endDate);
+        $analytics = $this->analyticsService->getSystemAnalytics($startDate, $endDate, $organization);
 
         return view('admin.analytics', compact('analytics'));
     }
@@ -36,8 +37,9 @@ class AnalyticsController extends Controller
     {
         $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : now()->subMonth();
         $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : now();
+        $organization = Auth::user()->organization;
 
-        $analytics = $this->analyticsService->getSystemAnalytics($startDate, $endDate);
+        $analytics = $this->analyticsService->getSystemAnalytics($startDate, $endDate, $organization);
 
         return response()->json($analytics);
     }
@@ -64,8 +66,9 @@ class AnalyticsController extends Controller
     {
         $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : now()->subMonth();
         $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : now();
+        $organization = Auth::user()->organization;
 
-        $analytics = $this->analyticsService->getSystemAnalytics($startDate, $endDate);
+        $analytics = $this->analyticsService->getSystemAnalytics($startDate, $endDate, $organization);
 
         // Generate CSV export
         $filename = 'analytics_' . $startDate->format('Y-m-d') . '_to_' . $endDate->format('Y-m-d') . '.csv';

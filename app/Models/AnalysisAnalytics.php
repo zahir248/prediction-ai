@@ -73,6 +73,16 @@ class AnalysisAnalytics extends Model
         return $query->where('analysis_type', $type);
     }
 
+    public function scopeByOrganization($query, $organization)
+    {
+        if ($organization) {
+            return $query->whereHas('user', function($q) use ($organization) {
+                $q->where('organization', $organization);
+            });
+        }
+        return $query;
+    }
+
     // Helper methods
     public function calculateTotalTokens()
     {
@@ -99,7 +109,7 @@ class AnalysisAnalytics extends Model
     }
 
     // Static methods for analytics
-    public static function getTotalTokenUsage($userId = null, $startDate = null, $endDate = null)
+    public static function getTotalTokenUsage($userId = null, $startDate = null, $endDate = null, $organization = null)
     {
         $query = self::query();
         
@@ -109,12 +119,16 @@ class AnalysisAnalytics extends Model
         
         if ($startDate && $endDate) {
             $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
         }
         
         return $query->sum('total_tokens');
     }
 
-    public static function getTotalCost($userId = null, $startDate = null, $endDate = null)
+    public static function getTotalCost($userId = null, $startDate = null, $endDate = null, $organization = null)
     {
         $query = self::query();
         
@@ -124,12 +138,16 @@ class AnalysisAnalytics extends Model
         
         if ($startDate && $endDate) {
             $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
         }
         
         return $query->sum('estimated_cost');
     }
 
-    public static function getAverageProcessingTime($userId = null, $startDate = null, $endDate = null)
+    public static function getAverageProcessingTime($userId = null, $startDate = null, $endDate = null, $organization = null)
     {
         $query = self::query();
         
@@ -139,12 +157,16 @@ class AnalysisAnalytics extends Model
         
         if ($startDate && $endDate) {
             $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
         }
         
         return $query->avg('total_processing_time');
     }
 
-    public static function getSuccessRate($userId = null, $startDate = null, $endDate = null)
+    public static function getSuccessRate($userId = null, $startDate = null, $endDate = null, $organization = null)
     {
         $query = self::query();
         
@@ -154,6 +176,10 @@ class AnalysisAnalytics extends Model
         
         if ($startDate && $endDate) {
             $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
         }
         
         $total = $query->count();

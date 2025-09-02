@@ -452,7 +452,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-white mb-1 fw-semibold">{{ Auth::user()->name }}</h6>
-                            <small class="text-white-50">{{ ucfirst(Auth::user()->role) }}</small>
+                            <small class="text-white-50">{{ Auth::user()->role_with_organization }}</small>
                         </div>
                         <div class="ms-2">
                             <i class="bi bi-pencil text-white-50"></i>

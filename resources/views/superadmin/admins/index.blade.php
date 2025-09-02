@@ -68,7 +68,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <div class="row g-3 search-filter-row">
-                <div class="col-12 col-md-5">
+                <div class="col-12 col-md-4">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0">
                             <i class="bi bi-search text-muted"></i>
@@ -76,14 +76,22 @@
                         <input type="text" class="form-control border-start-0" id="searchInput" placeholder="Search admins...">
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
+                    <select class="form-select" id="organizationFilter">
+                        <option value="">All Organizations</option>
+                        @foreach(\App\Models\User::whereIn('role', ['admin', 'superadmin'])->distinct('organization')->pluck('organization')->filter()->reject(function($org) { return strtolower($org) === 'isb'; }) as $org)
+                            <option value="{{ $org }}">{{ $org }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
                     <select class="form-select" id="statusFilter">
                         <option value="">All Status</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
                     <button class="btn btn-outline-secondary w-100" id="clearFilters">
                         <i class="bi bi-x-circle me-2"></i>Clear
                     </button>
@@ -107,9 +115,8 @@
                 <table class="table table-hover mb-0" id="adminsTable">
                     <thead class="table-light">
                         <tr>
-
                             <th class="border-0 px-3 py-3">Admin</th>
-
+                            <th class="border-0 px-3 py-3">Organization</th>
                             <th class="border-0 px-3 py-3">Status</th>
                             <th class="border-0 px-3 py-3 d-none d-md-table-cell">Last Login</th>
                             <th class="border-0 px-3 py-3 d-none d-lg-table-cell">Joined</th>
@@ -131,6 +138,14 @@
                                             <small class="text-muted d-inline d-sm-none">{{ Str::limit($admin->email, 20) }}</small>
                                         </div>
                                     </div>
+                                </td>
+
+                                <td class="px-3 py-3">
+                                    @if($admin->organization)
+                                        <span class="badge bg-info rounded-pill">{{ $admin->organization }}</span>
+                                    @else
+                                        <span class="text-muted small">No Organization</span>
+                                    @endif
                                 </td>
 
                                 <td class="px-3 py-3">
@@ -188,7 +203,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5">
+                                <td colspan="6" class="text-center py-5">
                                     <div class="bg-light rounded-circle d-inline-flex p-3 mb-3">
                                         <i class="bi bi-people text-muted fs-1"></i>
                                     </div>
@@ -239,6 +254,11 @@
                         <small class="text-muted">Select the appropriate role for the new user</small>
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">Organization</label>
+                        <input type="text" class="form-control" name="organization" placeholder="Enter organization name">
+                        <small class="text-muted">Optional - Leave blank if no organization</small>
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Password</label>
                         <input type="password" class="form-control" name="password" required minlength="8">
                         <small class="text-muted">Minimum 8 characters</small>
@@ -283,6 +303,11 @@
                     <div class="col-12 col-sm-6">
                         <label class="form-label fw-semibold text-muted">Status</label>
                         <p class="mb-0" id="showAdminStatus">Active</p>
+                    </div>
+                    
+                    <div class="col-12 col-sm-6">
+                        <label class="form-label fw-semibold text-muted">Organization</label>
+                        <p class="mb-0" id="showAdminOrganization">Organization Name</p>
                     </div>
                     
                     <div class="col-12 col-sm-6">
@@ -337,6 +362,11 @@
                             <option value="admin">Admin</option>
                             <option value="superadmin">Super Admin</option>
                         </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Organization</label>
+                        <input type="text" class="form-control" name="organization" id="editAdminOrganization" placeholder="Enter organization name">
+                        <small class="text-muted">Optional - Leave blank if no organization</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password (leave blank to keep current)</label>
@@ -433,6 +463,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
+    const organizationFilter = document.getElementById('organizationFilter');
     const statusFilter = document.getElementById('statusFilter');
     const clearFilters = document.getElementById('clearFilters');
     const table = document.getElementById('adminsTable');
@@ -440,25 +471,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function filterTable() {
         const searchTerm = searchInput.value.toLowerCase();
+        const organizationValue = organizationFilter.value;
         const statusValue = statusFilter.value;
 
         rows.forEach(row => {
             const name = row.querySelector('td:nth-child(1) h6').textContent.toLowerCase();
             const email = row.querySelector('td:nth-child(1) small').textContent.toLowerCase();
+            const organization = row.querySelector('td:nth-child(2) .badge, td:nth-child(2) .small')?.textContent.toLowerCase() || '';
             const status = row.dataset.status;
 
             const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            const matchesOrganization = !organizationValue || organization.includes(organizationValue.toLowerCase());
             const matchesStatus = !statusValue || status === statusValue;
 
-            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+            row.style.display = matchesSearch && matchesOrganization && matchesStatus ? '' : 'none';
         });
     }
 
     searchInput.addEventListener('input', filterTable);
+    organizationFilter.addEventListener('change', filterTable);
     statusFilter.addEventListener('change', filterTable);
 
     clearFilters.addEventListener('click', function() {
         searchInput.value = '';
+        organizationFilter.value = '';
         statusFilter.value = '';
         filterTable();
     });
@@ -470,11 +506,13 @@ function editAdmin(adminId) {
     if (adminRow) {
         const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
         const email = adminRow.querySelector('td:nth-child(1) small').textContent;
+        const organization = adminRow.querySelector('td:nth-child(2) .badge')?.textContent || '';
         const role = 'admin';
         
         // Populate edit form
         document.getElementById('editAdminName').value = name;
         document.getElementById('editAdminEmail').value = email;
+        document.getElementById('editAdminOrganization').value = organization;
         document.getElementById('editAdminRole').value = role.toLowerCase();
         
         // Set form action
@@ -516,15 +554,17 @@ function viewAdminDetails(adminId) {
     if (adminRow) {
         const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
         const email = adminRow.querySelector('td:nth-child(1) small').textContent;
+        const organization = adminRow.querySelector('td:nth-child(2) .badge')?.textContent || 'No Organization';
         const role = 'admin';
-        const status = adminRow.querySelector('td:nth-child(2) .badge').textContent.trim();
-        const lastLogin = adminRow.querySelector('td:nth-child(3) small')?.textContent || 'Never';
-        const joined = adminRow.querySelector('td:nth-child(4) small')?.textContent || 'Unknown';
+        const status = adminRow.querySelector('td:nth-child(3) .badge').textContent.trim();
+        const lastLogin = adminRow.querySelector('td:nth-child(4) small')?.textContent || 'Never';
+        const joined = adminRow.querySelector('td:nth-child(5) small')?.textContent || 'Unknown';
         
         // Populate show modal
         document.getElementById('showAdminName').textContent = name;
         document.getElementById('showAdminEmail').textContent = email;
         document.getElementById('showAdminRole').textContent = role;
+        document.getElementById('showAdminOrganization').textContent = organization;
         document.getElementById('showAdminStatus').textContent = status;
         document.getElementById('showAdminJoined').textContent = joined;
         document.getElementById('showAdminLastLogin').textContent = lastLogin;

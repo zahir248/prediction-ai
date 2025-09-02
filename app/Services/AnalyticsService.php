@@ -155,35 +155,35 @@ class AnalyticsService
     /**
      * Get system-wide analytics
      */
-    public function getSystemAnalytics($startDate = null, $endDate = null)
+    public function getSystemAnalytics($startDate = null, $endDate = null, $organization = null)
     {
         $startDate = $startDate ?? now()->subMonth();
         $endDate = $endDate ?? now();
 
         return [
-            'total_analyses' => AnalysisAnalytics::byDateRange($startDate, $endDate)->count(),
+            'total_analyses' => AnalysisAnalytics::byDateRange($startDate, $endDate)->byOrganization($organization)->count(),
             
-            'total_tokens' => AnalysisAnalytics::getTotalTokenUsage(null, $startDate, $endDate),
+            'total_tokens' => AnalysisAnalytics::getTotalTokenUsage(null, $startDate, $endDate, $organization),
             
-            'total_cost' => AnalysisAnalytics::getTotalCost(null, $startDate, $endDate),
+            'total_cost' => AnalysisAnalytics::getTotalCost(null, $startDate, $endDate, $organization),
             
-            'average_processing_time' => AnalysisAnalytics::getAverageProcessingTime(null, $startDate, $endDate) ?? 0,
+            'average_processing_time' => AnalysisAnalytics::getAverageProcessingTime(null, $startDate, $endDate, $organization) ?? 0,
             
-            'success_rate' => AnalysisAnalytics::getSuccessRate(null, $startDate, $endDate),
+            'success_rate' => AnalysisAnalytics::getSuccessRate(null, $startDate, $endDate, $organization),
             
-            'active_users' => AnalysisAnalytics::byDateRange($startDate, $endDate)
+            'active_users' => AnalysisAnalytics::byDateRange($startDate, $endDate)->byOrganization($organization)
                 ->distinct('user_id')
                 ->count('user_id'),
             
-            'analysis_type_breakdown' => $this->getAnalysisTypeBreakdown(null, $startDate, $endDate),
+            'analysis_type_breakdown' => $this->getAnalysisTypeBreakdown(null, $startDate, $endDate, $organization),
             
-            'prediction_horizon_breakdown' => $this->getPredictionHorizonBreakdown(null, $startDate, $endDate),
+            'prediction_horizon_breakdown' => $this->getPredictionHorizonBreakdown(null, $startDate, $endDate, $organization),
             
-            'top_users_by_usage' => $this->getTopUsersByUsage($startDate, $endDate),
+            'top_users_by_usage' => $this->getTopUsersByUsage($startDate, $endDate, $organization),
             
-            'daily_usage_trend' => $this->getDailyUsageTrend($startDate, $endDate),
+            'daily_usage_trend' => $this->getDailyUsageTrend($startDate, $endDate, $organization),
             
-            'detailed_records' => $this->getDetailedRecords($startDate, $endDate),
+            'detailed_records' => $this->getDetailedRecords($startDate, $endDate, $organization),
         ];
     }
 
@@ -220,12 +220,16 @@ class AnalyticsService
     /**
      * Get analysis type breakdown
      */
-    private function getAnalysisTypeBreakdown($userId, $startDate, $endDate)
+    private function getAnalysisTypeBreakdown($userId, $startDate, $endDate, $organization = null)
     {
         $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
         
         if ($userId) {
             $query = $query->byUser($userId);
+        }
+        
+        if ($organization) {
+            $query = $query->byOrganization($organization);
         }
         
         return $query->selectRaw('analysis_type, COUNT(*) as count')
@@ -237,12 +241,16 @@ class AnalyticsService
     /**
      * Get prediction horizon breakdown
      */
-    private function getPredictionHorizonBreakdown($userId, $startDate, $endDate)
+    private function getPredictionHorizonBreakdown($userId, $startDate, $endDate, $organization = null)
     {
         $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
         
         if ($userId) {
             $query = $query->byUser($userId);
+        }
+        
+        if ($organization) {
+            $query = $query->byOrganization($organization);
         }
         
         return $query->selectRaw('prediction_horizon, COUNT(*) as count')
@@ -254,10 +262,15 @@ class AnalyticsService
     /**
      * Get top users by usage
      */
-    private function getTopUsersByUsage($startDate, $endDate)
+    private function getTopUsersByUsage($startDate, $endDate, $organization = null)
     {
-        return AnalysisAnalytics::byDateRange($startDate, $endDate)
-            ->selectRaw('user_id, SUM(total_tokens) as total_tokens, COUNT(*) as analysis_count')
+        $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
+        
+        if ($organization) {
+            $query = $query->byOrganization($organization);
+        }
+        
+        return $query->selectRaw('user_id, SUM(total_tokens) as total_tokens, COUNT(*) as analysis_count')
             ->groupBy('user_id')
             ->orderByDesc('total_tokens')
             ->limit(10)
@@ -268,10 +281,15 @@ class AnalyticsService
     /**
      * Get daily usage trend
      */
-    private function getDailyUsageTrend($startDate, $endDate)
+    private function getDailyUsageTrend($startDate, $endDate, $organization = null)
     {
-        return AnalysisAnalytics::byDateRange($startDate, $endDate)
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as analysis_count, SUM(total_tokens) as total_tokens')
+        $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
+        
+        if ($organization) {
+            $query = $query->byOrganization($organization);
+        }
+        
+        return $query->selectRaw('DATE(created_at) as date, COUNT(*) as analysis_count, SUM(total_tokens) as total_tokens')
             ->groupBy('date')
             ->orderBy('date')
             ->get()
@@ -310,10 +328,15 @@ class AnalyticsService
     /**
      * Get detailed analytics records for admin view
      */
-    private function getDetailedRecords($startDate, $endDate)
+    private function getDetailedRecords($startDate, $endDate, $organization = null)
     {
-        return AnalysisAnalytics::byDateRange($startDate, $endDate)
-            ->with('user:id,name,email')
+        $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
+        
+        if ($organization) {
+            $query = $query->byOrganization($organization);
+        }
+        
+        return $query->with('user:id,name,email')
             ->orderByDesc('created_at')
             ->limit(100) // Limit to prevent performance issues
             ->get();

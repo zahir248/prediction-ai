@@ -15,11 +15,17 @@ class AdminController extends Controller
      */
     public function dashboard(): View
     {
+        $adminOrganization = Auth::user()->organization;
+        
         $stats = [
-            'total_clients' => User::where('role', 'user')->count(),
-            'total_predictions' => Prediction::count(),
-            'recent_clients' => User::where('role', 'user')->latest()->take(5)->get(),
-            'recent_predictions' => Prediction::with('user')->latest()->take(5)->get(),
+            'total_clients' => User::where('role', 'user')->where('organization', $adminOrganization)->count(),
+            'total_predictions' => Prediction::whereHas('user', function($query) use ($adminOrganization) {
+                $query->where('role', 'user')->where('organization', $adminOrganization);
+            })->count(),
+            'recent_clients' => User::where('role', 'user')->where('organization', $adminOrganization)->latest()->take(5)->get(),
+            'recent_predictions' => Prediction::with('user')->whereHas('user', function($query) use ($adminOrganization) {
+                $query->where('role', 'user')->where('organization', $adminOrganization);
+            })->latest()->take(5)->get(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -30,7 +36,8 @@ class AdminController extends Controller
      */
     public function users(): View
     {
-        $users = User::where('role', 'user')->with('predictions')->paginate(15);
+        $adminOrganization = Auth::user()->organization;
+        $users = User::where('role', 'user')->where('organization', $adminOrganization)->with('predictions')->paginate(15);
         return view('admin.users.index', compact('users'));
     }
 
@@ -39,6 +46,11 @@ class AdminController extends Controller
      */
     public function showUser(User $user): View
     {
+        // Ensure admin can only view users from their organization
+        if ($user->organization !== Auth::user()->organization) {
+            abort(403, 'You can only view users from your organization.');
+        }
+
         $user->load('predictions');
         return view('admin.users.show', compact('user'));
     }
@@ -48,8 +60,9 @@ class AdminController extends Controller
      */
     public function predictions(): View
     {
-        $predictions = Prediction::whereHas('user', function($query) {
-            $query->where('role', 'user');
+        $adminOrganization = Auth::user()->organization;
+        $predictions = Prediction::whereHas('user', function($query) use ($adminOrganization) {
+            $query->where('role', 'user')->where('organization', $adminOrganization);
         })->with('user')->paginate(15);
         
         return view('admin.predictions.index', compact('predictions'));
@@ -60,6 +73,11 @@ class AdminController extends Controller
      */
     public function showPrediction(Prediction $prediction): View
     {
+        // Ensure admin can only view predictions from users in their organization
+        if ($prediction->user->organization !== Auth::user()->organization) {
+            abort(403, 'You can only view predictions from users in your organization.');
+        }
+
         $prediction->load('user');
         return view('admin.predictions.show', compact('prediction'));
     }
@@ -69,6 +87,11 @@ class AdminController extends Controller
      */
     public function updateUserRole(Request $request, User $user)
     {
+        // Ensure admin can only update users from their organization
+        if ($user->organization !== Auth::user()->organization) {
+            abort(403, 'You can only update users from your organization.');
+        }
+
         $request->validate([
             'role' => 'required|in:user,admin'
         ]);
@@ -94,6 +117,7 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => 'user',
+            'organization' => Auth::user()->organization, // Assign same organization as admin
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Client created successfully.');
@@ -104,6 +128,11 @@ class AdminController extends Controller
      */
     public function updateUser(Request $request, User $user)
     {
+        // Ensure admin can only update users from their organization
+        if ($user->organization !== Auth::user()->organization) {
+            abort(403, 'You can only update users from your organization.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -129,6 +158,11 @@ class AdminController extends Controller
      */
     public function deleteUser(User $user)
     {
+        // Ensure admin can only delete users from their organization
+        if ($user->organization !== Auth::user()->organization) {
+            abort(403, 'You can only delete users from your organization.');
+        }
+
         // Delete all predictions associated with the user
         $user->predictions()->delete();
         

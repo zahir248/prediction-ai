@@ -90,7 +90,8 @@ class SuperAdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:admin,superadmin'
+            'role' => 'required|in:admin,superadmin',
+            'organization' => 'nullable|string|max:255'
         ]);
 
         // Create the new admin/superadmin user
@@ -99,6 +100,7 @@ class SuperAdminController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => $request->role,
+            'organization' => $request->organization,
         ]);
 
         return redirect()->route('superadmin.admins.index')
@@ -119,13 +121,15 @@ class SuperAdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|in:admin,superadmin',
-            'password' => 'nullable|string|min:8'
+            'password' => 'nullable|string|min:8',
+            'organization' => 'nullable|string|max:255'
         ]);
 
         $updateData = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'organization' => $request->organization,
         ];
 
         // Only update password if provided
@@ -181,7 +185,8 @@ class SuperAdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8'
+            'password' => 'required|string|min:8',
+            'organization' => 'nullable|string|max:255'
         ]);
 
         // Create the new regular user
@@ -190,6 +195,7 @@ class SuperAdminController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => 'user', // Force role to be regular user
+            'organization' => $request->organization,
         ]);
 
         return redirect()->route('superadmin.users.index')
@@ -209,12 +215,14 @@ class SuperAdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8'
+            'password' => 'nullable|string|min:8',
+            'organization' => 'nullable|string|max:255'
         ]);
 
         $updateData = [
             'name' => $request->name,
             'email' => $request->email,
+            'organization' => $request->organization,
         ];
 
         // Only update password if provided

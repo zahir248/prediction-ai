@@ -22,7 +22,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">Total Clients</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->count() }}</h2>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->where('organization', Auth::user()->organization)->count() }}</h2>
                             <small class="text-success">
                                 <i class="bi bi-arrow-up me-1"></i>12% from last month
                             </small>
@@ -40,7 +40,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">Total Predictions</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\Prediction::whereHas('user', function($query) { $query->where('role', 'user'); })->count() }}</h2>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\Prediction::whereHas('user', function($query) { $query->where('role', 'user')->where('organization', Auth::user()->organization); })->count() }}</h2>
                             <small class="text-success">
                                 <i class="bi bi-arrow-up me-1"></i>8% from last month
                             </small>
@@ -59,7 +59,7 @@
                         </div>
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">Today's Predictions</h6>
-                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\Prediction::whereHas('user', function($query) { $query->where('role', 'user'); })->whereDate('created_at', today())->count() }}</h2>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\Prediction::whereHas('user', function($query) { $query->where('role', 'user')->where('organization', Auth::user()->organization); })->whereDate('created_at', today())->count() }}</h2>
                             <small class="text-info">New today</small>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
                     </div>
                 </div>
                 <div class="card-body p-0">
-                    @if(\App\Models\Prediction::whereHas('user', function($query) { $query->where('role', 'user'); })->count() > 0)
+                    @if(\App\Models\Prediction::whereHas('user', function($query) { $query->where('role', 'user')->where('organization', Auth::user()->organization); })->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
@@ -96,7 +96,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach(\App\Models\Prediction::with('user')->whereHas('user', function($query) { $query->where('role', 'user'); })->latest()->take(5)->get() as $prediction)
+                                    @foreach(\App\Models\Prediction::with('user')->whereHas('user', function($query) { $query->where('role', 'user')->where('organization', Auth::user()->organization); })->latest()->take(5)->get() as $prediction)
                                     <tr>
                                         <td class="px-3 py-3">
                                             <div class="d-flex align-items-center">
@@ -151,7 +151,7 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        @foreach(\App\Models\User::where('role', 'user')->latest()->take(5)->get() as $user)
+                        @foreach(\App\Models\User::where('role', 'user')->where('organization', Auth::user()->organization)->latest()->take(5)->get() as $user)
                         <div class="list-group-item border-0 px-3 py-3">
                             <div class="d-flex align-items-center">
                                 <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
@@ -162,7 +162,7 @@
                                     <small class="text-muted d-block">{{ $user->email }}</small>
                                 </div>
                                 <span class="badge bg-{{ $user->role === 'admin' ? 'primary' : ($user->role === 'superadmin' ? 'danger' : 'secondary') }} rounded-pill">
-                                    {{ ucfirst($user->role) }}
+                                    {{ $user->role_with_organization }}
                                 </span>
                             </div>
                         </div>
