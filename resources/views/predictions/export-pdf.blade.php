@@ -6,80 +6,82 @@
     <title>Prediction Analysis Report</title>
     <style>
         @page {
-            margin: 1.5cm;
+            margin: 1.2cm;
             size: A4;
         }
         
         body {
             font-family: 'Times New Roman', serif;
-            line-height: 1.6;
+            line-height: 1.4;
             color: #333;
             margin: 0;
             padding: 0;
             background-color: #fff;
-            font-size: 11pt;
+            font-size: 10pt;
         }
         
         .header {
             text-align: center;
-            border-bottom: 3px solid #000;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .header h1 {
             color: #000;
             margin: 0;
-            font-size: 24pt;
+            font-size: 20pt;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
         
         .header p {
             color: #333;
-            margin: 5px 0 0 0;
-            font-size: 12pt;
+            margin: 3px 0 0 0;
+            font-size: 11pt;
             font-weight: bold;
         }
         
         .header .subtitle {
-            font-size: 14pt;
-            margin-top: 10px;
+            font-size: 12pt;
+            margin-top: 8px;
             font-weight: normal;
         }
         
         .section {
-            margin-bottom: 25px;
+            margin-bottom: 18px;
             page-break-inside: avoid;
+            orphans: 3;
+            widows: 3;
         }
         
         .section-title {
             background-color: #f0f0f0;
             color: #000;
-            padding: 8px 12px;
-            font-size: 14pt;
+            padding: 6px 10px;
+            font-size: 12pt;
             font-weight: bold;
-            border-left: 4px solid #000;
-            margin-bottom: 15px;
+            border-left: 3px solid #000;
+            margin-bottom: 12px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
         }
         
         .subsection-title {
-            font-size: 12pt;
+            font-size: 11pt;
             font-weight: bold;
             color: #000;
-            margin: 20px 0 10px 0;
+            margin: 15px 0 8px 0;
             border-bottom: 1px solid #ccc;
-            padding-bottom: 5px;
+            padding-bottom: 4px;
         }
         
         .info-grid {
             display: table;
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .info-row {
@@ -89,93 +91,94 @@
         .info-label {
             display: table-cell;
             width: 30%;
-            padding: 6px 10px;
+            padding: 4px 8px;
             background-color: #f9f9f9;
             font-weight: bold;
             border: 1px solid #ddd;
             vertical-align: top;
-            font-size: 10pt;
+            font-size: 9pt;
         }
         
         .info-value {
             display: table-cell;
             width: 70%;
-            padding: 6px 10px;
+            padding: 4px 8px;
             border: 1px solid #ddd;
             vertical-align: top;
-            font-size: 10pt;
+            font-size: 9pt;
         }
         
         .prediction-content {
-            background-color: #fafafa;
-            padding: 12px;
-            border: 1px solid #ddd;
-            margin-bottom: 15px;
-            border-radius: 3px;
+            padding: 8px;
+            margin-bottom: 12px;
         }
         
         .prediction-content h3 {
             color: #000;
             margin-top: 0;
-            margin-bottom: 10px;
-            font-size: 11pt;
+            margin-bottom: 8px;
+            font-size: 10pt;
             font-weight: bold;
         }
         
         .prediction-content p {
-            margin: 8px 0;
+            margin: 6px 0;
             text-align: justify;
-            font-size: 10pt;
+            font-size: 9pt;
         }
         
         .factors-list, .recommendations-list {
-            margin: 8px 0;
-            padding-left: 20px;
+            margin: 6px 0;
+            padding-left: 18px;
         }
         
         .factors-list li, .recommendations-list li {
-            margin-bottom: 6px;
-            font-size: 10pt;
+            margin-bottom: 4px;
+            font-size: 9pt;
         }
         
         .confidence-badge {
             display: inline-block;
             background-color: #000;
             color: white;
-            padding: 6px 12px;
-            border-radius: 15px;
+            padding: 4px 10px;
+            border-radius: 12px;
             font-weight: bold;
-            font-size: 10pt;
+            font-size: 9pt;
             text-align: center;
         }
         
         .footer {
-            margin-top: 40px;
-            padding-top: 20px;
+            margin-top: 30px;
+            padding-top: 15px;
             border-top: 1px solid #ccc;
             text-align: center;
             color: #666;
-            font-size: 9pt;
+            font-size: 8pt;
         }
         
         .page-break {
             page-break-before: always;
         }
         
+        .page-break-after {
+            page-break-after: always;
+        }
+        
+        .avoid-break {
+            page-break-inside: avoid;
+        }
+        
         .highlight-box {
-            background-color: #ffffcc;
-            border: 1px solid #ffcc00;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 3px;
+            padding: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #ffcc00;
         }
         
         .data-point {
-            background-color: #e8f4fd;
-            border: 1px solid #b3d9ff;
-            padding: 8px;
-            margin: 8px 0;
-            border-radius: 3px;
+            padding: 6px;
+            margin: 6px 0;
+            border-left: 3px solid #b3d9ff;
         }
         
         .risk-level {
@@ -184,38 +187,91 @@
         }
         
         .mitigation {
-            background-color: #e8f5e8;
-            border: 1px solid #4caf50;
-            padding: 10px;
-            margin: 10px 0;
-            border-radius: 3px;
+            padding: 8px;
+            margin: 8px 0;
+            border-left: 3px solid #4caf50;
         }
         
         .mitigation h4 {
             color: #2e7d32;
             margin-top: 0;
-            font-size: 11pt;
+            font-size: 10pt;
         }
         
         .recommendations {
-            background-color: #fff3e0;
-            border: 1px solid #ff9800;
-            padding: 12px;
-            margin: 15px 0;
-            border-radius: 3px;
+            padding: 10px;
+            margin: 12px 0;
+            border-left: 3px solid #ff9800;
         }
         
         .recommendations h4 {
             color: #e65100;
             margin-top: 0;
-            font-size: 12pt;
+            font-size: 11pt;
         }
         
         .page-number {
             text-align: center;
-            font-size: 9pt;
+            font-size: 8pt;
             color: #666;
-            margin-top: 20px;
+            margin-top: 15px;
+        }
+        
+        /* Compact spacing for lists */
+        ul, ol {
+            margin: 4px 0;
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 3px;
+        }
+        
+        /* Compact spacing for paragraphs */
+        p {
+            margin: 4px 0;
+        }
+        
+        /* Ensure proper page breaks for major sections */
+        .major-section {
+            page-break-before: auto;
+            page-break-after: auto;
+            page-break-inside: avoid;
+        }
+        
+        /* Force page break for very long sections */
+        .force-break {
+            page-break-before: always;
+        }
+        
+        /* Additional page break controls */
+        .page-break-inside-avoid {
+            page-break-inside: avoid;
+        }
+        
+        .page-break-before-auto {
+            page-break-before: auto;
+        }
+        
+        .page-break-after-avoid {
+            page-break-after: avoid;
+        }
+        
+        /* Ensure content doesn't get cut at page boundaries */
+        .content-wrapper {
+            min-height: 100px;
+            page-break-inside: avoid;
+        }
+        
+        /* Compact table styling */
+        .compact-table {
+            font-size: 9pt;
+            line-height: 1.2;
+        }
+        
+        .compact-table td, .compact-table th {
+            padding: 3px 6px;
+            border: 1px solid #ddd;
         }
         
         @media print {
@@ -226,6 +282,12 @@
             
             .section {
                 page-break-inside: avoid;
+                orphans: 3;
+                widows: 3;
+            }
+            
+            .major-section {
+                page-break-inside: avoid;
             }
         }
     </style>
@@ -235,17 +297,17 @@
         <h1>Prediction Analysis Report</h1>
         <p class="subtitle">{{ $prediction->topic }}</p>
         @if($prediction->target)
-        <p style="color: #059669; font-weight: bold; margin: 10px 0;">Target Focus: {{ $prediction->target }}</p>
+        <p style="color: #059669; font-weight: bold; margin: 8px 0;">Target Focus: {{ $prediction->target }}</p>
         @endif
         <p>Generated on {{ date('F d, Y \a\t g:i A') }}</p>
     </div>
 
     <!-- Executive Summary -->
-    <div class="section">
+    <div class="section major-section">
         <div class="section-title">Executive Summary</div>
         <div class="prediction-content">
             @if($prediction->target)
-            <div class="highlight-box" style="background-color: #e8f5e8; border-color: #4caf50;">
+            <div class="highlight-box" style="border-left-color: #4caf50;">
                 <strong>Target-Focused Analysis:</strong><br>
                 This analysis specifically focuses on how predictions, risks, and strategic implications will affect: <strong>{{ $prediction->target }}</strong>
             </div>
@@ -265,7 +327,7 @@
     </div>
 
     <!-- Analysis Information -->
-    <div class="section">
+    <div class="section major-section">
         <div class="section-title">Analysis Information</div>
         <div class="info-grid">
             <div class="info-row">
@@ -323,7 +385,7 @@
     </div>
 
     <!-- Input Data Analysis -->
-    <div class="section">
+    <div class="section major-section">
         <div class="section-title">Input Data Analysis</div>
         <div class="prediction-content">
             <h3>Analysis Request</h3>
@@ -338,13 +400,13 @@
 
     <!-- Source References -->
     @if($prediction->source_urls && count($prediction->source_urls) > 0)
-    <div class="section">
+    <div class="section major-section">
         <div class="section-title">Source References</div>
         <div class="prediction-content">
             <h3>Additional Source Information</h3>
             <div class="data-point">
                 @foreach($prediction->source_urls as $index => $sourceUrl)
-                <p style="margin-bottom: 8px;"><strong>Source {{ $index + 1 }}:</strong> <a href="{{ $sourceUrl }}">{{ $sourceUrl }}</a></p>
+                <p style="margin-bottom: 6px;"><strong>Source {{ $index + 1 }}:</strong> <a href="{{ $sourceUrl }}">{{ $sourceUrl }}</a></p>
                 @endforeach
             </div>
             <p>These sources were referenced during the AI analysis to provide additional context and data points for the prediction. The analysis incorporates information from both the user input and these external sources.</p>
@@ -354,7 +416,7 @@
 
     <!-- Source Analysis Section -->
     @if($prediction->source_urls && count($prediction->source_urls) > 0 && isset($prediction->prediction_result['source_analysis']))
-    <div class="section">
+    <div class="section major-section">
         <div class="section-title">Source Analysis & Influence</div>
         <div class="prediction-content">
             <h3>How Sources Influenced This Analysis</h3>
@@ -366,9 +428,9 @@
     </div>
     @endif
 
-    <!-- AI Analysis Results -->
+    <!-- AI Analysis Results - Force page break for this major section -->
     @if($prediction->status === 'completed' && $prediction->prediction_result)
-        <div class="section">
+        <div class="section major-section force-break">
             <div class="section-title">AI Analysis Results</div>
             
             @if(isset($prediction->prediction_result['note']) && is_string($prediction->prediction_result['note']))
@@ -382,9 +444,9 @@
                 
                 <!-- Title and Horizon -->
                 <div class="prediction-content">
-                    <h3 style="color: #000; text-align: center; margin-bottom: 10px;">{{ $report['title'] }}</h3>
+                    <h3 style="color: #000; text-align: center; margin-bottom: 8px;">{{ $report['title'] }}</h3>
                     @if(isset($report['prediction_horizon']) && is_string($report['prediction_horizon']))
-                        <p style="text-align: center; color: #666; margin-bottom: 20px;">
+                        <p style="text-align: center; color: #666; margin-bottom: 15px;">
                             <strong>Prediction Horizon:</strong> {{ $report['prediction_horizon'] }}
                         </p>
                     @endif
@@ -392,18 +454,18 @@
                 
                 <!-- Executive Summary -->
                 @if(isset($report['executive_summary']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Executive Summary</h3>
                         @if(is_array($report['executive_summary']))
                             @foreach($report['executive_summary'] as $key => $value)
                                 @if(is_string($value))
                                     <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
                                 @elseif(is_array($value))
-                                    <div style="margin-bottom: 15px;">
-                                        <p style="font-weight: bold; margin-bottom: 8px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
-                                        <ul style="margin: 0; padding-left: 20px;">
+                                    <div style="margin-bottom: 12px;">
+                                        <p style="font-weight: bold; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
+                                        <ul style="margin: 0; padding-left: 18px;">
                                             @foreach($value as $item)
-                                                <li style="margin-bottom: 4px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                             @endforeach
                                         </ul>
                                     </div>
@@ -421,18 +483,18 @@
                 
                 <!-- Current Situation -->
                 @if(isset($report['current_situation']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Current Situation & Future Implications</h3>
                         @if(is_array($report['current_situation']))
                             @foreach($report['current_situation'] as $key => $value)
                                 @if(is_string($value))
                                     <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
                                 @elseif(is_array($value))
-                                    <div style="margin-bottom: 15px;">
-                                        <p style="font-weight: bold; margin-bottom: 8px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
-                                        <ul style="margin: 0; padding-left: 20px;">
+                                    <div style="margin-bottom: 12px;">
+                                        <p style="font-weight: bold; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
+                                        <ul style="margin: 0; padding-left: 18px;">
                                             @foreach($value as $item)
-                                                <li style="margin-bottom: 4px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                             @endforeach
                                         </ul>
                                     </div>
@@ -450,7 +512,7 @@
                 
                 <!-- Key Factors -->
                 @if(isset($report['key_factors']) && is_array($report['key_factors']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Key Factors for Future Development</h3>
                         <ul class="factors-list">
                             @foreach($report['key_factors'] as $factor)
@@ -460,9 +522,9 @@
                                             @if(is_string($value))
                                                 <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
                                             @elseif(is_array($value))
-                                                <div style="margin-top: 8px;">
+                                                <div style="margin-top: 6px;">
                                                     <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
-                                                    <ul style="margin: 8px 0 0 20px;">
+                                                    <ul style="margin: 6px 0 0 18px;">
                                                         @foreach($value as $item)
                                                             <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                                         @endforeach
@@ -485,7 +547,7 @@
                 
                 <!-- Future Predictions -->
                 @if(isset($report['future_predictions']) && is_array($report['future_predictions']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Future Predictions</h3>
                         <ul class="factors-list">
                             @foreach($report['future_predictions'] as $prediction_item)
@@ -495,9 +557,9 @@
                                             @if(is_string($value))
                                                 <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
                                             @elseif(is_array($value))
-                                                <div style="margin-top: 8px;">
+                                                <div style="margin-top: 6px;">
                                                     <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
-                                                    <ul style="margin: 8px 0 0 20px;">
+                                                    <ul style="margin: 6px 0 0 18px;">
                                                         @foreach($value as $item)
                                                             <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                                         @endforeach
@@ -517,7 +579,7 @@
                         </ul>
                     </div>
                 @elseif(isset($report['predictions']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Future Predictions</h3>
                         @if(is_array($report['predictions']))
                             <ul class="factors-list">
@@ -528,9 +590,9 @@
                                                 @if(is_string($value))
                                                     <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
                                                 @elseif(is_array($value))
-                                                    <div style="margin-top: 8px;">
+                                                    <div style="margin-top: 6px;">
                                                         <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
-                                                        <ul style="margin: 8px 0 0 20px;">
+                                                        <ul style="margin: 6px 0 0 18px;">
                                                             @foreach($value as $item)
                                                                 <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                                             @endforeach
@@ -558,18 +620,18 @@
                 
                 <!-- Policy Implications -->
                 @if(isset($report['policy_implications']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Policy Implications</h3>
                         @if(is_array($report['policy_implications']))
                             @foreach($report['policy_implications'] as $key => $value)
                                 @if(is_string($value))
                                     <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
                                 @elseif(is_array($value))
-                                    <div style="margin-bottom: 15px;">
-                                        <p style="font-weight: bold; margin-bottom: 8px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
-                                        <ul style="margin: 0; padding-left: 20px;">
+                                    <div style="margin-bottom: 12px;">
+                                        <p style="font-weight: bold; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
+                                        <ul style="margin: 0; padding-left: 18px;">
                                             @foreach($value as $item)
-                                                <li style="margin-bottom: 4px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                             @endforeach
                                         </ul>
                                     </div>
@@ -587,18 +649,18 @@
                 
                 <!-- Risk Assessment -->
                 @if(isset($report['risk_assessment']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Risk Assessment</h3>
                         @if(is_array($report['risk_assessment']))
                             @foreach($report['risk_assessment'] as $key => $value)
                                 @if(is_string($value))
                                     <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
                                 @elseif(is_array($value))
-                                    <div style="margin-bottom: 15px;">
-                                        <p style="font-weight: bold; margin-bottom: 8px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
-                                        <ul style="margin: 0; padding-left: 20px;">
+                                    <div style="margin-bottom: 12px;">
+                                        <p style="font-weight: bold; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
+                                        <ul style="margin: 0; padding-left: 18px;">
                                             @foreach($value as $item)
-                                                <li style="margin-bottom: 4px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                             @endforeach
                                         </ul>
                                     </div>
@@ -616,7 +678,7 @@
                 
                 <!-- Recommendations -->
                 @if(isset($report['recommendations']) && is_array($report['recommendations']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Strategic Recommendations</h3>
                         <ul class="recommendations-list">
                             @foreach($report['recommendations'] as $recommendation)
@@ -626,9 +688,9 @@
                                             @if(is_string($value))
                                                 <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
                                             @elseif(is_array($value))
-                                                <div style="margin-top: 8px;">
+                                                <div style="margin-top: 6px;">
                                                     <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
-                                                    <ul style="margin: 8px 0 0 20px;">
+                                                    <ul style="margin: 6px 0 0 18px;">
                                                         @foreach($value as $item)
                                                             <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                                         @endforeach
@@ -651,13 +713,13 @@
                 
                 <!-- Confidence Level -->
                 @if(isset($report['confidence_level']))
-                    <div class="prediction-content">
+                    <div class="prediction-content avoid-break">
                         <h3>Prediction Confidence</h3>
-                        <div class="confidence-badge" style="font-size: 12pt; padding: 8px 16px;">
+                        <div class="confidence-badge" style="font-size: 11pt; padding: 6px 14px;">
                             {{ is_string($report['confidence_level']) ? $report['confidence_level'] : (string)$report['confidence_level'] }}
                         </div>
                         @if(isset($report['methodology']) && is_string($report['methodology']))
-                            <p style="margin-top: 15px; color: #666; font-size: 9pt;">
+                            <p style="margin-top: 12px; color: #666; font-size: 8pt;">
                                 <strong>Methodology:</strong> {{ $report['methodology'] }}
                             </p>
                         @endif
@@ -666,7 +728,7 @@
                 
                 <!-- Strategic Implications -->
                 @if(isset($report['strategic_implications']) && is_array($report['strategic_implications']))
-                    <div class="prediction-content" style="background-color: #fff8e1; border-color: #ffc107;">
+                    <div class="prediction-content avoid-break" style="border-left: 3px solid #ffc107;">
                         <h3>Strategic Implications</h3>
                         <ul class="factors-list">
                             @foreach($report['strategic_implications'] as $implication)
@@ -676,9 +738,9 @@
                                             @if(is_string($value))
                                                 <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
                                             @elseif(is_array($value))
-                                                <div style="margin-top: 8px;">
+                                                <div style="margin-top: 6px;">
                                                     <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
-                                                    <ul style="margin: 8px 0 0 20px;">
+                                                    <ul style="margin: 6px 0 0 18px;">
                                                         @foreach($value as $item)
                                                             <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
                                                         @endforeach
@@ -701,7 +763,7 @@
                 
                 <!-- Data Sources -->
                 @if(isset($report['data_sources']) && is_array($report['data_sources']))
-                    <div class="prediction-content" style="background-color: #e3f2fd; border-color: #2196f3;">
+                    <div class="prediction-content avoid-break" style="border-left: 3px solid #2196f3;">
                         <h3>Data Sources & Methodology</h3>
                         <ul class="factors-list">
                             @foreach($report['data_sources'] as $source)
@@ -709,7 +771,7 @@
                             @endforeach
                         </ul>
                         @if(isset($report['methodology']) && is_string($report['methodology']))
-                            <p style="margin-top: 15px; font-style: italic;">
+                            <p style="margin-top: 12px; font-style: italic;">
                                 <strong>Methodology:</strong> {{ $report['methodology'] }}
                             </p>
                         @endif
@@ -718,7 +780,7 @@
                 
                 <!-- Assumptions -->
                 @if(isset($report['assumptions']) && is_array($report['assumptions']))
-                    <div class="prediction-content" style="background-color: #f3e5f5; border-color: #9c27b0;">
+                    <div class="prediction-content avoid-break" style="border-left: 3px solid #9c27b0;">
                         <h3>Key Assumptions</h3>
                         <ul class="factors-list">
                             @foreach($report['assumptions'] as $assumption)
@@ -730,7 +792,7 @@
                 
                 <!-- Success Metrics -->
                 @if(isset($report['success_metrics']) && is_array($report['success_metrics']))
-                    <div class="prediction-content" style="background-color: #e8f5e8; border-color: #4caf50;">
+                    <div class="prediction-content avoid-break" style="border-left: 3px solid #4caf50;">
                         <h3>Success Metrics & KPIs</h3>
                         <ul class="factors-list">
                             @foreach($report['success_metrics'] as $metric)
@@ -742,7 +804,7 @@
                 
                 <!-- Timeline Information -->
                 @if(isset($report['critical_timeline']) || isset($report['next_review']))
-                    <div class="prediction-content" style="background-color: #fff3e0; border-color: #ff9800;">
+                    <div class="prediction-content avoid-break" style="border-left: 3px solid #ff9800;">
                         <h3>Timeline & Review Schedule</h3>
                         @if(isset($report['critical_timeline']) && is_string($report['critical_timeline']))
                             <p><strong>Critical Timeline:</strong> {{ $report['critical_timeline'] }}</p>
@@ -759,57 +821,57 @@
                 <div class="prediction-content">
                     <h3>Analysis Results</h3>
                     <div class="data-point">
-                        <pre style="white-space: pre-wrap; font-family: 'Times New Roman', serif; font-size: 9pt;">{{ json_encode($prediction->prediction_result, JSON_PRETTY_PRINT) }}</pre>
+                        <pre style="white-space: pre-wrap; font-family: 'Times New Roman', serif; font-size: 8pt;">{{ json_encode($prediction->prediction_result, JSON_PRETTY_PRINT) }}</pre>
                     </div>
                 </div>
             @endif
         </div>
     @elseif($prediction->status === 'failed')
-        <div class="section">
+        <div class="section major-section">
             <div class="section-title">Analysis Status</div>
-            <div class="prediction-content" style="background-color: #ffebee; border-color: #f44336; color: #c62828;">
+            <div class="prediction-content" style="border-left: 3px solid #f44336; color: #c62828;">
                 <h3>Analysis Failed</h3>
                 <p>The AI prediction analysis could not be completed. Please try again or contact support.</p>
             </div>
         </div>
     @else
-        <div class="section">
+        <div class="section major-section">
             <div class="section-title">Analysis Status</div>
-            <div class="prediction-content" style="background-color: #fff3e0; border-color: #ff9800; color: #ef6c00;">
+            <div class="prediction-content" style="border-left: 3px solid #ff9800; color: #ef6c00;">
                 <h3>Processing...</h3>
                 <p>Your prediction analysis is being processed by AI. This may take a few moments.</p>
             </div>
         </div>
     @endif
 
-    <!-- Risk Assessment -->
+    <!-- Risk Assessment - Force page break for this section -->
     @if($prediction->status === 'completed')
-        <div class="section">
+        <div class="section major-section force-break">
             <div class="section-title">Risk Assessment & Mitigation</div>
             
             @if(isset($prediction->prediction_result['risk_assessment']) && is_array($prediction->prediction_result['risk_assessment']))
                 @foreach($prediction->prediction_result['risk_assessment'] as $index => $risk)
-                    <div class="prediction-content" style="background-color: #ffebee; border-color: #f44336; margin-bottom: 15px;">
+                    <div class="prediction-content avoid-break" style="border-left: 3px solid #f44336; margin-bottom: 12px;">
                         <h3 style="color: #d32f2f; margin-top: 0;">Risk {{ $index + 1 }}</h3>
-                        <p style="margin: 8px 0;"><strong>Description:</strong> {{ is_string($risk['risk'] ?? '') ? $risk['risk'] : 'Risk description not available' }}</p>
+                        <p style="margin: 6px 0;"><strong>Description:</strong> {{ is_string($risk['risk'] ?? '') ? $risk['risk'] : 'Risk description not available' }}</p>
                         
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin: 10px 0;">
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0;">
                             @if(isset($risk['level']) && is_string($risk['level']))
-                                <span style="background-color: #ffcdd2; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 9pt; font-weight: bold;">Level: {{ $risk['level'] }}</span>
+                                <span style="border: 1px solid #c62828; color: #c62828; padding: 3px 8px; font-size: 8pt; font-weight: bold;">Level: {{ $risk['level'] }}</span>
                             @endif
                             @if(isset($risk['probability']) && is_string($risk['probability']))
-                                <span style="background-color: #fff3e0; color: #ef6c00; padding: 4px 10px; border-radius: 12px; font-size: 9pt; font-weight: bold;">Probability: {{ $risk['probability'] }}</span>
+                                <span style="border: 1px solid #ef6c00; color: #ef6c00; padding: 3px 8px; font-size: 8pt; font-weight: bold;">Probability: {{ $risk['probability'] }}</span>
                             @endif
                             @if(isset($risk['impact']) && is_string($risk['impact']))
-                                <span style="background-color: #ffebee; color: #c62828; padding: 4px 10px; border-radius: 12px; font-size: 9pt; font-weight: bold;">Impact: {{ $risk['impact'] }}</span>
+                                <span style="border: 1px solid #c62828; color: #c62828; padding: 3px 8px; font-size: 8pt; font-weight: bold;">Impact: {{ $risk['impact'] }}</span>
                             @endif
                         </div>
                         
                         @if(isset($risk['timeline']) && is_string($risk['timeline']))
-                            <p style="margin: 8px 0;"><strong>Timeline:</strong> {{ $risk['timeline'] }}</p>
+                            <p style="margin: 6px 0;"><strong>Timeline:</strong> {{ $risk['timeline'] }}</p>
                         @endif
                         @if(isset($risk['mitigation']) && is_string($risk['mitigation']))
-                            <p style="margin: 8px 0;"><strong>Mitigation Strategy:</strong> {{ $risk['mitigation'] }}</p>
+                            <p style="margin: 6px 0;"><strong>Mitigation Strategy:</strong> {{ $risk['mitigation'] }}</p>
                         @endif
                     </div>
                 @endforeach
@@ -840,10 +902,10 @@
 
     <!-- Strategic Recommendations -->
     @if($prediction->status === 'completed')
-        <div class="section">
+        <div class="section major-section">
             <div class="section-title">Strategic Recommendations</div>
             
-            <div class="recommendations">
+            <div class="recommendations avoid-break">
                 <h4>Immediate Actions (0-30 days)</h4>
                 <ul class="factors-list">
                     <li>Review and validate all prediction data points</li>
@@ -852,7 +914,7 @@
                 </ul>
             </div>
             
-            <div class="recommendations">
+            <div class="recommendations avoid-break">
                 <h4>Short-term Actions (1-3 months)</h4>
                 <ul class="factors-list">
                     <li>Implement monitoring and tracking systems</li>
@@ -861,7 +923,7 @@
                 </ul>
             </div>
             
-            <div class="recommendations">
+            <div class="recommendations avoid-break">
                 <h4>Long-term Actions (3-12 months)</h4>
                 <ul class="factors-list">
                     <li>Evaluate prediction accuracy and adjust models</li>
@@ -873,7 +935,7 @@
     @endif
 
     <!-- Technical Details -->
-    <div class="section">
+    <div class="section major-section">
         <div class="section-title">Technical Specifications</div>
         <div class="info-grid">
             <div class="info-row">
@@ -892,10 +954,10 @@
     </div>
 
     <!-- NUJUM Disclaimer Footnote -->
-    <div class="section" style="margin-top: 40px; margin-bottom: 30px;">
-        <div class="section-title" style="background-color: #f8f9fa; color: #6c757d; border-left-color: #6c757d; font-size: 12pt;">Disclaimer</div>
-        <div style="background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 5px; font-size: 9pt; line-height: 1.4; color: #6c757d;">
-            <p style="margin: 0 0 8px 0;">NUJUM makes no representations as to its accuracy, reliability or completeness. To the fullest extent permitted by law, NUJUM excludes all conditions, warranties and other obligations in connection with the preparation of this report and instead limits its liability to the amount paid by the recipient of this report.</p>
+    <div class="section major-section" style="margin-top: 30px; margin-bottom: 25px;">
+        <div class="section-title" style="color: #6c757d; border-left-color: #6c757d; font-size: 11pt;">Disclaimer</div>
+        <div style="border-left: 3px solid #6c757d; padding: 12px; font-size: 8pt; line-height: 1.3; color: #6c757d;">
+            <p style="margin: 0 0 6px 0;">NUJUM makes no representations as to its accuracy, reliability or completeness. To the fullest extent permitted by law, NUJUM excludes all conditions, warranties and other obligations in connection with the preparation of this report and instead limits its liability to the amount paid by the recipient of this report.</p>
             <p style="margin: 0;">In no event shall NUJUM be liable to the recipient or any third party for any consequential loss or damage, including loss of profits, in connection with the preparation of this report.</p>
         </div>
     </div>

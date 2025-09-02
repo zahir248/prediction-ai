@@ -487,12 +487,22 @@ class PredictionController extends Controller
         // Generate PDF using the prediction data
         $pdf = Pdf::loadView('predictions.export-pdf', compact('prediction'));
         
-        // Set PDF options for better formatting
+        // Set PDF options for better formatting and page break handling
         $pdf->setPaper('a4', 'portrait');
         $pdf->setOptions([
             'isHtml5ParserEnabled' => true,
             'isRemoteEnabled' => true,
-            'defaultFont' => 'Arial'
+            'defaultFont' => 'Arial',
+            'defaultMediaType' => 'screen',
+            'isFontSubsettingEnabled' => true,
+            'isPhpEnabled' => false,
+            'isJavascriptEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+            'isRemoteEnabled' => true,
+            'defaultPaperSize' => 'a4',
+            'defaultPaperOrientation' => 'portrait',
+            'dpi' => 150,
+            'fontHeightRatio' => 0.9
         ]);
 
         // Generate filename
