@@ -143,7 +143,7 @@
                     </thead>
                     <tbody>
                         @forelse($admins as $admin)
-                            <tr data-admin-id="{{ $admin->id }}" data-role="{{ $admin->role }}" data-status="{{ $admin->last_login_at && ($admin->last_login_at instanceof \Carbon\Carbon || is_string($admin->last_login_at)) ? 'active' : 'inactive' }}">
+                            <tr data-admin-id="{{ $admin->id }}" data-role="{{ $admin->role }}" data-status="{{ $admin->last_login_at && ($admin->last_login_at instanceof \Carbon\Carbon || is_string($admin->last_login_at)) ? 'active' : 'inactive' }}" data-organization="{{ $admin->organization }}" data-client-limit="{{ $admin->client_limit }}">
 
                                 <td class="px-3 py-3">
                                     <div class="d-flex align-items-center">
@@ -685,16 +685,16 @@ function editAdmin(adminId) {
     if (adminRow) {
         const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
         const email = adminRow.querySelector('td:nth-child(1) small').textContent;
-        const organization = adminRow.querySelector('td:nth-child(2) .badge')?.textContent || '';
-        const role = 'admin';
-        const clientLimit = adminRow.querySelector('td:nth-child(3) .badge')?.textContent.split('/')[1] || '';
+        const organization = adminRow.dataset.organization || '';
+        const role = adminRow.dataset.role || 'admin';
+        const clientLimit = adminRow.dataset.clientLimit || '';
         
         // Populate edit form
         document.getElementById('editAdminName').value = name;
         document.getElementById('editAdminEmail').value = email;
         document.getElementById('editAdminOrganization').value = organization;
         document.getElementById('editAdminRole').value = role.toLowerCase();
-        document.getElementById('editAdminClientLimit').value = clientLimit === '∞' ? '' : clientLimit;
+        document.getElementById('editAdminClientLimit').value = clientLimit;
         
         // Show/hide client limit field based on role
         if (role === 'admin') {
