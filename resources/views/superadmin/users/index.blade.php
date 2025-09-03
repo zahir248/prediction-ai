@@ -547,7 +547,7 @@ function editClient(userId) {
         document.getElementById('editUserOrganization').value = organization;
         
         // Set form action
-        document.getElementById('editUserForm').action = `/superadmin/users/${userId}`;
+        document.getElementById('editUserForm').action = `{{ url('superadmin/users') }}/${userId}`;
         
         // Close show modal if open
         const showModal = bootstrap.Modal.getInstance(document.getElementById('showUserModal'));
@@ -571,7 +571,7 @@ function deleteClient(userId) {
         document.getElementById('deleteUserName').textContent = name;
         
         // Set form action
-        document.getElementById('deleteUserForm').action = `/superadmin/users/${userId}`;
+        document.getElementById('deleteUserForm').action = `{{ url('superadmin/users') }}/${userId}`;
         
         // Open delete modal
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));

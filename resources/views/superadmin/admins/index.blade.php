@@ -704,7 +704,7 @@ function editAdmin(adminId) {
         }
         
         // Set form action
-        document.getElementById('editAdminForm').action = `/superadmin/admins/${adminId}`;
+        document.getElementById('editAdminForm').action = `{{ url('superadmin/admins') }}/${adminId}`;
         
         // Close show modal if open
         const showModal = bootstrap.Modal.getInstance(document.getElementById('showAdminModal'));
@@ -728,7 +728,7 @@ function deleteAdmin(adminId) {
         document.getElementById('deleteAdminName').textContent = name;
         
         // Set form action
-        document.getElementById('deleteAdminForm').action = `/superadmin/admins/${adminId}`;
+        document.getElementById('deleteAdminForm').action = `{{ url('superadmin/admins') }}/${adminId}`;
         
         // Open delete modal
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteAdminModal'));
@@ -791,8 +791,8 @@ function setClientLimit(adminId, currentLimit) {
         document.getElementById('currentClientCount').value = clientCount;
         document.getElementById('newClientLimit').value = currentLimit || 2;
         
-        // Set form action
-        document.getElementById('setClientLimitForm').action = `/superadmin/admins/${adminId}/client-limit`;
+        // Set form action using Laravel url helper
+        document.getElementById('setClientLimitForm').action = `{{ url('superadmin/admins') }}/${adminId}/client-limit`;
         
         // Open set limit modal
         const setLimitModal = new bootstrap.Modal(document.getElementById('setClientLimitModal'));
