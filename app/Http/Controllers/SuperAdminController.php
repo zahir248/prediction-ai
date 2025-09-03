@@ -147,6 +147,14 @@ class SuperAdminController extends Controller
 
         // Only update client_limit if role is admin
         if ($request->role === 'admin') {
+            // Validate that client limit is not below current user count
+            if ($request->filled('client_limit')) {
+                $currentClientCount = $user->getCurrentClientCount();
+                if ($request->client_limit < $currentClientCount) {
+                    return redirect()->back()
+                        ->with('error', "Cannot set client limit to {$request->client_limit}. The admin currently has {$currentClientCount} clients. Client limit must be at least {$currentClientCount}.");
+                }
+            }
             $updateData['client_limit'] = $request->client_limit;
         } else {
             $updateData['client_limit'] = null; // Superadmins don't have client limits
@@ -224,7 +232,15 @@ class SuperAdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('superadmin.users.index', compact('users'));
+        // Get all organization admins for the dropdown
+        $organizationAdmins = User::where('role', 'admin')
+            ->whereNotNull('organization')
+            ->select('id', 'name', 'organization')
+            ->orderBy('organization')
+            ->orderBy('name')
+            ->get();
+
+        return view('superadmin.users.index', compact('users', 'organizationAdmins'));
     }
 
     /**
@@ -238,6 +254,19 @@ class SuperAdminController extends Controller
             'password' => 'required|string|min:8',
             'organization' => 'nullable|string|max:255'
         ]);
+
+        // Check client limit if organization is specified
+        if (!empty($request->organization)) {
+            // Find the admin for the target organization
+            $targetAdmin = User::where('role', 'admin')
+                ->where('organization', $request->organization)
+                ->first();
+
+            if ($targetAdmin && !$targetAdmin->canCreateMoreClients()) {
+                return redirect()->back()
+                    ->with('error', "Cannot assign client to '{$request->organization}'. The admin has reached their client limit ({$targetAdmin->client_limit} clients).");
+            }
+        }
 
         // Create the new regular user
         User::create([
@@ -268,6 +297,19 @@ class SuperAdminController extends Controller
             'password' => 'nullable|string|min:8',
             'organization' => 'nullable|string|max:255'
         ]);
+
+        // Check client limit if organization is being changed
+        if ($request->organization !== $user->organization && !empty($request->organization)) {
+            // Find the admin for the target organization
+            $targetAdmin = User::where('role', 'admin')
+                ->where('organization', $request->organization)
+                ->first();
+
+            if ($targetAdmin && !$targetAdmin->canCreateMoreClients()) {
+                return redirect()->back()
+                    ->with('error', "Cannot assign client to '{$request->organization}'. The admin has reached their client limit ({$targetAdmin->client_limit} clients).");
+            }
+        }
 
         $updateData = [
             'name' => $request->name,
@@ -455,6 +497,13 @@ class SuperAdminController extends Controller
         $request->validate([
             'client_limit' => 'required|integer|min:1'
         ]);
+
+        // Validate that client limit is not below current user count
+        $currentClientCount = $user->getCurrentClientCount();
+        if ($request->client_limit < $currentClientCount) {
+            return redirect()->back()
+                ->with('error', "Cannot set client limit to {$request->client_limit}. The admin currently has {$currentClientCount} clients. Client limit must be at least {$currentClientCount}.");
+        }
 
         $user->update(['client_limit' => $request->client_limit]);
 

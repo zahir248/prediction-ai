@@ -322,8 +322,15 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Organization</label>
-                        <input type="text" class="form-control" name="organization" id="editUserOrganization" placeholder="Enter organization name">
-                        <small class="text-muted">Optional - Leave blank if no organization</small>
+                        <select class="form-select" name="organization" id="editUserOrganization">
+                            <option value="">No Organization</option>
+                            @foreach($organizationAdmins as $admin)
+                                <option value="{{ $admin->organization }}" data-admin-id="{{ $admin->id }}">
+                                    {{ $admin->organization }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Select an organization admin or leave as "No Organization"</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password (leave blank to keep current)</label>
@@ -393,8 +400,15 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Organization</label>
-                        <input type="text" class="form-control" name="organization" placeholder="Enter organization name">
-                        <small class="text-muted">Optional - Leave blank if no organization</small>
+                        <select class="form-select" name="organization">
+                            <option value="">No Organization</option>
+                            @foreach($organizationAdmins as $admin)
+                                <option value="{{ $admin->organization }}">
+                                    {{ $admin->organization }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Select an organization admin or leave as "No Organization"</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
@@ -544,7 +558,10 @@ function editClient(userId) {
         // Populate edit form
         document.getElementById('editUserName').value = name;
         document.getElementById('editUserEmail').value = email;
-        document.getElementById('editUserOrganization').value = organization;
+        
+        // Set organization dropdown value
+        const organizationSelect = document.getElementById('editUserOrganization');
+        organizationSelect.value = organization;
         
         // Set form action
         document.getElementById('editUserForm').action = `{{ url('superadmin/users') }}/${userId}`;

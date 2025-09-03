@@ -143,7 +143,7 @@
                     </thead>
                     <tbody>
                         @forelse($admins as $admin)
-                            <tr data-admin-id="{{ $admin->id }}" data-role="{{ $admin->role }}" data-status="{{ $admin->last_login_at && ($admin->last_login_at instanceof \Carbon\Carbon || is_string($admin->last_login_at)) ? 'active' : 'inactive' }}" data-organization="{{ $admin->organization }}" data-client-limit="{{ $admin->client_limit }}">
+                            <tr data-admin-id="{{ $admin->id }}" data-role="{{ $admin->role }}" data-status="{{ $admin->last_login_at && ($admin->last_login_at instanceof \Carbon\Carbon || is_string($admin->last_login_at)) ? 'active' : 'inactive' }}" data-organization="{{ $admin->organization }}" data-client-limit="{{ $admin->client_limit }}" data-current-client-count="{{ $admin->client_count ?? 0 }}">
 
                                 <td class="px-3 py-3">
                                     <div class="d-flex align-items-center">
@@ -418,7 +418,7 @@
                     <div class="mb-3" id="editClientLimitField" style="display: none;">
                         <label class="form-label">Client Limit</label>
                         <input type="number" class="form-control" name="client_limit" id="editAdminClientLimit" min="1" placeholder="Enter maximum number of clients">
-                        <small class="text-muted">Maximum number of clients this admin can create</small>
+                        <small class="text-muted">Maximum number of clients this admin can create (minimum: <span id="editMinClientLimit">1</span>)</small>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password (leave blank to keep current)</label>
@@ -458,7 +458,7 @@
                     <div class="mb-3">
                         <label class="form-label">Client Limit</label>
                         <input type="number" class="form-control" name="client_limit" id="newClientLimit" min="1" required>
-                        <small class="text-muted">Set the maximum number of clients this admin can create</small>
+                        <small class="text-muted">Set the maximum number of clients this admin can create (minimum: <span id="minClientLimit">1</span>)</small>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -688,6 +688,7 @@ function editAdmin(adminId) {
         const organization = adminRow.dataset.organization || '';
         const role = adminRow.dataset.role || 'admin';
         const clientLimit = adminRow.dataset.clientLimit || '';
+        const currentClientCount = adminRow.dataset.currentClientCount || '0';
         
         // Populate edit form
         document.getElementById('editAdminName').value = name;
@@ -699,6 +700,10 @@ function editAdmin(adminId) {
         // Show/hide client limit field based on role
         if (role === 'admin') {
             document.getElementById('editClientLimitField').style.display = 'block';
+            // Set minimum client limit based on current client count
+            const minLimit = Math.max(1, parseInt(currentClientCount));
+            document.getElementById('editAdminClientLimit').min = minLimit;
+            document.getElementById('editMinClientLimit').textContent = minLimit;
         } else {
             document.getElementById('editClientLimitField').style.display = 'none';
         }
@@ -790,6 +795,11 @@ function setClientLimit(adminId, currentLimit) {
         document.getElementById('limitAdminName').value = name;
         document.getElementById('currentClientCount').value = clientCount;
         document.getElementById('newClientLimit').value = currentLimit || 2;
+        
+        // Set minimum client limit based on current client count
+        const minLimit = Math.max(1, parseInt(clientCount));
+        document.getElementById('newClientLimit').min = minLimit;
+        document.getElementById('minClientLimit').textContent = minLimit;
         
         // Set form action using Laravel url helper
         document.getElementById('setClientLimitForm').action = `{{ url('superadmin/admins') }}/${adminId}/client-limit`;
