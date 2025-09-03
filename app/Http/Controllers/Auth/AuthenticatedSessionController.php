@@ -18,6 +18,13 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
         $request->session()->regenerate();
+        
+        // Track login time for the authenticated user
+        $user = Auth::user();
+        if ($user) {
+            $user->trackLogin();
+        }
+        
         return redirect()->intended(route('dashboard'));
     }
 
