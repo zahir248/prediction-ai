@@ -134,11 +134,15 @@ class SuperAdminController extends Controller
             'client_limit' => 'nullable|integer|min:1'
         ]);
 
+        // Store the old organization for comparison
+        $oldOrganization = $user->organization;
+        $newOrganization = $request->organization;
+
         $updateData = [
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            'organization' => $request->organization,
+            'organization' => $newOrganization,
         ];
 
         // Only update client_limit if role is admin
@@ -154,6 +158,19 @@ class SuperAdminController extends Controller
         }
 
         $user->update($updateData);
+
+        // If organization changed and the user is an admin, update all users with 'user' role in the old organization
+        if ($oldOrganization !== $newOrganization && $user->role === 'admin' && !empty($oldOrganization)) {
+            $affectedUsersCount = User::where('role', 'user')
+                ->where('organization', $oldOrganization)
+                ->update(['organization' => $newOrganization]);
+            
+            // Add a note about the cascading update in the success message
+            if ($affectedUsersCount > 0) {
+                return redirect()->route('superadmin.admins.index')
+                    ->with('success', ucfirst($request->role) . ' user updated successfully! Organization updated for ' . $affectedUsersCount . ' client(s) as well.');
+            }
+        }
 
         return redirect()->route('superadmin.admins.index')
             ->with('success', ucfirst($request->role) . ' user updated successfully!');
@@ -174,10 +191,27 @@ class SuperAdminController extends Controller
             abort(403, 'You cannot delete yourself.');
         }
 
+        // Store the organization and role before deletion for cascading updates
+        $userOrganization = $user->organization;
+        $userRole = $user->role;
+
         $user->delete();
 
+        // If the deleted user was an admin with an organization, set organization to null for all users with 'user' role in that organization
+        if ($userRole === 'admin' && !empty($userOrganization)) {
+            $affectedUsersCount = User::where('role', 'user')
+                ->where('organization', $userOrganization)
+                ->update(['organization' => null]);
+            
+            // Add a note about the cascading update in the success message
+            if ($affectedUsersCount > 0) {
+                return redirect()->route('superadmin.admins.index')
+                    ->with('success', ucfirst($userRole) . ' user deleted successfully! Organization cleared for ' . $affectedUsersCount . ' client(s) as well.');
+            }
+        }
+
         return redirect()->route('superadmin.admins.index')
-            ->with('success', ucfirst($user->role) . ' user deleted successfully!');
+            ->with('success', ucfirst($userRole) . ' user deleted successfully!');
     }
 
     /**
