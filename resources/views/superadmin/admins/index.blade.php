@@ -287,7 +287,7 @@
                     <div class="mb-3">
                         <label class="form-label">Role</label>
                         <select class="form-select" name="role" required>
-                            <option value="admin">Admin</option>
+                            <option value="admin" selected>Admin</option>
                             <option value="superadmin">Super Admin</option>
                         </select>
                         <small class="text-muted">Select the appropriate role for the new user</small>
@@ -297,10 +297,13 @@
                         <input type="text" class="form-control" name="organization" placeholder="Enter organization name">
                         <small class="text-muted">Optional - Leave blank if no organization</small>
                     </div>
-                    <div class="mb-3" id="clientLimitField" style="display: none;">
-                        <label class="form-label">Client Limit</label>
-                        <input type="number" class="form-control" name="client_limit" min="1" placeholder="Enter maximum number of clients">
-                        <small class="text-muted">Maximum number of clients this admin can create</small>
+                    <div class="mb-3 client-limit-field" id="clientLimitField">
+                        <label class="form-label">Client Limit <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" name="client_limit" min="1" value="2" placeholder="Enter maximum number of clients" required>
+                        <small class="text-muted">Maximum number of clients this admin can create (default: 2)</small>
+                        <div class="invalid-feedback">
+                            Please enter a valid client limit (minimum 1).
+                        </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
@@ -501,6 +504,23 @@
 
 <style>
 /* Additional responsive styles for admin index */
+.client-limit-field {
+    transition: all 0.3s ease;
+}
+
+.client-limit-field.hidden {
+    display: none !important;
+}
+
+.client-limit-field.required input {
+    border-color: #dc3545;
+}
+
+.client-limit-field.required input:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
 @media (max-width: 576px) {
     .stats-card h2 {
         font-size: 1.5rem;
@@ -587,12 +607,41 @@ document.addEventListener('DOMContentLoaded', function() {
     const roleSelect = document.querySelector('select[name="role"]');
     const clientLimitField = document.getElementById('clientLimitField');
     
-    if (roleSelect) {
+    if (roleSelect && clientLimitField) {
+        // Set initial state based on default selected role
+        if (roleSelect.value === 'admin') {
+            clientLimitField.classList.remove('hidden');
+            clientLimitField.classList.add('required');
+            // Ensure default value is set
+            const clientLimitInput = clientLimitField.querySelector('input[name="client_limit"]');
+            if (clientLimitInput && !clientLimitInput.value) {
+                clientLimitInput.value = '2';
+            }
+        } else {
+            clientLimitField.classList.add('hidden');
+            clientLimitField.classList.remove('required');
+        }
+        
         roleSelect.addEventListener('change', function() {
             if (this.value === 'admin') {
-                clientLimitField.style.display = 'block';
+                clientLimitField.classList.remove('hidden');
+                clientLimitField.classList.add('required');
+                // Set default value if empty
+                const clientLimitInput = clientLimitField.querySelector('input[name="client_limit"]');
+                if (clientLimitInput && !clientLimitInput.value) {
+                    clientLimitInput.value = '2';
+                }
+                // Make the field required
+                clientLimitInput.required = true;
             } else {
-                clientLimitField.style.display = 'none';
+                clientLimitField.classList.add('hidden');
+                clientLimitField.classList.remove('required');
+                // Clear value and remove required when hiding
+                const clientLimitInput = clientLimitField.querySelector('input[name="client_limit"]');
+                if (clientLimitInput) {
+                    clientLimitInput.value = '';
+                    clientLimitInput.required = false;
+                }
             }
         });
     }
@@ -607,6 +656,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 editClientLimitField.style.display = 'block';
             } else {
                 editClientLimitField.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle form submission for Add Admin modal
+    const addAdminForm = document.querySelector('form[action="{{ route("superadmin.admins.store") }}"]');
+    if (addAdminForm) {
+        addAdminForm.addEventListener('submit', function(e) {
+            const roleSelect = this.querySelector('select[name="role"]');
+            const clientLimitInput = this.querySelector('input[name="client_limit"]');
+            
+            if (roleSelect.value === 'admin') {
+                if (!clientLimitInput.value || parseInt(clientLimitInput.value) < 1) {
+                    e.preventDefault();
+                    alert('Please enter a valid client limit for admin users (minimum 1)');
+                    clientLimitInput.focus();
+                    return false;
+                }
             }
         });
     }
