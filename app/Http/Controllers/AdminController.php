@@ -15,7 +15,8 @@ class AdminController extends Controller
      */
     public function dashboard(): View
     {
-        $adminOrganization = Auth::user()->organization;
+        $admin = Auth::user();
+        $adminOrganization = $admin->organization;
         
         $stats = [
             'total_clients' => User::where('role', 'user')->where('organization', $adminOrganization)->count(),
@@ -26,6 +27,10 @@ class AdminController extends Controller
             'recent_predictions' => Prediction::with('user')->whereHas('user', function($query) use ($adminOrganization) {
                 $query->where('role', 'user')->where('organization', $adminOrganization);
             })->latest()->take(5)->get(),
+            'client_limit' => $admin->client_limit,
+            'current_client_count' => $admin->getCurrentClientCount(),
+            'remaining_slots' => $admin->getRemainingClientSlots(),
+            'can_create_more' => $admin->canCreateMoreClients(),
         ];
 
         return view('admin.dashboard', compact('stats'));
@@ -106,6 +111,13 @@ class AdminController extends Controller
      */
     public function storeUser(Request $request)
     {
+        $admin = Auth::user();
+        
+        // Check if admin can create more clients
+        if (!$admin->canCreateMoreClients()) {
+            return redirect()->back()->with('error', 'You have reached your client limit and cannot create more clients.');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -117,7 +129,7 @@ class AdminController extends Controller
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'role' => 'user',
-            'organization' => Auth::user()->organization, // Assign same organization as admin
+            'organization' => $admin->organization, // Assign same organization as admin
         ]);
 
         return redirect()->route('admin.users.index')->with('success', 'Client created successfully.');

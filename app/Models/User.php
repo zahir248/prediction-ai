@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'role',
         'organization',
+        'client_limit',
         'last_login_at',
     ];
 
@@ -113,5 +114,61 @@ class User extends Authenticatable
     public function getDisplayNameAttribute(): string
     {
         return $this->getRoleWithOrganizationAttribute();
+    }
+
+    /**
+     * Check if admin can create more clients
+     */
+    public function canCreateMoreClients(): bool
+    {
+        if (!$this->isAdmin()) {
+            return false;
+        }
+
+        // If no limit is set, allow unlimited clients
+        if (is_null($this->client_limit)) {
+            return true;
+        }
+
+        $currentClientCount = User::where('role', 'user')
+            ->where('organization', $this->organization)
+            ->count();
+
+        return $currentClientCount < $this->client_limit;
+    }
+
+    /**
+     * Get remaining client slots for admin
+     */
+    public function getRemainingClientSlots(): int
+    {
+        if (!$this->isAdmin()) {
+            return 0;
+        }
+
+        // If no limit is set, return -1 to indicate unlimited
+        if (is_null($this->client_limit)) {
+            return -1;
+        }
+
+        $currentClientCount = User::where('role', 'user')
+            ->where('organization', $this->organization)
+            ->count();
+
+        return max(0, $this->client_limit - $currentClientCount);
+    }
+
+    /**
+     * Get current client count for admin
+     */
+    public function getCurrentClientCount(): int
+    {
+        if (!$this->isAdmin()) {
+            return 0;
+        }
+
+        return User::where('role', 'user')
+            ->where('organization', $this->organization)
+            ->count();
     }
 }

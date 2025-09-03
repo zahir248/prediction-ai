@@ -62,6 +62,23 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 rounded-3 p-3 me-3">
+                            <i class="bi bi-shield-check text-info fs-3"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1 fw-semibold">Total Client Limits</h6>
+                            <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'admin')->sum('client_limit') ?? 0 }}</h2>
+                            <small class="text-info">Across all admin users</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Search and Filter Bar -->
@@ -117,6 +134,7 @@
                         <tr>
                             <th class="border-0 px-3 py-3">Admin</th>
                             <th class="border-0 px-3 py-3">Organization</th>
+                            <th class="border-0 px-3 py-3">Client Limit</th>
                             <th class="border-0 px-3 py-3">Status</th>
                             <th class="border-0 px-3 py-3 d-none d-md-table-cell">Last Login</th>
                             <th class="border-0 px-3 py-3 d-none d-lg-table-cell">Joined</th>
@@ -145,6 +163,27 @@
                                         <span class="badge bg-info rounded-pill">{{ $admin->organization }}</span>
                                     @else
                                         <span class="text-muted small">No Organization</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3 py-3">
+                                    @if($admin->role === 'admin')
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-primary rounded-pill">
+                                                {{ $admin->client_count ?? 0 }}/{{ $admin->client_limit ?? '∞' }}
+                                            </span>
+                                            @if($admin->client_limit)
+                                                <button class="btn btn-outline-primary btn-sm" onclick="setClientLimit({{ $admin->id }}, {{ $admin->client_limit }})" title="Set Client Limit">
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
+                                            @else
+                                                <button class="btn btn-outline-primary btn-sm" onclick="setClientLimit({{ $admin->id }}, 0)" title="Set Client Limit">
+                                                    <i class="bi bi-gear"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <span class="text-muted small">N/A</span>
                                     @endif
                                 </td>
 
@@ -258,6 +297,11 @@
                         <input type="text" class="form-control" name="organization" placeholder="Enter organization name">
                         <small class="text-muted">Optional - Leave blank if no organization</small>
                     </div>
+                    <div class="mb-3" id="clientLimitField" style="display: none;">
+                        <label class="form-label">Client Limit</label>
+                        <input type="number" class="form-control" name="client_limit" min="1" placeholder="Enter maximum number of clients">
+                        <small class="text-muted">Maximum number of clients this admin can create</small>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Password</label>
                         <input type="password" class="form-control" name="password" required minlength="8">
@@ -368,6 +412,11 @@
                         <input type="text" class="form-control" name="organization" id="editAdminOrganization" placeholder="Enter organization name">
                         <small class="text-muted">Optional - Leave blank if no organization</small>
                     </div>
+                    <div class="mb-3" id="editClientLimitField" style="display: none;">
+                        <label class="form-label">Client Limit</label>
+                        <input type="number" class="form-control" name="client_limit" id="editAdminClientLimit" min="1" placeholder="Enter maximum number of clients">
+                        <small class="text-muted">Maximum number of clients this admin can create</small>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">New Password (leave blank to keep current)</label>
                         <input type="password" class="form-control" name="password" minlength="8">
@@ -377,6 +426,41 @@
                                 <div class="modal-footer justify-content-center">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                                     <button type="submit" class="btn btn-danger">Update Admin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Set Client Limit Modal -->
+<div class="modal fade" id="setClientLimitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Set Client Limit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="setClientLimitForm" method="POST">
+                @csrf
+                @method('PATCH')
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Admin Name</label>
+                        <input type="text" class="form-control" id="limitAdminName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Client Count</label>
+                        <input type="text" class="form-control" id="currentClientCount" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Client Limit</label>
+                        <input type="number" class="form-control" name="client_limit" id="newClientLimit" min="1" required>
+                        <small class="text-muted">Set the maximum number of clients this admin can create</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Set Limit</button>
                 </div>
             </form>
         </div>
@@ -498,6 +582,34 @@ document.addEventListener('DOMContentLoaded', function() {
         statusFilter.value = '';
         filterTable();
     });
+
+    // Handle role change in Add Admin modal
+    const roleSelect = document.querySelector('select[name="role"]');
+    const clientLimitField = document.getElementById('clientLimitField');
+    
+    if (roleSelect) {
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'admin') {
+                clientLimitField.style.display = 'block';
+            } else {
+                clientLimitField.style.display = 'none';
+            }
+        });
+    }
+
+    // Handle role change in Edit Admin modal
+    const editRoleSelect = document.getElementById('editAdminRole');
+    const editClientLimitField = document.getElementById('editClientLimitField');
+    
+    if (editRoleSelect) {
+        editRoleSelect.addEventListener('change', function() {
+            if (this.value === 'admin') {
+                editClientLimitField.style.display = 'block';
+            } else {
+                editClientLimitField.style.display = 'none';
+            }
+        });
+    }
 });
 
 function editAdmin(adminId) {
@@ -508,12 +620,21 @@ function editAdmin(adminId) {
         const email = adminRow.querySelector('td:nth-child(1) small').textContent;
         const organization = adminRow.querySelector('td:nth-child(2) .badge')?.textContent || '';
         const role = 'admin';
+        const clientLimit = adminRow.querySelector('td:nth-child(3) .badge')?.textContent.split('/')[1] || '';
         
         // Populate edit form
         document.getElementById('editAdminName').value = name;
         document.getElementById('editAdminEmail').value = email;
         document.getElementById('editAdminOrganization').value = organization;
         document.getElementById('editAdminRole').value = role.toLowerCase();
+        document.getElementById('editAdminClientLimit').value = clientLimit === '∞' ? '' : clientLimit;
+        
+        // Show/hide client limit field based on role
+        if (role === 'admin') {
+            document.getElementById('editClientLimitField').style.display = 'block';
+        } else {
+            document.getElementById('editClientLimitField').style.display = 'none';
+        }
         
         // Set form action
         document.getElementById('editAdminForm').action = `/superadmin/admins/${adminId}`;
@@ -588,6 +709,27 @@ function openEditModal() {
     // Open edit modal with current admin data
     if (window.currentAdminId) {
         editAdmin(window.currentAdminId);
+    }
+}
+
+function setClientLimit(adminId, currentLimit) {
+    // Get admin data and populate set limit modal
+    const adminRow = document.querySelector(`tr[data-admin-id="${adminId}"]`);
+    if (adminRow) {
+        const name = adminRow.querySelector('td:nth-child(1) h6').textContent;
+        const clientCount = adminRow.querySelector('td:nth-child(3) .badge').textContent.split('/')[0];
+        
+        // Populate set limit modal
+        document.getElementById('limitAdminName').value = name;
+        document.getElementById('currentClientCount').value = clientCount;
+        document.getElementById('newClientLimit').value = currentLimit || 2;
+        
+        // Set form action
+        document.getElementById('setClientLimitForm').action = `/superadmin/admins/${adminId}/client-limit`;
+        
+        // Open set limit modal
+        const setLimitModal = new bootstrap.Modal(document.getElementById('setClientLimitModal'));
+        setLimitModal.show();
     }
 }
 </script>

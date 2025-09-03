@@ -46,6 +46,12 @@ class SuperAdminController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
+        // Add client count and limit information for each admin
+        foreach ($admins as $admin) {
+            $admin->client_count = $admin->getCurrentClientCount();
+            $admin->remaining_slots = $admin->getRemainingClientSlots();
+        }
+
         return view('superadmin.admins.index', compact('admins'));
     }
 
@@ -91,7 +97,8 @@ class SuperAdminController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin,superadmin',
-            'organization' => 'nullable|string|max:255'
+            'organization' => 'nullable|string|max:255',
+            'client_limit' => 'nullable|integer|min:1'
         ]);
 
         // Create the new admin/superadmin user
@@ -101,6 +108,7 @@ class SuperAdminController extends Controller
             'password' => bcrypt($request->password),
             'role' => $request->role,
             'organization' => $request->organization,
+            'client_limit' => $request->role === 'admin' ? $request->client_limit : null,
         ]);
 
         return redirect()->route('superadmin.admins.index')
@@ -122,7 +130,8 @@ class SuperAdminController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'role' => 'required|in:admin,superadmin',
             'password' => 'nullable|string|min:8',
-            'organization' => 'nullable|string|max:255'
+            'organization' => 'nullable|string|max:255',
+            'client_limit' => 'nullable|integer|min:1'
         ]);
 
         $updateData = [
@@ -131,6 +140,13 @@ class SuperAdminController extends Controller
             'role' => $request->role,
             'organization' => $request->organization,
         ];
+
+        // Only update client_limit if role is admin
+        if ($request->role === 'admin') {
+            $updateData['client_limit'] = $request->client_limit;
+        } else {
+            $updateData['client_limit'] = null; // Superadmins don't have client limits
+        }
 
         // Only update password if provided
         if ($request->filled('password')) {
@@ -390,5 +406,24 @@ class SuperAdminController extends Controller
         $user->save();
 
         return redirect()->back()->with('success', 'Profile updated successfully!');
+    }
+
+    /**
+     * Set client limit for an admin user
+     */
+    public function setClientLimit(Request $request, User $user)
+    {
+        // Ensure only admin users can have client limits set
+        if ($user->role !== 'admin') {
+            abort(403, 'Client limits can only be set for admin users.');
+        }
+
+        $request->validate([
+            'client_limit' => 'required|integer|min:1'
+        ]);
+
+        $user->update(['client_limit' => $request->client_limit]);
+
+        return redirect()->back()->with('success', 'Client limit updated successfully!');
     }
 }

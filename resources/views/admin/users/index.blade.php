@@ -9,9 +9,36 @@
             <p class="text-muted mb-0">Manage client accounts and their activities</p>
         </div>
         <div class="d-flex flex-column flex-sm-row gap-2">
-            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
-                <i class="bi bi-plus-circle me-2"></i>Add Client
-            </button>
+            @php
+                $admin = Auth::user();
+                $canCreateMore = $admin->canCreateMoreClients();
+                $remainingSlots = $admin->getRemainingClientSlots();
+            @endphp
+            
+            @if($canCreateMore)
+                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
+                    <i class="bi bi-plus-circle me-2"></i>Add Client
+                </button>
+            @else
+                <button class="btn btn-outline-secondary btn-sm" disabled title="Client limit reached">
+                    <i class="bi bi-plus-circle me-2"></i>Add Client
+                </button>
+            @endif
+            
+            <div class="d-flex align-items-center">
+                <small class="text-muted me-2">
+                    @if($admin->client_limit)
+                        {{ $admin->getCurrentClientCount() }}/{{ $admin->client_limit }} clients
+                        @if($remainingSlots > 0)
+                            <span class="text-success">({{ $remainingSlots }} left)</span>
+                        @else
+                            <span class="text-danger">(Limit reached)</span>
+                        @endif
+                    @else
+                        {{ $admin->getCurrentClientCount() }}/∞ clients
+                    @endif
+                </small>
+            </div>
         </div>
     </div>
 
@@ -57,6 +84,40 @@
                         <div class="flex-grow-1">
                             <h6 class="text-muted mb-1 fw-semibold">New This Month</h6>
                             <h2 class="mb-0 fw-bold text-dark">{{ \App\Models\User::where('role', 'user')->where('organization', Auth::user()->organization)->whereMonth('created_at', now()->month)->count() }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-info bg-opacity-10 rounded-3 p-3 me-3">
+                            <i class="bi bi-shield-check text-info fs-3"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1 fw-semibold">Client Limit</h6>
+                            <h2 class="mb-0 fw-bold text-dark">
+                                @php
+                                    $admin = Auth::user();
+                                    $currentCount = $admin->getCurrentClientCount();
+                                    $limit = $admin->client_limit;
+                                @endphp
+                                @if($limit)
+                                    {{ $currentCount }}/{{ $limit }}
+                                @else
+                                    {{ $currentCount }}/∞
+                                @endif
+                            </h2>
+                            <small class="text-{{ $admin->canCreateMoreClients() ? 'success' : 'danger' }}">
+                                @if($admin->canCreateMoreClients())
+                                    <i class="bi bi-check-circle me-1"></i>{{ $admin->getRemainingClientSlots() }} slots left
+                                @else
+                                    <i class="bi bi-x-circle me-1"></i>Limit reached
+                                @endif
+                            </small>
                         </div>
                     </div>
                 </div>

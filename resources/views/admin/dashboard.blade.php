@@ -66,6 +66,35 @@
                 </div>
             </div>
         </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stats-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 rounded-3 p-3 me-3">
+                            <i class="bi bi-shield-check text-warning fs-3"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="text-muted mb-1 fw-semibold">Client Limit</h6>
+                            <h2 class="mb-0 fw-bold text-dark">
+                                @if($stats['client_limit'])
+                                    {{ $stats['current_client_count'] }}/{{ $stats['client_limit'] }}
+                                @else
+                                    {{ $stats['current_client_count'] }}/∞
+                                @endif
+                            </h2>
+                            <small class="text-{{ $stats['can_create_more'] ? 'success' : 'danger' }}">
+                                @if($stats['can_create_more'])
+                                    <i class="bi bi-check-circle me-1"></i>{{ $stats['remaining_slots'] }} slots left
+                                @else
+                                    <i class="bi bi-x-circle me-1"></i>Limit reached
+                                @endif
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 

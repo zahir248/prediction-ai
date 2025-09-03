@@ -99,6 +99,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::patch('/admins/{user}', [SuperAdminController::class, 'updateAdmin'])->name('admins.update');
     Route::delete('/admins/{user}', [SuperAdminController::class, 'deleteAdmin'])->name('admins.destroy');
     Route::patch('/admins/{user}/role', [SuperAdminController::class, 'updateAdminRole'])->name('admins.update-role');
+    Route::patch('/admins/{user}/client-limit', [SuperAdminController::class, 'setClientLimit'])->name('admins.set-client-limit');
     Route::get('/users', [SuperAdminController::class, 'users'])->name('users.index');
     Route::post('/users', [SuperAdminController::class, 'storeUser'])->name('users.store');
     Route::get('/users/{user}', [SuperAdminController::class, 'showUser'])->name('users.show');
