@@ -565,7 +565,7 @@ function editClient(userId) {
         document.getElementById('editUserEmail').value = email;
         
         // Set form action
-        document.getElementById('editUserForm').action = `/admin/users/${userId}`;
+        document.getElementById('editUserForm').action = `{{ url('admin/users') }}/${userId}`;
         
         // Close show modal if open
         const showModal = bootstrap.Modal.getInstance(document.getElementById('showUserModal'));
@@ -589,7 +589,7 @@ function deleteClient(userId) {
         document.getElementById('deleteUserName').textContent = name;
         
         // Set form action
-        document.getElementById('deleteUserForm').action = `/admin/users/${userId}`;
+        document.getElementById('deleteUserForm').action = `{{ url('admin/users') }}/${userId}`;
         
         // Open delete modal
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
