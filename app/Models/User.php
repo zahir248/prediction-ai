@@ -57,6 +57,30 @@ class User extends Authenticatable
     }
 
     /**
+     * Get messages sent by this user
+     */
+    public function sentMessages()
+    {
+        return $this->hasMany(\App\Models\Message::class, 'sender_id');
+    }
+
+    /**
+     * Get messages received by this user
+     */
+    public function receivedMessages()
+    {
+        return $this->hasMany(\App\Models\Message::class, 'recipient_id');
+    }
+
+    /**
+     * Get unread messages count for this user
+     */
+    public function getUnreadMessagesCount(): int
+    {
+        return $this->receivedMessages()->unread()->count();
+    }
+
+    /**
      * Check if user is an admin
      */
     public function isAdmin(): bool

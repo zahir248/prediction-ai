@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
 
@@ -87,6 +88,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/analytics/data', [App\Http\Controllers\Admin\AnalyticsController::class, 'getData'])->name('analytics.data');
     Route::get('/analytics/export', [App\Http\Controllers\Admin\AnalyticsController::class, 'export'])->name('analytics.export');
     Route::get('/analytics/user/{userId}', [App\Http\Controllers\Admin\AnalyticsController::class, 'getUserAnalytics'])->name('analytics.user');
+    
+    // Messages routes
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/sent', [MessageController::class, 'sent'])->name('messages.sent');
+    Route::get('/messages/create', [MessageController::class, 'create'])->name('messages.create');
+    Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+    Route::post('/messages/{message}/mark-read', [MessageController::class, 'markAsRead'])->name('messages.mark-read');
+    Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
 });
 
 // Superadmin routes
@@ -116,6 +127,16 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/analytics/data', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'getData'])->name('analytics.data');
     Route::get('/analytics/export', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'export'])->name('analytics.export');
     Route::get('/analytics/user/{userId}', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'getUserAnalytics'])->name('analytics.user');
+    
+    // Messages routes
+    Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/sent', [MessageController::class, 'sent'])->name('messages.sent');
+    Route::get('/messages/create', [MessageController::class, 'create'])->name('messages.create');
+    Route::post('/messages', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
+    Route::post('/messages/{message}/mark-read', [MessageController::class, 'markAsRead'])->name('messages.mark-read');
+    Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
 });
 
 require __DIR__.'/auth.php';
