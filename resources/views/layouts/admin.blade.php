@@ -477,6 +477,15 @@
                             <span>Analytics</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('admin.chat.*') ? 'active' : '' }}" href="{{ route('admin.chat.index') }}">
+                            <i class="bi bi-chat-dots"></i>
+                            <span>Chat</span>
+                            @if(Auth::user()->getUnreadMessagesCount() > 0)
+                                <span class="badge bg-danger ms-auto">{{ Auth::user()->getUnreadMessagesCount() }}</span>
+                            @endif
+                        </a>
+                    </li>
                 </ul>
                 
                 <!-- Bottom Actions -->
