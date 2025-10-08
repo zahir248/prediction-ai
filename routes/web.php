@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
 
@@ -26,6 +27,9 @@ Route::get('/health', function() {
 Route::get('/responsive-test', function () {
     return view('responsive-test');
 })->name('responsive-test');
+
+// Documentation download route (no auth required)
+Route::get('/documentation', [DocumentationController::class, 'download'])->name('documentation.download');
 
 // Authentication routes
 Route::middleware(['auth'])->group(function () {
