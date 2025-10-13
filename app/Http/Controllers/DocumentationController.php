@@ -40,9 +40,34 @@ class DocumentationController extends Controller
     private function getFullPromptStructure()
     {
         return [
-            'base_prompt' => "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.",
+            'ai_providers' => [
+                'gemini' => [
+                    'name' => 'Google Gemini',
+                    'model' => 'gemini-2.5-flash',
+                    'base_prompt' => "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.",
+                    'characteristics' => [
+                        'More structured and formal approach',
+                        'Comprehensive JSON structure with detailed fields',
+                        'Extensive error handling and truncation detection',
+                        'Advanced source integration capabilities',
+                        'Professional consulting-style output'
+                    ]
+                ],
+                'chatgpt' => [
+                    'name' => 'OpenAI ChatGPT',
+                    'model' => 'gpt-5',
+                    'base_prompt' => "You are a world-class AI prediction analyst with expertise in comprehensive future forecasting and strategic analysis. You are known for providing exceptionally detailed, thorough, and complex analysis that rivals top-tier consulting firms like McKinsey, BCG, and Bain. Your analysis should be comprehensive, nuanced, and deeply insightful.",
+                    'characteristics' => [
+                        'More conversational and detailed approach',
+                        'Emphasis on consulting firm-level analysis',
+                        'Enhanced depth requirements and methodology',
+                        'Focus on executive decision-making',
+                        'Advanced analytical depth and complexity'
+                    ]
+                ]
+            ],
             
-            'dynamic_sections' => [
+            'common_dynamic_sections' => [
                 'target_focus' => [
                     'condition' => 'When a target is specified',
                     'content' => "TARGET: {TARGET}\nFocus analysis on how predictions, risks, and implications affect {TARGET}."

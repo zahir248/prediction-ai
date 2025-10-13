@@ -98,6 +98,19 @@
             margin: 10px 0;
         }
         
+        .provider-info {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .provider-info h4 {
+            color: #495057;
+            margin-top: 0;
+        }
+        
         .instruction-list ol {
             margin: 0;
             padding-left: 20px;
@@ -160,12 +173,44 @@
     
     <div class="section">
         <h2>Overview</h2>
-        <p>This documentation provides a comprehensive overview of the AI prompt structure used in the prediction system. The system uses Google's Gemini AI to generate detailed prediction analyses based on user input, optional target focus, prediction horizons, and external source integration.</p>
+        <p>This documentation provides a comprehensive overview of the AI prompt structures used in the prediction system. The system supports two AI providers: Google's Gemini AI and OpenAI's ChatGPT, each with their own optimized prompt structures and characteristics for generating detailed prediction analyses based on user input, optional target focus, prediction horizons, and external source integration.</p>
     </div>
     
     <div class="section">
-        <h2>Complete AI Prompt Structure</h2>
-        <p>This is the exact, full prompt that gets sent to the AI system:</p>
+        <h2>AI Providers</h2>
+        
+        <h3>Google Gemini (Default)</h3>
+        <div class="provider-info">
+            <p><strong>Model:</strong> {{ $promptStructure['ai_providers']['gemini']['model'] }}</p>
+            <p><strong>Base Prompt:</strong></p>
+            <div class="code-block">{{ $promptStructure['ai_providers']['gemini']['base_prompt'] }}</div>
+            <p><strong>Characteristics:</strong></p>
+            <ul>
+                @foreach($promptStructure['ai_providers']['gemini']['characteristics'] as $characteristic)
+                    <li>{{ $characteristic }}</li>
+                @endforeach
+            </ul>
+        </div>
+        
+        <h3>OpenAI ChatGPT</h3>
+        <div class="provider-info">
+            <p><strong>Model:</strong> {{ $promptStructure['ai_providers']['chatgpt']['model'] }}</p>
+            <p><strong>Base Prompt:</strong></p>
+            <div class="code-block">{{ $promptStructure['ai_providers']['chatgpt']['base_prompt'] }}</div>
+            <p><strong>Characteristics:</strong></p>
+            <ul>
+                @foreach($promptStructure['ai_providers']['chatgpt']['characteristics'] as $characteristic)
+                    <li>{{ $characteristic }}</li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Complete AI Prompt Structures</h2>
+        <p>Below are the exact, full prompts that get sent to each AI system:</p>
+        
+        <h3>Google Gemini Prompt Structure</h3>
         <div class="code-block">You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.
 
 Text to analyze: {USER_INPUT_TEXT}
@@ -301,7 +346,223 @@ INSTRUCTIONS:
 15. Reference specific facts and numbers
 
 Generate high-quality, professional prediction analysis suitable for executive decision-making.</div>
-        <p>This is the complete prompt structure that gets dynamically constructed and sent to the AI system. The placeholder variables (like {USER_INPUT_TEXT}, {TARGET_IF_SPECIFIED}, etc.) are replaced with actual values during execution.</p>
+
+        <h3>OpenAI ChatGPT Prompt Structure</h3>
+        <div class="code-block">You are a world-class AI prediction analyst with expertise in comprehensive future forecasting and strategic analysis. You are known for providing exceptionally detailed, thorough, and complex analysis that rivals top-tier consulting firms like McKinsey, BCG, and Bain. Your analysis should be comprehensive, nuanced, and deeply insightful.
+
+Text to analyze: {USER_INPUT_TEXT}
+
+TARGET: {TARGET_IF_SPECIFIED}
+Focus analysis on how predictions, risks, and implications affect {TARGET}.
+
+HORIZON: {PREDICTION_HORIZON}
+Tailor all predictions and assessments to this timeframe.
+
+IMPORTANT: You have been provided with the following additional sources that contain relevant context, data, or background information:
+- Source 1: {URL_1}
+- Source 2: {URL_2}
+- Source 3: {URL_3}
+...
+
+SCRAPING SUMMARY:
+Total URLs provided: {TOTAL_URLS}
+Successfully scraped: {SUCCESSFUL_SCRAPES}
+Failed to scrape: {FAILED_SCRAPES}
+Success rate: {SUCCESS_RATE}%
+
+FAILED URLS (These could not be accessed due to anti-bot protection, server errors, or other issues):
+- {FAILED_URL_1}: {ERROR_1} (HTTP {STATUS_CODE_1})
+- {FAILED_URL_2}: {ERROR_2} (HTTP {STATUS_CODE_2})
+...
+
+Note: For failed URLs, rely on your existing knowledge about the topic or source.
+
+ACTUAL CONTENT FROM SUCCESSFULLY SCRAPED SOURCES:
+The following is the real content extracted from the accessible URLs. Use this actual data in your analysis:
+
+=== SOURCE 1 ===
+URL: {SOURCE_URL_1}
+Title: {SOURCE_TITLE_1}
+Content: {SOURCE_CONTENT_1}
+Word Count: {WORD_COUNT_1}
+==================
+
+=== SOURCE 2 ===
+URL: {SOURCE_URL_2}
+Title: {SOURCE_TITLE_2}
+Content: {SOURCE_CONTENT_2}
+Word Count: {WORD_COUNT_2}
+==================
+
+SOURCE INTEGRATION:
+1. Reference sources when supporting predictions
+2. Use 'Source 1...', 'Source 2...' format
+3. Include 'Source Analysis' section
+4. Cite specific facts/numbers from sources
+
+Provide analysis in this JSON structure:
+{
+  "title": "[Topic + Time Period + Focus]",
+  "executive_summary": "[3-4 sentence summary of key predictions, risks, implications]",
+  "prediction_horizon": "[Time period]",
+  "current_situation": "[Current state and trends analysis]",
+  "key_factors": [
+    "[Factor 1: Specific, actionable factor]",
+    "[Factor 2: Specific, actionable factor]",
+    "[Factor 3: Specific, actionable factor]",
+    "[Factor 4: Specific, actionable factor]",
+    "[Factor 5: Specific, actionable factor]",
+    "[Factor 6: Specific, actionable factor]"
+  ],
+  "predictions": [
+    "[Prediction 1: Specific outcome with timeline]",
+    "[Prediction 2: Specific outcome with timeline]",
+    "[Prediction 3: Specific outcome with timeline]",
+    "[Prediction 4: Specific outcome with timeline]",
+    "[Prediction 5: Specific outcome with timeline]",
+    "[Prediction 6: Specific outcome with timeline]",
+    "[Prediction 7: Specific outcome with timeline]",
+    "[Prediction 8: Specific outcome with timeline]",
+    "[Prediction 9: Specific outcome with timeline]",
+    "[Prediction 10: Specific outcome with timeline]"
+  ],
+  "risk_assessment": [
+    {
+      "risk": "[Risk description]",
+      "level": "[Critical/High/Medium/Low]",
+      "probability": "[Very Likely/Likely/Possible/Unlikely]",
+      "mitigation": "[Mitigation strategy]"
+    }
+  ],
+  "recommendations": [
+    "[Specific, actionable recommendation]",
+    "[Specific, actionable recommendation]",
+    "[Specific, actionable recommendation]"
+  ],
+  "strategic_implications": [
+    "[Strategic implication]",
+    "[Strategic implication]",
+    "[Strategic implication]"
+  ],
+  "confidence_level": "[High (90-95%)/Medium (75-89%)/Low (60-74%)]",
+  "methodology": "[AI analysis approach, data sources, and validation methods]",
+  "data_sources": [
+    "[Data source with relevance]",
+    "[Data source with relevance]"
+  ],
+  "assumptions": [
+    "[Key assumption underlying predictions]",
+    "[Key assumption underlying predictions]"
+  ],
+  "note": "[Important note about analysis limitations or key considerations]",
+  "analysis_date": "[Current date in YYYY-MM-DD format]",
+  "next_review": "[Recommended next review date]",
+  "critical_timeline": "[Critical dates or milestones to watch]",
+  "success_metrics": [
+    "[How to measure success of predictions]",
+    "[How to measure success of predictions]"
+  ],
+  "source_analysis": "[Detailed explanation of how each provided source influenced your analysis and predictions. Use specific examples and show direct connections between source information and conclusions.]"
+}
+
+ANALYSIS DEPTH REQUIREMENTS:
+- Each prediction must include: specific timeline, probability assessment, supporting evidence, and potential variations
+- Each risk must include: detailed impact analysis, probability assessment, early warning indicators, and comprehensive mitigation strategies
+- Each recommendation must include: implementation steps, resource requirements, timeline, success metrics, and potential challenges
+- Provide detailed reasoning for all conclusions with clear logical flow
+- Include quantitative data, statistics, and measurable indicators wherever possible
+- Consider multiple scenarios: optimistic, realistic, and pessimistic outcomes
+- Provide detailed context about industry trends, market dynamics, and external factors
+- Include specific examples, case studies, and comparable situations
+- Address potential objections and alternative viewpoints
+- Provide detailed methodology explanation for analytical approach
+
+INSTRUCTIONS:
+1. Be specific and actionable
+2. Include timelines for predictions
+3. Focus on future outcomes
+4. Provide realistic predictions
+5. Structure risks by probability and impact
+6. Make recommendations implementable
+7. Include quantifiable metrics where possible
+8. Consider opportunities and threats
+9. Base analysis on logical reasoning
+10. Ensure comprehensive and professional analysis
+11. Cite sources using 'Source 1...', 'Source 2...'
+12. Show connections between sources and predictions
+13. Include source_analysis field
+14. Use actual data and quotes from sources
+15. Reference specific facts and numbers
+
+Generate high-quality, professional prediction analysis suitable for executive decision-making.</div>
+        
+        <p>These are the complete prompt structures that get dynamically constructed and sent to each AI system. The placeholder variables (like {USER_INPUT_TEXT}, {TARGET_IF_SPECIFIED}, etc.) are replaced with actual values during execution.</p>
+    </div>
+    
+    <div class="section">
+        <h2>AI Provider Comparison</h2>
+        
+        <h3>Key Differences</h3>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background-color: #f5f5f5;">
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Aspect</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Google Gemini</th>
+                <th style="border: 1px solid #ddd; padding: 12px; text-align: left;">OpenAI ChatGPT</th>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;"><strong>Base Prompt Style</strong></td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Formal, structured approach with clear instructions</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Conversational, emphasizes consulting firm-level analysis</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;"><strong>Analysis Depth</strong></td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Comprehensive but focused on structured output</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Enhanced depth with detailed methodology requirements</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;"><strong>Error Handling</strong></td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Advanced truncation detection and JSON repair</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Standard error handling with fallback responses</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;"><strong>Source Integration</strong></td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Advanced scraping with detailed metadata</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Standard source integration with citation requirements</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;"><strong>Output Quality</strong></td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Professional consulting-style reports</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Executive-level analysis with McKinsey/BCG/Bain quality</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ddd; padding: 12px;"><strong>Special Features</strong></td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Retry mechanisms, partial response handling</td>
+                <td style="border: 1px solid #ddd; padding: 12px;">Enhanced depth requirements, scenario analysis</td>
+            </tr>
+        </table>
+        
+        <h3>When to Use Each Provider</h3>
+        
+        <h4>Use Google Gemini when:</h4>
+        <ul>
+            <li>You need reliable, structured output with consistent formatting</li>
+            <li>Working with complex source materials that require advanced scraping</li>
+            <li>You want robust error handling and response recovery</li>
+            <li>You prefer a more formal, professional tone</li>
+            <li>You need detailed metadata and analytics tracking</li>
+        </ul>
+        
+        <h4>Use OpenAI ChatGPT when:</h4>
+        <ul>
+            <li>You need exceptionally detailed, nuanced analysis</li>
+            <li>You want consulting firm-level depth and sophistication</li>
+            <li>You need comprehensive scenario analysis (optimistic, realistic, pessimistic)</li>
+            <li>You want detailed methodology explanations and reasoning</li>
+            <li>You need executive decision-making quality insights</li>
+        </ul>
+        
+        <h3>Switching Between Providers</h3>
+        <p>The system allows dynamic switching between AI providers through the admin interface or programmatically. Both providers use the same JSON output structure, ensuring compatibility across the application.</p>
     </div>
     
     <div class="section">
