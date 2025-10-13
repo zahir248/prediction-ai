@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Prediction;
-use App\Services\GeminiService;
+use App\Services\AIServiceFactory;
 use App\Services\FileProcessingService;
 use App\Services\WebScrapingService;
 use App\Services\AnalyticsService;
@@ -14,14 +14,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class PredictionController extends Controller
 {
-    protected $geminiService;
     protected $fileProcessingService;
     protected $webScrapingService;
     protected $analyticsService;
 
-    public function __construct(GeminiService $geminiService, FileProcessingService $fileProcessingService, WebScrapingService $webScrapingService, AnalyticsService $analyticsService)
+    public function __construct(FileProcessingService $fileProcessingService, WebScrapingService $webScrapingService, AnalyticsService $analyticsService)
     {
-        $this->geminiService = $geminiService;
         $this->fileProcessingService = $fileProcessingService;
         $this->webScrapingService = $webScrapingService;
         $this->analyticsService = $analyticsService;
@@ -43,11 +41,14 @@ class PredictionController extends Controller
                 'timestamp' => now()->toISOString()
             ];
             
-            // Test Gemini service connectivity (but don't fail if external API is down)
-            $connectionTest = $this->geminiService->testConnection();
+            // Get the current AI service
+            $aiService = AIServiceFactory::create();
             
-            // Test prediction analysis with Gemini API
-            $result = $this->geminiService->analyzeText(
+            // Test AI service connectivity (but don't fail if external API is down)
+            $connectionTest = $aiService->testConnection();
+            
+            // Test prediction analysis with AI API
+            $result = $aiService->analyzeText(
                 'This is a test message for API connectivity.',
                 'prediction-analysis'
             );
@@ -65,7 +66,7 @@ class PredictionController extends Controller
                     'system_test' => $systemTest,
                     'connection_test' => $connectionTest,
                     'result' => $result,
-                    'message' => 'System fully operational - Gemini API connection successful'
+                    'message' => 'System fully operational - AI API connection successful'
                 ]);
             } else {
                 return response()->json([
@@ -74,7 +75,7 @@ class PredictionController extends Controller
                     'system_test' => $systemTest,
                     'connection_test' => $connectionTest,
                     'result' => $result,
-                    'message' => 'Gemini API connection failed - Please check your API key and configuration'
+                    'message' => 'AI API connection failed - Please check your API key and configuration'
                 ]);
             }
             
@@ -174,8 +175,11 @@ class PredictionController extends Controller
         $startTime = microtime(true);
 
         try {
+            // Get the current AI service
+            $aiService = AIServiceFactory::create();
+            
             // Process with AI using combined input data (original + extracted from files)
-            $result = $this->geminiService->analyzeText(
+            $result = $aiService->analyzeText(
                 $combinedInputData,
                 'prediction-analysis',
                 $sourceUrls,
@@ -238,7 +242,7 @@ class PredictionController extends Controller
                     ]);
                 }
 
-                $successMessage = 'Prediction completed successfully using Google Gemini AI!';
+                $successMessage = 'Prediction completed successfully!';
 
                 return redirect()->route('predictions.show', $prediction)
                     ->with('success', $successMessage);
@@ -515,7 +519,7 @@ class PredictionController extends Controller
     protected function getModelSource($modelUsed)
     {
         if (strpos($modelUsed, 'gemini') !== false) {
-            return 'Google Gemini Pro (External AI Model)';
+            return 'AI Model (External)';
         } else {
             return 'Unknown Model';
         }
@@ -523,7 +527,7 @@ class PredictionController extends Controller
     
     protected function getApiStatus($modelUsed)
     {
-        return 'Google Gemini AI Model Used';
+        return 'AI Model Used';
     }
 
     protected function extractConfidenceScore($result, $analysisType)

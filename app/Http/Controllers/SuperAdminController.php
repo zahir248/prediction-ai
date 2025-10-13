@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Prediction;
+use App\Models\SystemSetting;
+use App\Services\AIServiceFactory;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
@@ -33,7 +35,10 @@ class SuperAdminController extends Controller
      */
     public function settings(): View
     {
-        return view('superadmin.settings');
+        $currentProvider = SystemSetting::get('ai_provider', 'gemini');
+        $availableProviders = AIServiceFactory::getAvailableProviders();
+        
+        return view('superadmin.settings', compact('currentProvider', 'availableProviders'));
     }
 
     /**
@@ -508,5 +513,61 @@ class SuperAdminController extends Controller
         $user->update(['client_limit' => $request->client_limit]);
 
         return redirect()->back()->with('success', 'Client limit updated successfully!');
+    }
+
+    /**
+     * Update AI provider setting
+     */
+    public function updateAIProvider(Request $request)
+    {
+        $request->validate([
+            'ai_provider' => 'required|in:gemini,chatgpt'
+        ]);
+
+        try {
+            AIServiceFactory::setProvider($request->ai_provider);
+            
+            return redirect()->back()->with('success', 'AI provider updated successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to update AI provider: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Test AI provider connection
+     */
+    public function testAIProvider(Request $request)
+    {
+        $request->validate([
+            'provider' => 'required|in:gemini,chatgpt'
+        ]);
+
+        try {
+            // Temporarily set the provider for testing
+            $originalProvider = SystemSetting::get('ai_provider', 'gemini');
+            SystemSetting::set('ai_provider', $request->provider, 'AI provider for predictions');
+            
+            $result = AIServiceFactory::testCurrentProvider();
+            
+            // Restore original provider
+            SystemSetting::set('ai_provider', $originalProvider, 'AI provider for predictions');
+            
+            if ($result['success']) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $result['message']
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['message']
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to test AI provider: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

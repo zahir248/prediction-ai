@@ -82,6 +82,64 @@
         </div>
     </div>
 
+    <!-- AI Provider Settings -->
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0 fw-semibold">
+                        <i class="bi bi-robot text-primary me-2"></i>AI Provider Settings
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('superadmin.ai-provider.update') }}" id="aiProviderForm">
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-12 col-md-8">
+                                <label for="ai_provider" class="form-label fw-semibold">Select AI Provider</label>
+                                <select class="form-select" id="ai_provider" name="ai_provider" required>
+                                    @foreach($availableProviders as $key => $provider)
+                                        <option value="{{ $key }}" {{ $currentProvider === $key ? 'selected' : '' }}>
+                                            {{ $provider['name'] }} - {{ $provider['description'] }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <div class="form-text">Choose the AI provider for generating predictions. Both providers offer high-quality analysis.</div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Actions</label>
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i>Save Provider
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="testAIProvider()">
+                                        <i class="bi bi-wifi me-2"></i>Test Connection
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Current Provider Status -->
+                    <div class="row g-3 mt-3">
+                        <div class="col-12 col-md-6">
+                            <div class="alert alert-info mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Current Provider:</strong> {{ $availableProviders[$currentProvider]['name'] }}
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="alert alert-success mb-0">
+                                <i class="bi bi-check-circle me-2"></i>
+                                <strong>Model:</strong> {{ $availableProviders[$currentProvider]['model'] }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Settings Content -->
     <div class="row g-4">
         <!-- System Information -->
@@ -520,6 +578,34 @@ function showNotification(message, type) {
             notification.remove();
         }
     }, 5000);
+}
+
+function testAIProvider() {
+    const selectedProvider = document.getElementById('ai_provider').value;
+    
+    showNotification('Testing AI provider connection...', 'info');
+    
+    fetch('{{ route("superadmin.ai-provider.test") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            provider: selectedProvider
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+        } else {
+            showNotification(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showNotification('Failed to test AI provider: ' + error.message, 'danger');
+    });
 }
 </script>
 @endsection

@@ -52,6 +52,39 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/debug-auth', [PredictionController::class, 'debugAuth'])->name('predictions.debug-auth');
     Route::get('/predictions/test-delete/{prediction}', [PredictionController::class, 'testDelete'])->name('predictions.test-delete');
     Route::post('/predictions/validate-urls', [PredictionController::class, 'validateUrls'])->name('predictions.validate-urls');
+    Route::get('/test-ai-providers', function() {
+        $results = [];
+        
+        // Test Gemini
+        try {
+            $geminiService = app(\App\Services\GeminiService::class);
+            $geminiResult = $geminiService->testConnection();
+            $results['gemini'] = $geminiResult;
+        } catch (\Exception $e) {
+            $results['gemini'] = ['success' => false, 'message' => $e->getMessage()];
+        }
+        
+        // Test ChatGPT
+        try {
+            $chatgptService = app(\App\Services\ChatGPTService::class);
+            $chatgptResult = $chatgptService->testConnection();
+            $results['chatgpt'] = $chatgptResult;
+        } catch (\Exception $e) {
+            $results['chatgpt'] = ['success' => false, 'message' => $e->getMessage()];
+        }
+        
+        // Test AI Service Factory
+        try {
+            $aiService = \App\Services\AIServiceFactory::create();
+            $factoryResult = $aiService->testConnection();
+            $results['factory'] = $factoryResult;
+            $results['current_provider'] = \App\Services\AIServiceFactory::getCurrentProvider();
+        } catch (\Exception $e) {
+            $results['factory'] = ['success' => false, 'message' => $e->getMessage()];
+        }
+        
+        return response()->json($results);
+    })->name('test-ai-providers');
     Route::get('/predictions/test-url-validation', [PredictionController::class, 'testUrlValidation'])->name('predictions.test-url-validation');
     
     // Parameterized routes must come LAST
@@ -134,6 +167,8 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::get('/logs', [SuperAdminController::class, 'logs'])->name('logs');
     Route::get('/system-health', [SuperAdminController::class, 'getSystemHealth'])->name('system-health');
     Route::put('/profile', [SuperAdminController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/ai-provider', [SuperAdminController::class, 'updateAIProvider'])->name('ai-provider.update');
+    Route::post('/ai-provider/test', [SuperAdminController::class, 'testAIProvider'])->name('ai-provider.test');
     
     // Analytics routes
     Route::get('/analytics', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'index'])->name('analytics.index');

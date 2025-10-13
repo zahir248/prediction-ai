@@ -30,6 +30,15 @@ return [
         'enable_truncation_detection' => env('GEMINI_ENABLE_TRUNCATION_DETECTION', true),
     ],
 
+        'chatgpt' => [
+            'api_key' => env('OPENAI_API_KEY'),
+            'model' => env('OPENAI_MODEL', 'gpt-5'),
+            'max_tokens' => env('OPENAI_MAX_TOKENS', 6000),
+            'temperature' => env('OPENAI_TEMPERATURE', 1),
+            'timeout' => env('OPENAI_TIMEOUT', 300),
+            'ssl_verify' => env('OPENAI_SSL_VERIFY', true),
+        ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],

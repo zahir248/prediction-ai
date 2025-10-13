@@ -9,7 +9,7 @@
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 24px;">
             <div style="flex: 1; min-width: 300px;">
                 <h1 style="font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">AI Prediction Analysis Dashboard</h1>
-                <p style="color: #64748b; font-size: 18px; line-height: 1.6; margin: 0;">Comprehensive prediction analysis and forecasting powered by Google Gemini 2.5 Flash</p>
+                <p style="color: #64748b; font-size: 18px; line-height: 1.6; margin: 0;">Comprehensive prediction analysis and forecasting powered by advanced AI</p>
             </div>
             <div style="flex-shrink: 0;">
                 <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
@@ -28,7 +28,7 @@
             </div>
             <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6; font-size: 16px;">
                 Our advanced AI-powered prediction analysis system (NUJUM) provides comprehensive insights and forecasting capabilities 
-                across any domain with instant, professional-grade results powered by Google Gemini 2.5 Flash.
+                across any domain with instant, professional-grade results powered by advanced AI.
             </p>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
                 <div style="display: flex; align-items: center; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: #f8fafc;">
