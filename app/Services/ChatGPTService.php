@@ -14,7 +14,7 @@ class ChatGPTService implements AIServiceInterface
     protected $webScrapingService;
     protected $sslVerify;
     protected $currentPredictionHorizon;
-    protected $model = 'gpt-5';
+    protected $model = 'gpt-4o';
 
     public function __construct(WebScrapingService $webScrapingService)
     {
@@ -131,8 +131,31 @@ class ChatGPTService implements AIServiceInterface
             if ($response->successful()) {
                 $data = $response->json();
                 
+                // Debug: Log the full response structure
+                Log::info('ChatGPT API response structure debug', [
+                    'response_keys' => array_keys($data),
+                    'has_choices' => isset($data['choices']),
+                    'choices_count' => isset($data['choices']) ? count($data['choices']) : 0,
+                    'has_choices_0' => isset($data['choices'][0]),
+                    'choices_0_keys' => isset($data['choices'][0]) ? array_keys($data['choices'][0]) : 'N/A',
+                    'has_message' => isset($data['choices'][0]['message']),
+                    'message_keys' => isset($data['choices'][0]['message']) ? array_keys($data['choices'][0]['message']) : 'N/A',
+                    'has_content' => isset($data['choices'][0]['message']['content']),
+                    'content_length' => isset($data['choices'][0]['message']['content']) ? strlen($data['choices'][0]['message']['content']) : 0,
+                    'content_preview' => isset($data['choices'][0]['message']['content']) ? substr($data['choices'][0]['message']['content'], 0, 200) : 'N/A'
+                ]);
+                
                 if (isset($data['choices'][0]['message']['content'])) {
                     $result = $data['choices'][0]['message']['content'];
+                    
+                    // Debug: Log the actual content received
+                    Log::info('ChatGPT API content received', [
+                        'content_length' => strlen($result),
+                        'content_type' => gettype($result),
+                        'content_preview' => substr($result, 0, 500),
+                        'is_empty' => empty($result),
+                        'is_null' => is_null($result)
+                    ]);
                     
                     // Try to parse JSON response
                     $parsedResult = $this->parseJsonResponse($result);
@@ -174,6 +197,17 @@ class ChatGPTService implements AIServiceInterface
                     }
                     
                     return $result;
+                } else {
+                    // Log detailed information about missing content
+                    Log::warning('ChatGPT API response missing content', [
+                        'response_structure' => $data,
+                        'choices_exists' => isset($data['choices']),
+                        'choices_0_exists' => isset($data['choices'][0]),
+                        'message_exists' => isset($data['choices'][0]['message']),
+                        'content_exists' => isset($data['choices'][0]['message']['content']),
+                        'content_value' => $data['choices'][0]['message']['content'] ?? 'NOT_SET',
+                        'content_type' => gettype($data['choices'][0]['message']['content'] ?? null)
+                    ]);
                 }
                 
                 Log::error('Unexpected ChatGPT API response structure: ' . json_encode($data));

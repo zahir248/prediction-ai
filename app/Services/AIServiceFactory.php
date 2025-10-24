@@ -55,8 +55,8 @@ class AIServiceFactory
             ],
             'chatgpt' => [
                 'name' => 'OpenAI ChatGPT',
-                'description' => 'OpenAI\'s GPT-5 model for advanced predictions',
-                'model' => 'gpt-5'
+                'description' => 'OpenAI\'s GPT-4o model for advanced predictions',
+                'model' => 'gpt-4o'
             ]
         ];
     }

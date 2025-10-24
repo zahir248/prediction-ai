@@ -55,7 +55,7 @@ class DocumentationController extends Controller
                 ],
                 'chatgpt' => [
                     'name' => 'OpenAI ChatGPT',
-                    'model' => 'gpt-5',
+                    'model' => 'gpt-4o',
                     'base_prompt' => "You are a world-class AI prediction analyst with expertise in comprehensive future forecasting and strategic analysis. You are known for providing exceptionally detailed, thorough, and complex analysis that rivals top-tier consulting firms like McKinsey, BCG, and Bain. Your analysis should be comprehensive, nuanced, and deeply insightful.",
                     'characteristics' => [
                         'More conversational and detailed approach',
