@@ -1,96 +1,71 @@
 @extends('layouts.app')
 
 @section('content')
-<div style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 32px 16px;">
-    <div style="max-width: 1200px; margin: 0 auto;">
-
-
-        <!-- Header Section -->
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; flex-wrap: wrap; gap: 24px;">
-            <div>
-                <h1 style="font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Prediction History</h1>
-                <p style="color: #64748b; font-size: 18px; line-height: 1.6; margin: 0;">Complete history of all your AI prediction analyses</p>
-            </div>
-            <div>
-                <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                    ➕ New Prediction Analysis
-                </a>
-            </div>
-        </div>
-
-        <!-- History Stats Card -->
-        <div style="background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; margin-bottom: 32px; overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                    <div style="display: flex; align-items: center;">
-                        <div style="width: 48px; height: 48px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
-                            <span style="font-size: 24px; color: white;">📚</span>
-                        </div>
-                        <div>
-                            <h2 style="font-size: 24px; font-weight: 700; color: white; margin: 0 0 4px 0;">Complete Analysis History</h2>
-                            <p style="color: rgba(255, 255, 255, 0.8); margin: 0; font-size: 14px;">Track all your prediction analyses and results</p>
-                        </div>
+<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <!-- Main Card -->
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+            <!-- Header Section -->
+            <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">Prediction History</h1>
+                        <p style="color: #64748b; font-size: 14px; margin: 0;">Complete history of all your AI prediction analyses</p>
                     </div>
                     <div>
-                        <div style="background: rgba(255, 255, 255, 0.2); color: white; padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.3); font-size: 14px; font-weight: 600;">
-                            📊 {{ $predictions->total() }} Total Analyses
-                        </div>
+                        <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                            New Prediction
+                        </a>
                     </div>
                 </div>
             </div>
-            
-            <div style="padding: 0;">
-                @if($predictions->count() > 0)
-                    <!-- History Stats Overview -->
-                    <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 24px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-                            <div>
-                                <h6 style="color: #1e293b; font-weight: 600; margin: 0; font-size: 16px; display: flex; align-items: center;">
-                                    <span style="color: #667eea; margin-right: 8px;">📈</span>
-                                    History Overview
-                                </h6>
-                            </div>
-                            <div style="display: flex; gap: 32px; flex-wrap: wrap;">
-                                <div style="text-align: center;">
-                                    <div style="font-size: 24px; font-weight: 700; color: #10b981; margin-bottom: 4px;">{{ $predictions->where('status', 'completed')->count() }}</div>
-                                    <div style="font-size: 14px; color: #64748b;">Completed</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <div style="font-size: 24px; font-weight: 700; color: #f59e0b; margin-bottom: 4px;">{{ $predictions->where('status', 'processing')->count() }}</div>
-                                    <div style="font-size: 14px; color: #64748b;">Processing</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <div style="font-size: 24px; font-weight: 700; color: #ef4444; margin-bottom: 4px;">{{ $predictions->where('status', 'failed')->count() }}</div>
-                                    <div style="font-size: 14px; color: #64748b;">Failed</div>
-                                </div>
-                            </div>
+
+            <!-- History Stats Overview -->
+            @if($predictions->count() > 0)
+                <div style="margin-bottom: 32px;">
+                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">History Overview</h2>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $predictions->total() }}</div>
+                            <div style="font-size: 13px; color: #64748b;">Total</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                            <div style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $predictions->where('status', 'completed')->count() }}</div>
+                            <div style="font-size: 13px; color: #64748b;">Completed</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
+                            <div style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $predictions->where('status', 'processing')->count() }}</div>
+                            <div style="font-size: 13px; color: #64748b;">Processing</div>
+                        </div>
+                        <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                            <div style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $predictions->where('status', 'failed')->count() }}</div>
+                            <div style="font-size: 13px; color: #64748b;">Failed</div>
                         </div>
                     </div>
+                </div>
 
+                <!-- Predictions List Section -->
+                <div style="margin-bottom: 32px;">
+                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">All Predictions</h2>
+                    
                     <!-- Desktop Table View -->
                     <div class="hidden-mobile" style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background: #f8fafc;">
-                                    <th style="padding: 20px 24px; text-align: left; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                    <th style="padding: 16px; text-align: left; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
                                         Topic & Details
                                     </th>
-                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
-                                        Source
+                                    <th style="padding: 16px; text-align: center; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                        Sources
                                     </th>
-                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
-                                        Horizon
-                                    </th>
-                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                    <th style="padding: 16px; text-align: center; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
                                         Status
                                     </th>
-                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
-                                        Confidence
+                                    <th style="padding: 16px; text-align: center; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                        Date
                                     </th>
-                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
-                                        Date & Time
-                                    </th>
-                                    <th style="padding: 20px 24px; text-align: center; font-weight: 600; color: #374151; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
+                                    <th style="padding: 16px; text-align: center; font-weight: 600; color: #374151; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #e2e8f0;">
                                         Actions
                                     </th>
                                 </tr>
@@ -98,99 +73,79 @@
                             <tbody>
                                 @foreach($predictions as $prediction)
                                 <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.3s ease;">
-                                    <td style="padding: 20px 24px;">
-                                        <div style="display: flex; align-items: center;">
-                                            <div style="width: 40px; height: 40px; background: rgba(102, 126, 234, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
-                                                <span style="font-size: 18px; color: #667eea;">💡</span>
-                                            </div>
-                                            <div>
-                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px; font-size: 16px;">{{ Str::limit($prediction->topic, 60) }}</div>
-                                                <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                                    <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                                                        #{{ $prediction->id }}
-                                                    </span>
-                                                    <span style="color: #64748b; font-size: 12px; display: flex; align-items: center;">
-                                                        {{ $prediction->created_at->diffForHumans() }}
-                                                    </span>
-                                                </div>
+                                    <td style="padding: 16px;">
+                                        <div>
+                                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px; font-size: 15px;">{{ Str::limit($prediction->topic, 60) }}</div>
+                                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;">
+                                                    #{{ $prediction->id }}
+                                                </span>
+                                                <span style="color: #64748b; font-size: 12px;">
+                                                    {{ $prediction->created_at->diffForHumans() }}
+                                                </span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td style="padding: 20px 24px; text-align: center;">
-                                        @if($prediction->source_urls && count($prediction->source_urls) > 0)
-                                            <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                    <td style="padding: 16px; text-align: center;">
+                                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; min-height: 40px; justify-content: center;">
+                                            @if($prediction->source_urls && count($prediction->source_urls) > 0)
+                                                <span style="color: #64748b; font-size: 12px; font-weight: 600;">{{ count($prediction->source_urls) }}</span>
                                                 @foreach($prediction->source_urls as $index => $sourceUrl)
                                                 <a href="{{ $sourceUrl }}" 
                                                    target="_blank" 
                                                    rel="noopener noreferrer"
-                                                   style="display: inline-block; padding: 4px 8px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 12px; font-size: 10px; font-weight: 500; transition: all 0.3s ease; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                                                   style="display: inline-block; padding: 4px 8px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 6px; font-size: 10px; font-weight: 500; transition: all 0.3s ease;"
                                                    title="{{ $sourceUrl }}">
-                                                    🔗 S{{ $index + 1 }}
+                                                    S{{ $index + 1 }}
                                                 </a>
                                                 @endforeach
-                                            </div>
-                                        @else
-                                            <span style="color: #64748b; font-size: 12px;">-</span>
-                                        @endif
+                                            @else
+                                                <span style="color: #9ca3af; font-size: 12px;">0</span>
+                                                <span style="color: #9ca3af; font-size: 10px;">No sources</span>
+                                            @endif
+                                        </div>
                                     </td>
-                                    <td style="padding: 20px 24px; text-align: center;">
-                                        <span style="background: #e0f2fe; color: #0277bd; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; display: inline-block;">
-                                            {{ ucwords(str_replace('_', ' ', $prediction->prediction_horizon)) }}
-                                        </span>
-                                    </td>
-                                    <td style="padding: 20px 24px; text-align: center;">
+                                    <td style="padding: 16px; text-align: center;">
                                         @if($prediction->status === 'completed')
-                                            <span style="background: #dcfce7; color: #166534; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">
+                                            <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
                                                 Completed
                                             </span>
                                         @elseif($prediction->status === 'processing')
-                                            <span style="background: #fef3c7; color: #92400e; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">
+                                            <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
                                                 Processing
                                             </span>
                                         @elseif($prediction->status === 'failed')
-                                            <span style="background: #fee2e2; color: #991b1b; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">
+                                            <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
                                                 Failed
                                             </span>
                                         @else
-                                            <span style="background: #f1f5f9; color: #475569; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center;">
+                                            <span style="background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
                                                 {{ ucfirst($prediction->status) }}
                                             </span>
                                         @endif
                                     </td>
-                                    <td style="padding: 20px 24px; text-align: center;">
-                                        @if(isset($prediction->confidence_score) && $prediction->confidence_score !== null && is_numeric($prediction->confidence_score))
-                                            <div style="display: flex; flex-direction: column; align-items: center;">
-                                                <div style="font-weight: 700; color: #1e293b; margin-bottom: 8px; font-size: 16px;">
-                                                    {{ number_format((float) $prediction->confidence_score * 100, 1) }}%
-                                                </div>
-                                                <div style="width: 80px; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                                    <div style="height: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: {{ (float) $prediction->confidence_score * 100 }}%; transition: width 0.3s ease;"></div>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <span style="color: #64748b;">-</span>
-                                        @endif
+                                    <td style="padding: 16px; text-align: center;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $prediction->created_at->format('M d, Y') }}</div>
+                                        <div style="color: #64748b; font-size: 12px;">{{ $prediction->created_at->format('H:i') }}</div>
                                     </td>
-                                    <td style="padding: 20px 24px; text-align: center;">
-                                        <div style="display: flex; flex-direction: column; align-items: center;">
-                                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 4px; font-size: 14px;">{{ $prediction->created_at->format('M d, Y') }}</div>
-                                            <div style="color: #64748b; font-size: 12px;">{{ $prediction->created_at->format('H:i') }}</div>
-                                        </div>
-                                    </td>
-                                    <td style="padding: 20px 24px; text-align: center;">
-                                        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                                    <td style="padding: 16px; text-align: center;">
+                                        <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: nowrap; min-height: 36px; align-items: center; white-space: nowrap;">
                                             <a href="{{ route('predictions.show', $prediction) }}" 
-                                               style="width: 120px; display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); text-align: center;">
-                                                View Details
+                                               style="padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); white-space: nowrap;">
+                                                View
                                             </a>
                                             @if($prediction->status === 'completed')
                                                 <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
-                                                        style="width: 120px; display: inline-block; padding: 8px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
-                                                    Export PDF
+                                                        style="padding: 8px 12px; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; white-space: nowrap;">
+                                                    Export
                                                 </button>
+                                            @else
+                                                <span style="padding: 8px 12px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 12px; opacity: 0.5; white-space: nowrap;">
+                                                    Export
+                                                </span>
                                             @endif
                                             <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
-                                                    style="width: 120px; display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); text-align: center;">
+                                                    style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; white-space: nowrap;">
                                                 Delete
                                             </button>
                                         </div>
@@ -202,134 +157,111 @@
                     </div>
 
                     <!-- Mobile Card View -->
-                    <div class="mobile-only" style="padding: 20px;">
-                        <div style="display: flex; flex-direction: column; gap: 16px;">
-                            @foreach($predictions as $prediction)
-                            <div style="background: #f8fafc; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; transition: all 0.3s ease;">
-                                <!-- Card Header -->
-                                <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px;">
-                                    <div style="display: flex; align-items: center; flex: 1;">
-                                        <div style="width: 40px; height: 40px; background: rgba(102, 126, 234, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 16px; flex-shrink: 0;">
-                                            <span style="font-size: 18px; color: #667eea;">💡</span>
-                                        </div>
-                                        <div style="flex: 1;">
-                                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 16px; line-height: 1.4;">{{ Str::limit($prediction->topic, 80) }}</div>
-                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                                <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 20px; font-size: 12px; font-weight: 500;">
-                                                    #{{ $prediction->id }}
-                                                </span>
-                                                <span style="color: #64748b; font-size: 12px;">
-                                                    {{ $prediction->created_at->diffForHumans() }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Card Content -->
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
-                                    <!-- Status -->
-                                    <div style="text-align: center;">
-                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
-                                        @if($prediction->status === 'completed')
-                                            <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; display: inline-block;">
-                                                Completed
-                                            </span>
-                                        @elseif($prediction->status === 'processing')
-                                            <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; display: inline-block;">
-                                                Processing
-                                            </span>
-                                        @elseif($prediction->status === 'failed')
-                                            <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; display: inline-block;">
-                                                Failed
-                                            </span>
-                                        @else
-                                            <span style="background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 16px; font-size: 11px; font-weight: 600; display: inline-block;">
-                                                {{ ucfirst($prediction->status) }}
-                                            </span>
-                                        @endif
-                                    </div>
-
-                                    <!-- Date -->
-                                    <div style="text-align: center;">
-                                        <div style="font-size: 12px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Date</div>
-                                        <div style="font-weight: 600; color: #1e293b; font-size: 14px;">{{ $prediction->created_at->format('M d, Y') }}</div>
-                                        <div style="color: #64748b; font-size: 12px;">{{ $prediction->created_at->format('H:i') }}</div>
-                                    </div>
-                                </div>
-
-                                <!-- Source URLs -->
-                                @if($prediction->source_urls && count($prediction->source_urls) > 0)
-                                <div style="margin-bottom: 20px; text-align: center;">
-                                    <div style="font-size: 12px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Sources</div>
-                                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
-                                        @foreach($prediction->source_urls as $index => $sourceUrl)
-                                        <a href="{{ $sourceUrl }}" 
-                                           target="_blank" 
-                                           rel="noopener noreferrer"
-                                           style="display: inline-block; padding: 8px 16px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 16px; font-size: 12px; font-weight: 500; transition: all 0.3s ease;">
-                                            🔗 S{{ $index + 1 }}
-                                        </a>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                @endif
-
-                                <!-- Confidence Score -->
-                                @if(isset($prediction->confidence_score) && $prediction->confidence_score !== null && is_numeric($prediction->confidence_score))
-                                <div style="margin-bottom: 20px;">
-                                    <div style="font-size: 12px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Confidence Score</div>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="font-weight: 700; color: #1e293b; font-size: 16px;">
-                                            {{ number_format((float) $prediction->confidence_score * 100, 1) }}%
-                                        </div>
-                                        <div style="flex: 1; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
-                                            <div style="height: 100%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); width: {{ (float) $prediction->confidence_score * 100 }}%; transition: width 0.3s ease;"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                                @endif
-
-                                <!-- Actions -->
-                                <div style="display: flex; gap: 12px; justify-content: stretch;">
-                                    <a href="{{ route('predictions.show', $prediction) }}" 
-                                       style="flex: 1; display: inline-block; padding: 12px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; text-align: center; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                                        View Details
-                                    </a>
-                                    @if($prediction->status === 'completed')
-                                        <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
-                                                style="flex: 1; display: inline-block; padding: 12px 16px; background: transparent; color: #374151; text-decoration: none; border: 1px solid #d1d5db; border-radius: 16px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
-                                            Export PDF
-                                        </button>
-                                    @endif
-                                </div>
-                                <!-- Delete Button -->
-                                <div style="margin-top: 12px;">
-                                    <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
-                                            style="width: 100%; display: inline-block; padding: 12px 16px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; text-decoration: none; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);">
-                                        Delete Analysis
-                                    </button>
+                    <div class="mobile-only" style="display: none; flex-direction: column; gap: 16px;">
+                        @foreach($predictions as $prediction)
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
+                            <!-- Card Header -->
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 15px; line-height: 1.4;">{{ Str::limit($prediction->topic, 80) }}</div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;">
+                                        #{{ $prediction->id }}
+                                    </span>
+                                    <span style="color: #64748b; font-size: 12px;">
+                                        {{ $prediction->created_at->diffForHumans() }}
+                                    </span>
                                 </div>
                             </div>
-                            @endforeach
+
+                            <!-- Card Content - Grid Layout -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                                <!-- Sources -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Sources</div>
+                                    @if($prediction->source_urls && count($prediction->source_urls) > 0)
+                                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                            <span style="color: #64748b; font-size: 12px; font-weight: 600;">{{ count($prediction->source_urls) }}</span>
+                                            @foreach($prediction->source_urls as $index => $sourceUrl)
+                                            <a href="{{ $sourceUrl }}" 
+                                               target="_blank" 
+                                               rel="noopener noreferrer"
+                                               style="display: inline-block; padding: 4px 8px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 6px; font-size: 10px; font-weight: 500;">
+                                                S{{ $index + 1 }}
+                                            </a>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span style="color: #9ca3af; font-size: 12px;">0</span>
+                                    @endif
+                                </div>
+
+                                <!-- Status -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
+                                    @if($prediction->status === 'completed')
+                                        <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
+                                            Completed
+                                        </span>
+                                    @elseif($prediction->status === 'processing')
+                                        <span style="background: #fef3c7; color: #92400e; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
+                                            Processing
+                                        </span>
+                                    @elseif($prediction->status === 'failed')
+                                        <span style="background: #fee2e2; color: #991b1b; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
+                                            Failed
+                                        </span>
+                                    @else
+                                        <span style="background: #f1f5f9; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; display: inline-block;">
+                                            {{ ucfirst($prediction->status) }}
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <!-- Date -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Date</div>
+                                    <div style="font-weight: 600; color: #1e293b; font-size: 13px;">{{ $prediction->created_at->format('M d, Y') }}</div>
+                                    <div style="color: #64748b; font-size: 12px;">{{ $prediction->created_at->format('H:i') }}</div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <a href="{{ route('predictions.show', $prediction) }}" 
+                                   style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; text-align: center; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                                    View
+                                </a>
+                                @if($prediction->status === 'completed')
+                                    <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
+                                            style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
+                                        Export
+                                    </button>
+                                @else
+                                    <span style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 13px; opacity: 0.5; text-align: center;">
+                                        Export
+                                    </span>
+                                @endif
+                                <button onclick="confirmDelete({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" 
+                                        style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
+                                    Delete
+                                </button>
+                            </div>
                         </div>
+                        @endforeach
                     </div>
                 @else
-                    <div style="text-align: center; padding: 80px 24px;">
-                        <div style="margin-bottom: 24px;">
-                            <span style="font-size: 64px; color: #cbd5e1; opacity: 0.5;">📚</span>
-                        </div>
-                        <h4 style="color: #64748b; margin-bottom: 16px; font-size: 20px;">No prediction history yet</h4>
-                        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Create your first analysis to start building your prediction history!</p>
-                        <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
-                            ➕ Create First Analysis
+                    <div style="text-align: center; padding: 60px 24px;">
+                        <h4 style="color: #64748b; margin-bottom: 12px; font-size: 18px;">No prediction history yet</h4>
+                        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">Create your first analysis to start building your prediction history!</p>
+                        <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                            Create First Analysis
                         </a>
                     </div>
                 @endif
             </div>
             
             @if($predictions->count() > 0)
-                <div style="background: white; border-top: 1px solid #e2e8f0; padding: 24px;">
+                <div style="padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
                     <!-- Clean Pagination -->
                     @if($predictions->hasPages())
                         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px;">
@@ -520,6 +452,25 @@ document.getElementById('exportModal').onclick = function(e) {
 </script>
 
 <style>
+    /* Hide/show classes for responsive design */
+    .hidden-mobile {
+        display: block;
+    }
+    
+    .mobile-only {
+        display: none;
+    }
+    
+    @media (max-width: 768px) {
+        .hidden-mobile {
+            display: none !important;
+        }
+        
+        .mobile-only {
+            display: block !important;
+        }
+    }
+    
     /* Hover effects for table rows */
     tbody tr:hover {
         background: #f8fafc !important;

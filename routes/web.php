@@ -33,7 +33,7 @@ Route::get('/documentation', [DocumentationController::class, 'download'])->name
 
 // Authentication routes
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
+    Route::get('/home', function () {
         return view('dashboard');
     })->name('dashboard');
     

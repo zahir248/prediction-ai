@@ -186,6 +186,33 @@
             color: #d32f2f;
         }
         
+        .status-badge {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+        
+        .status-completed {
+            color: #2e7d32;
+            background-color: #e8f5e9;
+        }
+        
+        .status-processing {
+            color: #f57c00;
+            background-color: #fff3e0;
+        }
+        
+        .status-failed {
+            color: #d32f2f;
+            background-color: #ffebee;
+        }
+        
+        .status-pending {
+            color: #1976d2;
+            background-color: #e3f2fd;
+        }
+        
         .mitigation {
             padding: 8px;
             margin: 8px 0;
@@ -274,6 +301,36 @@
             border: 1px solid #ddd;
         }
         
+        /* Risk Assessment table styling */
+        .risk-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 9pt;
+            page-break-inside: avoid;
+        }
+        
+        .risk-table th {
+            background-color: #f0f0f0;
+            color: #000;
+            font-weight: bold;
+            padding: 8px 6px;
+            text-align: left;
+            border: 1px solid #333;
+            font-size: 9pt;
+        }
+        
+        .risk-table td {
+            padding: 6px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+            font-size: 9pt;
+        }
+        
+        .risk-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
         @media print {
             body {
                 margin: 0;
@@ -331,10 +388,6 @@
         <div class="section-title">Analysis Information</div>
         <div class="info-grid">
             <div class="info-row">
-                <div class="info-label">Prediction ID</div>
-                <div class="info-value">#{{ $prediction->id }}</div>
-            </div>
-            <div class="info-row">
                 <div class="info-label">Topic</div>
                 <div class="info-value">{{ $prediction->topic }}</div>
             </div>
@@ -351,7 +404,10 @@
             <div class="info-row">
                 <div class="info-label">Status</div>
                 <div class="info-value">
-                    <span class="risk-level">{{ ucfirst($prediction->status) }}</span>
+                    @php
+                        $statusClass = 'status-' . strtolower($prediction->status);
+                    @endphp
+                    <span class="status-badge {{ $statusClass }}">{{ ucfirst($prediction->status) }}</span>
                 </div>
             </div>
             <div class="info-row">
@@ -618,6 +674,70 @@
                     </div>
                 @endif
                 
+                <!-- Risk Assessment -->
+                @if(isset($report['risk_assessment']))
+                    <div class="prediction-content avoid-break">
+                        <h3>Risk Assessment</h3>
+                        @if(is_array($report['risk_assessment']))
+                            @php
+                                $isArrayOfObjects = false;
+                                $firstItem = reset($report['risk_assessment']);
+                                if (is_array($firstItem) && isset($firstItem['risk'])) {
+                                    $isArrayOfObjects = true;
+                                }
+                            @endphp
+                            
+                            @if($isArrayOfObjects)
+                                <!-- Display as table if it's an array of risk objects -->
+                                <table class="risk-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 35%;">Risk</th>
+                                            <th style="width: 15%;">Level</th>
+                                            <th style="width: 15%;">Probability</th>
+                                            <th style="width: 35%;">Mitigation Strategy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($report['risk_assessment'] as $risk)
+                                            @if(is_array($risk))
+                                                <tr>
+                                                    <td>{{ isset($risk['risk']) ? (is_string($risk['risk']) ? $risk['risk'] : (string)$risk['risk']) : 'N/A' }}</td>
+                                                    <td>{{ isset($risk['level']) ? (is_string($risk['level']) ? $risk['level'] : (string)$risk['level']) : '-' }}</td>
+                                                    <td>{{ isset($risk['probability']) ? (is_string($risk['probability']) ? $risk['probability'] : (string)$risk['probability']) : '-' }}</td>
+                                                    <td>{{ isset($risk['mitigation']) ? (is_string($risk['mitigation']) ? $risk['mitigation'] : (string)$risk['mitigation']) : '-' }}</td>
+                                                </tr>
+                                            @endif
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @else
+                                <!-- Display as key-value pairs if it's a simple associative array -->
+                                @foreach($report['risk_assessment'] as $key => $value)
+                                    @if(is_string($value))
+                                        <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
+                                    @elseif(is_array($value))
+                                        <div style="margin-bottom: 12px;">
+                                            <p style="font-weight: bold; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
+                                            <ul style="margin: 0; padding-left: 18px;">
+                                                @foreach($value as $item)
+                                                    <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    @else
+                                        <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}</p>
+                                    @endif
+                                @endforeach
+                            @endif
+                        @elseif(is_string($report['risk_assessment']))
+                            <p>{{ $report['risk_assessment'] }}</p>
+                        @else
+                            <p>{{ (string)$report['risk_assessment'] }}</p>
+                        @endif
+                    </div>
+                @endif
+                
                 <!-- Policy Implications -->
                 @if(isset($report['policy_implications']))
                     <div class="prediction-content avoid-break">
@@ -643,35 +763,6 @@
                             <p>{{ $report['policy_implications'] }}</p>
                         @else
                             <p>{{ (string)$report['policy_implications'] }}</p>
-                        @endif
-                    </div>
-                @endif
-                
-                <!-- Risk Assessment -->
-                @if(isset($report['risk_assessment']))
-                    <div class="prediction-content avoid-break">
-                        <h3>Risk Assessment</h3>
-                        @if(is_array($report['risk_assessment']))
-                            @foreach($report['risk_assessment'] as $key => $value)
-                                @if(is_string($value))
-                                    <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
-                                @elseif(is_array($value))
-                                    <div style="margin-bottom: 12px;">
-                                        <p style="font-weight: bold; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
-                                        <ul style="margin: 0; padding-left: 18px;">
-                                            @foreach($value as $item)
-                                                <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                @else
-                                    <p><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}</p>
-                                @endif
-                            @endforeach
-                        @elseif(is_string($report['risk_assessment']))
-                            <p>{{ $report['risk_assessment'] }}</p>
-                        @else
-                            <p>{{ (string)$report['risk_assessment'] }}</p>
                         @endif
                     </div>
                 @endif
@@ -844,96 +935,6 @@
         </div>
     @endif
 
-    <!-- Risk Assessment - Force page break for this section -->
-    @if($prediction->status === 'completed')
-        <div class="section major-section force-break">
-            <div class="section-title">Risk Assessment & Mitigation</div>
-            
-            @if(isset($prediction->prediction_result['risk_assessment']) && is_array($prediction->prediction_result['risk_assessment']))
-                @foreach($prediction->prediction_result['risk_assessment'] as $index => $risk)
-                    <div class="prediction-content avoid-break" style="border-left: 3px solid #f44336; margin-bottom: 12px;">
-                        <h3 style="color: #d32f2f; margin-top: 0;">Risk {{ $index + 1 }}</h3>
-                        <p style="margin: 6px 0;"><strong>Description:</strong> {{ is_string($risk['risk'] ?? '') ? $risk['risk'] : 'Risk description not available' }}</p>
-                        
-                        <div style="display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0;">
-                            @if(isset($risk['level']) && is_string($risk['level']))
-                                <span style="border: 1px solid #c62828; color: #c62828; padding: 3px 8px; font-size: 8pt; font-weight: bold;">Level: {{ $risk['level'] }}</span>
-                            @endif
-                            @if(isset($risk['probability']) && is_string($risk['probability']))
-                                <span style="border: 1px solid #ef6c00; color: #ef6c00; padding: 3px 8px; font-size: 8pt; font-weight: bold;">Probability: {{ $risk['probability'] }}</span>
-                            @endif
-                            @if(isset($risk['impact']) && is_string($risk['impact']))
-                                <span style="border: 1px solid #c62828; color: #c62828; padding: 3px 8px; font-size: 8pt; font-weight: bold;">Impact: {{ $risk['impact'] }}</span>
-                            @endif
-                        </div>
-                        
-                        @if(isset($risk['timeline']) && is_string($risk['timeline']))
-                            <p style="margin: 6px 0;"><strong>Timeline:</strong> {{ $risk['timeline'] }}</p>
-                        @endif
-                        @if(isset($risk['mitigation']) && is_string($risk['mitigation']))
-                            <p style="margin: 6px 0;"><strong>Mitigation Strategy:</strong> {{ $risk['mitigation'] }}</p>
-                        @endif
-                    </div>
-                @endforeach
-            @else
-                <div class="subsection-title">Key Risk Factors</div>
-                <div class="prediction-content">
-                    <p>Based on the analysis, several risk factors have been identified that require attention and proactive management:</p>
-                    <ul class="factors-list">
-                        <li><strong>Data Quality:</strong> The accuracy of predictions depends on the quality and completeness of input data</li>
-                        <li><strong>External Factors:</strong> Unforeseen events or changes in external conditions may impact prediction accuracy</li>
-                        <li><strong>Implementation Challenges:</strong> Success depends on effective execution of recommended strategies</li>
-                    </ul>
-                </div>
-                
-                <div class="subsection-title">Mitigation Strategies</div>
-                <div class="mitigation">
-                    <h4>Recommended Actions</h4>
-                    <ul class="factors-list">
-                        <li>Regular monitoring and validation of prediction outcomes</li>
-                        <li>Continuous data collection and analysis updates</li>
-                        <li>Flexible strategy adaptation based on changing circumstances</li>
-                        <li>Stakeholder engagement and communication</li>
-                    </ul>
-                </div>
-            @endif
-        </div>
-    @endif
-
-    <!-- Strategic Recommendations -->
-    @if($prediction->status === 'completed')
-        <div class="section major-section">
-            <div class="section-title">Strategic Recommendations</div>
-            
-            <div class="recommendations avoid-break">
-                <h4>Immediate Actions (0-30 days)</h4>
-                <ul class="factors-list">
-                    <li>Review and validate all prediction data points</li>
-                    <li>Identify key stakeholders and decision-makers</li>
-                    <li>Develop initial response strategies</li>
-                </ul>
-            </div>
-            
-            <div class="recommendations avoid-break">
-                <h4>Short-term Actions (1-3 months)</h4>
-                <ul class="factors-list">
-                    <li>Implement monitoring and tracking systems</li>
-                    <li>Begin stakeholder engagement programs</li>
-                    <li>Develop contingency plans for identified risks</li>
-                </ul>
-            </div>
-            
-            <div class="recommendations avoid-break">
-                <h4>Long-term Actions (3-12 months)</h4>
-                <ul class="factors-list">
-                    <li>Evaluate prediction accuracy and adjust models</li>
-                    <li>Scale successful strategies and initiatives</li>
-                    <li>Establish ongoing monitoring and review processes</li>
-                </ul>
-            </div>
-        </div>
-    @endif
-
     <!-- Technical Details -->
     <div class="section major-section">
         <div class="section-title">Technical Specifications</div>
@@ -964,7 +965,7 @@
 
     <div class="footer">
         <p>This report was automatically generated by the NUJUM System</p>
-        <p>Report ID: {{ $prediction->id }} | Generated: {{ date('Y-m-d H:i:s') }}</p>
+        <p>Generated: {{ date('Y-m-d H:i:s') }}</p>
         <p>For questions or support, please contact the system administrator</p>
     </div>
 

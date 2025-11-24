@@ -56,41 +56,47 @@
             position: sticky;
             top: 0;
             z-index: 1000;
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .nav.nav-hidden {
+            transform: translateY(-100%);
         }
         
         .nav-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            height: 72px;
+            height: 56px;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 0 20px;
         }
         
         .nav-brand {
-            font-size: 1.25rem;
+            font-size: 1.125rem;
             font-weight: 600;
             color: #374151;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         
         .nav-links {
             display: flex;
-            gap: 32px;
-            margin-left: 48px;
+            align-items: center;
+            gap: 20px;
+            margin-left: 32px;
         }
         
         .nav-link {
             color: #64748b;
             text-decoration: none;
-            padding: 12px 16px;
+            padding: 8px 12px;
             font-weight: 500;
-            font-size: 14px;
-            border-radius: 8px;
+            font-size: 13px;
+            border-radius: 6px;
             transition: all 0.2s ease;
             position: relative;
         }
@@ -98,6 +104,112 @@
         .nav-link:hover {
             color: #374151;
             background-color: #f8fafc;
+        }
+        
+        .nav-link.active {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
+        }
+        
+        .nav-dropdown.active .nav-dropdown-toggle {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
+        }
+        
+        /* Dropdown menu styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .nav-dropdown-toggle {
+            color: #64748b;
+            text-decoration: none;
+            padding: 8px 12px;
+            font-weight: 500;
+            font-size: 13px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        
+        .nav-dropdown-toggle:hover {
+            color: #374151;
+            background-color: #f8fafc;
+        }
+        
+        .nav-dropdown-toggle::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .nav-dropdown.active .nav-dropdown-toggle::after {
+            transform: rotate(180deg);
+        }
+        
+        .nav-dropdown.has-active-child .nav-dropdown-toggle {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
+        }
+        
+        .nav-dropdown.has-active-child .nav-dropdown-toggle::after {
+            transform: rotate(180deg);
+        }
+        
+        .nav-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 8px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+            min-width: 180px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1000;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .nav-dropdown.active .nav-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .nav-dropdown-item {
+            display: block;
+            padding: 10px 16px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .nav-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .nav-dropdown-item:hover {
+            color: #374151;
+            background-color: #f8fafc;
+        }
+        
+        .nav-dropdown-item.active {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
         }
         
         /* Modal styles */
@@ -178,7 +290,7 @@
         .nav-user {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
         }
         
         /* Mobile navigation */
@@ -252,6 +364,24 @@
             background-color: #f1f5f9;
         }
         
+        .mobile-nav-link.active {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
+        }
+        
+        .mobile-nav-section.active .mobile-nav-section-header {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
+        }
+        
+        .mobile-nav-sub-link.active {
+            color: #667eea;
+            background-color: #f0f4ff;
+            font-weight: 600;
+        }
+        
         /* Mobile logout button styling */
         .mobile-nav-link[type="submit"] {
             background: #ef4444 !important;
@@ -267,6 +397,53 @@
         
         .mobile-nav-link[type="submit"]:hover {
             background: #dc2626 !important;
+        }
+        
+        /* Mobile dropdown styles */
+        .mobile-nav-section {
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .mobile-nav-section-header {
+            color: #374151;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s ease;
+        }
+        
+        .mobile-nav-section-header:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .mobile-nav-arrow {
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .mobile-nav-section.active .mobile-nav-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .mobile-nav-section-content {
+            padding-top: 8px;
+        }
+        
+        .mobile-nav-sub-link {
+            padding-left: 32px !important;
+            font-size: 13px !important;
+            color: #64748b !important;
+        }
+        
+        .mobile-nav-sub-link:hover {
+            background-color: #f8fafc !important;
         }
         
         /* Ensure mobile nav has proper spacing */
@@ -595,45 +772,37 @@
         /* Large screen optimizations */
         @media (min-width: 1200px) {
             .nav-links {
-                gap: 40px;
-                margin-left: 64px;
+                gap: 24px;
+                margin-left: 40px;
             }
             
             .nav-content {
-                height: 80px;
-                padding: 0 32px;
-            }
-            
-            .nav-brand {
-                font-size: 1.5rem;
+                height: 60px;
+                padding: 0 24px;
             }
         }
         
         @media (min-width: 1400px) {
             .nav-links {
-                gap: 48px;
-                margin-left: 80px;
+                gap: 28px;
+                margin-left: 48px;
             }
             
             .nav-content {
-                height: 88px;
-                padding: 0 40px;
-            }
-            
-            .nav-brand {
-                font-size: 1.625rem;
+                height: 64px;
+                padding: 0 28px;
             }
         }
         
         @media (min-width: 1600px) {
             .nav-links {
-                gap: 56px;
-                margin-left: 96px;
+                gap: 32px;
+                margin-left: 56px;
             }
             
             .nav-content {
-                height: 96px;
-                padding: 0 48px;
+                height: 64px;
+                padding: 0 32px;
             }
         }
         
@@ -656,8 +825,8 @@
             }
             
             .nav-brand img {
-                width: 48px !important;
-                height: 48px !important;
+                width: 36px !important;
+                height: 36px !important;
             }
             
             .nav-user {
@@ -690,8 +859,8 @@
             }
             
             .nav-brand img {
-                width: 40px !important;
-                height: 40px !important;
+                width: 32px !important;
+                height: 32px !important;
             }
             
             .card {
@@ -781,36 +950,46 @@
             <div class="nav-content">
                 <div style="display: flex; align-items: center;">
                     <div class="nav-brand">
-                        <a href="{{ route('predictions.index') }}" class="nav-brand" style="display: flex; align-items: center;">
-                            <img src="{{ asset('image/logo2.png') }}" alt="NUJUM Logo" style="width: 60px; height: 60px; object-fit: contain;">
+                        <a href="{{ route('dashboard') }}" class="nav-brand" style="display: flex; align-items: center;">
+                            <img src="{{ asset('image/logo2.png') }}" alt="NUJUM Logo" style="width: 40px; height: 40px; object-fit: contain;">
                         </a>
                     </div>
                     <div class="nav-links hidden-mobile">
-                        <a href="{{ route('dashboard') }}" class="nav-link">
-                            Dashboard
+                        <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                            Home
                         </a>
-                        <a href="{{ route('predictions.analytics') }}" class="nav-link">
-                            Analytics
-                        </a>
-                        <a href="{{ route('predictions.create') }}" class="nav-link">
-                            New Prediction
-                        </a>
-                        <a href="{{ route('predictions.history') }}" class="nav-link">
-                            History
+                        <div class="nav-dropdown {{ request()->routeIs('predictions.*') ? 'has-active-child' : '' }}" id="predictionsDropdown">
+                            <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('predictionsDropdown');">
+                                Predictions Analysis
+                            </a>
+                            <div class="nav-dropdown-menu">
+                                <a href="{{ route('predictions.create') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
+                                    New Prediction
+                                </a>
+                                <a href="{{ route('predictions.history') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
+                                    History
+                                </a>
+                                <a href="{{ route('predictions.analytics') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
+                                    Analytics
+                                </a>
+                            </div>
+                        </div>
+                        <a href="#" class="nav-link">
+                            Social Media Analysis
                         </a>
                     </div>
                 </div>
                 
                 <div class="nav-user hidden-mobile">
                     @auth
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            <span style="color: #64748b; font-size: 14px;">{{ Auth::user()->name }}</span>
-                            <button type="button" onclick="showLogoutModal()" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; transition: background-color 0.2s ease;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <span style="color: #64748b; font-size: 13px;">{{ Auth::user()->name }}</span>
+                            <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
                                 Logout
                             </button>
                         </div>
                     @else
-                        <a href="{{ route('login') }}" style="padding: 8px 16px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; transition: background-color 0.2s ease;">
+                        <a href="{{ route('login') }}" style="padding: 6px 12px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; transition: background-color 0.2s ease;">
                             Login
                         </a>
                     @endauth
@@ -829,17 +1008,28 @@
             <!-- Mobile navigation menu -->
             <div class="mobile-nav" id="mobileNav">
                 <div class="mobile-nav-links">
-                    <a href="{{ route('dashboard') }}" class="mobile-nav-link">
-                        Dashboard
+                    <a href="{{ route('dashboard') }}" class="mobile-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        Home
                     </a>
-                    <a href="{{ route('predictions.analytics') }}" class="mobile-nav-link">
-                        Analytics
-                    </a>
-                    <a href="{{ route('predictions.create') }}" class="mobile-nav-link">
-                        New Prediction
-                    </a>
-                    <a href="{{ route('predictions.history') }}" class="mobile-nav-link">
-                        History
+                    <div class="mobile-nav-section {{ request()->routeIs('predictions.*') ? 'active has-active-child' : '' }}" id="mobilePredictionsSection">
+                        <div class="mobile-nav-section-header" onclick="toggleMobileDropdown('mobilePredictionsDropdown', 'mobilePredictionsSection')">
+                            Predictions Analysis
+                            <span class="mobile-nav-arrow">▼</span>
+                        </div>
+                        <div class="mobile-nav-section-content" id="mobilePredictionsDropdown" style="display: none;">
+                            <a href="{{ route('predictions.create') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
+                                New Prediction
+                            </a>
+                            <a href="{{ route('predictions.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                            <a href="{{ route('predictions.analytics') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
+                                Analytics
+                            </a>
+                        </div>
+                    </div>
+                    <a href="#" class="mobile-nav-link">
+                        Social Media Analysis
                     </a>
                     @auth
                         <div class="mobile-nav-user">
@@ -906,6 +1096,50 @@
             mobileNav.classList.toggle('active');
         }
         
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            if (dropdown) {
+                // Only toggle 'active' class, keep 'has-active-child' if it exists
+                dropdown.classList.toggle('active');
+            }
+        }
+        
+        function toggleMobileDropdown(dropdownId, sectionId) {
+            const dropdown = document.getElementById(dropdownId);
+            const section = document.getElementById(sectionId);
+            
+            if (dropdown.style.display === 'none' || dropdown.style.display === '') {
+                dropdown.style.display = 'block';
+                section.classList.add('active');
+            } else {
+                dropdown.style.display = 'none';
+                // Don't remove 'active' class if section has 'has-active-child' class - preserve highlighting
+                if (!section.classList.contains('has-active-child')) {
+                    section.classList.remove('active');
+                }
+            }
+        }
+        
+        // Close dropdown when clicking outside (but preserve highlighting)
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('predictionsDropdown');
+            if (dropdown && !dropdown.contains(event.target)) {
+                // Only remove 'active' class, keep 'has-active-child' for highlighting
+                dropdown.classList.remove('active');
+            }
+        });
+        
+        // Keep dropdown highlighted (but closed) if on a predictions route
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.getElementById('predictionsDropdown');
+            @if(request()->routeIs('predictions.*'))
+                if (dropdown) {
+                    dropdown.classList.add('has-active-child');
+                    // Don't auto-open, just keep it highlighted
+                }
+            @endif
+        });
+        
         // Close mobile menu when clicking outside
         document.addEventListener('click', function(event) {
             const mobileNav = document.getElementById('mobileNav');
@@ -945,6 +1179,44 @@
                 document.getElementById('mobileNav').classList.remove('active');
             }
         });
+        
+        // Navbar hide on scroll down functionality
+        (function() {
+            const nav = document.querySelector('.nav');
+            let lastScrollTop = 0;
+            let scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
+            let ticking = false;
+            
+            if (!nav) return;
+            
+            function updateNavbar() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Always show navbar at the top of the page
+                if (scrollTop <= scrollThreshold) {
+                    nav.classList.remove('nav-hidden');
+                } else {
+                    // Hide when scrolling down, show when scrolling up
+                    if (scrollTop > lastScrollTop) {
+                        // Scrolling down - hide navbar
+                        nav.classList.add('nav-hidden');
+                    } else {
+                        // Scrolling up - show navbar
+                        nav.classList.remove('nav-hidden');
+                    }
+                }
+                
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+                ticking = false;
+            }
+            
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(updateNavbar);
+                    ticking = true;
+                }
+            }, { passive: true });
+        })();
     </script>
 </body>
 </html>

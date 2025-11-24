@@ -1,244 +1,222 @@
 @extends('layouts.app')
 
 @section('content')
-<div style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 32px 16px;">
-    <div style="max-width: 800px; margin: 0 auto;">
-        <!-- Header Section -->
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="font-size: 36px; font-weight: 700; color: #1e293b; margin-bottom: 16px;">Create New AI Prediction</h1>
-            <p style="color: #64748b; font-size: 18px; line-height: 1.6;">Input your data and let AI analyze it for insights and predictions</p>
-        </div>
-
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
+    <div style="max-width: 900px; margin: 0 auto;">
         <!-- Main Form Card -->
-        <div style="background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
             <form action="{{ route('predictions.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 
-                <!-- Topic Field -->
-                        <div style="margin-bottom: 32px;">
-            <label for="topic" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Prediction Topic <span style="color: #dc2626;">*</span>
-            </label>
-                    <input type="text" 
-                           id="topic" 
-                           name="topic" 
-                           value="{{ old('topic') }}"
-                           style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
-                           placeholder="e.g., Customer Sentiment Analysis, Market Trend Prediction"
-                           required>
-                    @error('topic')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
+                <!-- Form Header -->
+                <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
+                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">Create New AI Prediction</h1>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Fill in the details below to generate your AI-powered prediction analysis</p>
                 </div>
-
-                <!-- Target Field -->
+                
+                <!-- Basic Information Section -->
                 <div style="margin-bottom: 32px;">
-                    <label for="target" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Target (Optional)
-                    </label>
-                    <textarea id="target" 
-                              name="target" 
-                              rows="3"
-                              style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb; resize: vertical; font-family: inherit;"
-                              placeholder="Specify the target that will be affected by this prediction (e.g., specific company, market sector, demographic group, etc.)">{{ old('target') }}</textarea>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Optional: Define the specific target or entity that your prediction analysis will focus on</p>
-                    @error('target')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Prediction Horizon Field -->
-                        <div style="margin-bottom: 32px;">
-            <label for="prediction_horizon" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Prediction Horizon <span style="color: #dc2626;">*</span>
-            </label>
-                    <select id="prediction_horizon" 
-                            name="prediction_horizon" 
-                            style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb; cursor: pointer;"
-                            required>
-                        <option value="">Select Prediction Horizon</option>
-                        <option value="next_two_days" {{ old('prediction_horizon') == 'next_two_days' ? 'selected' : '' }}>Next Two Days</option>
-                        <option value="next_two_weeks" {{ old('prediction_horizon') == 'next_two_weeks' ? 'selected' : '' }}>Next Two Weeks</option>
-                        <option value="next_month" {{ old('prediction_horizon') == 'next_month' ? 'selected' : '' }}>Next Month</option>
-                        <option value="three_months" {{ old('prediction_horizon') == 'three_months' ? 'selected' : '' }}>3 Months</option>
-                        <option value="six_months" {{ old('prediction_horizon') == 'six_months' ? 'selected' : '' }}>6 Months</option>
-                        <option value="twelve_months" {{ old('prediction_horizon') == 'twelve_months' ? 'selected' : '' }}>12 Months</option>
-                        <option value="two_years" {{ old('prediction_horizon') == 'two_years' ? 'selected' : '' }}>2 Years</option>
-                    </select>
-                    @error('prediction_horizon')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Select the time period for your prediction analysis</p>
-                </div>
-
-                <!-- Analysis Type (Fixed) -->
-                <div style="margin-bottom: 32px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        AI Analysis Type
-                    </label>
-                    <div style="padding: 16px 20px; background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px; color: #475569; font-size: 16px; cursor: not-allowed;">
-                        Prediction Analysis - AI-powered insights and forecasting for any topic
+                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Basic Information</h2>
+                    
+                    <!-- Report Title Field -->
+                    <div style="margin-bottom: 24px;">
+                        <label for="topic" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                            Report Title <span style="color: #dc2626;">*</span>
+                            <span class="info-tooltip" data-tooltip="The title that will appear on your prediction report. This helps identify and organize your analysis reports. Choose a clear, descriptive title that summarizes the main topic of your prediction.">
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                            </span>
+                        </label>
+                        <input type="text" 
+                               id="topic" 
+                               name="topic" 
+                               value="{{ old('topic') }}"
+                               style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;"
+                               placeholder="Malaysia E-commerce Market Growth 2024"
+                               required>
+                        @error('topic')
+                            <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                        @enderror
                     </div>
-                    <input type="hidden" name="analysis_type" value="prediction-analysis">
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">This system is designed specifically for comprehensive prediction analysis and forecasting across any domain</p>
-                </div>
 
-                <!-- Input Data -->
-                        <div style="margin-bottom: 32px;">
-            <label for="input_data" style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Input Data <span style="color: #dc2626;">*</span>
-            </label>
-                    <textarea id="input_data" 
-                              name="input_data" 
-                              rows="8"
-                              style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb; resize: vertical; font-family: inherit;"
-                              placeholder="Enter your text data here. The AI will analyze your input and provide comprehensive predictions including executive summary, current situation analysis, key factors, predictions, policy implications, risk assessment, and recommendations."
-                              required>{{ old('input_data') }}</textarea>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Minimum 10 characters required</p>
-                    @error('input_data')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
-                </div>
+                    <!-- Prediction Period and Target Row -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                        <!-- Prediction Period Field -->
+                        <div>
+                            <label for="prediction_horizon" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                                Prediction Period <span style="color: #dc2626;">*</span>
+                                <span class="info-tooltip" data-tooltip="The time horizon for your prediction analysis. This determines how far into the future the AI will forecast. Shorter periods (days/weeks) focus on immediate trends, while longer periods (months/years) analyze broader patterns and strategic implications.">
+                                    <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                </span>
+                            </label>
+                            <select id="prediction_horizon" 
+                                    name="prediction_horizon" 
+                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb; cursor: pointer;"
+                                    required>
+                                <option value="">Select prediction time period</option>
+                                <option value="next_two_days" {{ old('prediction_horizon') == 'next_two_days' ? 'selected' : '' }}>Next Two Days</option>
+                                <option value="next_two_weeks" {{ old('prediction_horizon') == 'next_two_weeks' ? 'selected' : '' }}>Next Two Weeks</option>
+                                <option value="next_month" {{ old('prediction_horizon') == 'next_month' ? 'selected' : '' }}>Next Month</option>
+                                <option value="three_months" {{ old('prediction_horizon') == 'three_months' ? 'selected' : '' }}>3 Months</option>
+                                <option value="six_months" {{ old('prediction_horizon') == 'six_months' ? 'selected' : '' }}>6 Months</option>
+                                <option value="twelve_months" {{ old('prediction_horizon') == 'twelve_months' ? 'selected' : '' }}>12 Months</option>
+                                <option value="two_years" {{ old('prediction_horizon') == 'two_years' ? 'selected' : '' }}>2 Years</option>
+                            </select>
+                            @error('prediction_horizon')
+                                <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                            @enderror
+                        </div>
 
-                <!-- Source URLs Field -->
-                <div style="margin-bottom: 32px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Source URLs (Optional)
-                    </label>
-                    <div id="source-urls-container">
-                        <div class="source-url-row" style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
-                            <input type="url" 
-                                   name="source_urls[]" 
-                                    style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
-                                   placeholder="https://example.com/article or https://news.example.com/report"
-                                   pattern="https?://.+">
-                            <button type="button" 
-                                    class="remove-source-url" 
-                                    style="padding: 16px 20px; background: #ef4444; color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease; min-width: 60px; display: none;"
-                                    onclick="removeSourceUrl(this)">
-                                🗑️
-                            </button>
+                        <!-- Target Field -->
+                        <div>
+                            <label for="target" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                                Target <span style="color: #64748b; font-weight: 400; font-size: 12px;">(Optional)</span>
+                                <span class="info-tooltip" data-tooltip="The specific entity, group, industry, or demographic that your prediction focuses on. This helps the AI tailor the analysis to the relevant context. Examples: specific companies, market sectors, demographic groups, or geographic regions.">
+                                    <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                </span>
+                            </label>
+                            <input type="text" 
+                                   id="target" 
+                                   name="target" 
+                                   value="{{ old('target') }}"
+                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;"
+                                   placeholder="Malaysian SMEs, Tech Startups, E-commerce Sector">
+                            @error('target')
+                                <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                            @enderror
                         </div>
                     </div>
-                    <div style="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                </div>
+
+                <!-- Issue Details Section -->
+                <div style="margin-bottom: 32px;">
+                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Issue Details</h2>
+                    <div>
+                        <label for="input_data" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                            Describe the issue or topic <span style="color: #dc2626;">*</span>
+                            <span class="info-tooltip" data-tooltip="Provide detailed information about the issue, situation, or topic you want to analyze. Include relevant data, statistics, current trends, challenges, and context. The more detailed information you provide, the more accurate and comprehensive the AI prediction will be. This is the core input that drives the entire analysis.">
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                            </span>
+                        </label>
+                        <textarea id="input_data" 
+                                  name="input_data" 
+                                  rows="6"
+                                  style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb; resize: vertical; font-family: inherit; line-height: 1.6;"
+                                  placeholder="Malaysia's e-commerce sector has experienced rapid growth, with online sales increasing by 42% in 2023. However, Malaysian SMEs face challenges including rising operational costs, digital adoption barriers, and competition from international platforms. Consumer behavior shows increasing preference for local products, with 68% of Malaysian shoppers supporting local brands. The shift towards cashless payments is accelerating, with e-wallet usage growing by 55%. Supply chain disruptions and logistics costs remain concerns for businesses. What are the predictions for the next 12 months regarding market trends, consumer preferences, and business opportunities in Malaysia's digital economy?"
+                                  required>{{ old('input_data') }}</textarea>
+                        <p style="color: #64748b; font-size: 13px; margin-top: 8px; margin-bottom: 0;">Minimum 10 characters required</p>
+                        @error('input_data')
+                            <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <!-- Additional Resources Section (Collapsible) -->
+                <div style="margin-bottom: 32px;">
                     <button type="button" 
-                            id="add-source-url" 
-                                style="padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; min-width: 140px; justify-content: center;"
-                            onclick="addSourceUrlField()">
-                        ➕ Add Another Source
+                            id="toggle-optional" 
+                            onclick="toggleOptionalSection()"
+                            style="width: 100%; padding: 14px 16px; background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 8px; font-weight: 600; font-size: 14px; color: #374151; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s ease;">
+                        <span>Additional Resources <span style="color: #64748b; font-weight: 400; font-size: 12px;">(Optional)</span></span>
+                        <span id="toggle-icon" style="font-size: 18px; transition: transform 0.3s ease;">▼</span>
                     </button>
-                        <button type="button" 
-                                id="validate-urls-btn" 
-                                style="padding: 12px 20px; background: #3b82f6; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; min-width: 140px; justify-content: center;"
-                                onclick="validateUrls()">
-                            🔍 Validate URLs
-                        </button>
-                        
-                    </div>
                     
-                    <!-- URL Validation Results -->
-                    <div id="url-validation-results" style="display: none; margin-top: 16px; padding: 16px; border-radius: 12px; border: 1px solid #e5e7eb;">
-                        <div id="validation-loading" style="display: none; text-align: center; padding: 20px;">
-                            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                                <div style="width: 20px; height: 20px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                                <span style="color: #3b82f6; font-weight: 600;">Validating URLs...</span>
+                    <div id="optional-section" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                        <!-- Source URLs and File Upload -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                            <!-- Source URLs Field -->
+                            <div>
+                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 14px;">
+                                    Source URLs
+                                    <span class="info-tooltip" data-tooltip="Add URLs to articles, reports, or web pages that provide additional context for your analysis. The AI will automatically fetch and read the content from these URLs, then cite specific facts, numbers, and insights from the source material in the analysis. This enhances the accuracy and credibility of predictions.">
+                                        <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                    </span>
+                                </label>
+                                <div id="source-urls-container">
+                                    <div class="source-url-row" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
+                                        <input type="url" 
+                                               name="source_urls[]" 
+                                               style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; background: #f9fafb;"
+                                               placeholder="https://www.thestar.com.my/business"
+                                               pattern="https?://.+">
+                                        <button type="button" 
+                                                class="remove-source-url" 
+                                                style="padding: 10px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; transition: all 0.3s ease; min-width: 44px; display: none; cursor: pointer;"
+                                                onclick="removeSourceUrl(this)">
+                                            ×
+                                        </button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                    <button type="button" 
+                                            id="add-source-url" 
+                                            style="padding: 8px 12px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; flex: 1;"
+                                            onclick="addSourceUrlField()">
+                                        Add Source
+                                    </button>
+                                    <button type="button" 
+                                            id="validate-urls-btn" 
+                                            style="padding: 8px 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.3s ease; flex: 1;"
+                                            onclick="validateUrls()">
+                                        Validate
+                                    </button>
+                                </div>
+                                <!-- URL Validation Results -->
+                                <div id="url-validation-results" style="display: none; margin-top: 12px; padding: 12px; border-radius: 6px; border: 1px solid #e5e7eb; font-size: 12px; background: #f9fafb;">
+                                    <div id="validation-loading" style="display: none; text-align: center; padding: 12px;">
+                                        <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                            <div style="width: 16px; height: 16px; border: 2px solid #3b82f6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                            <span style="color: #3b82f6; font-weight: 600; font-size: 13px;">Validating...</span>
+                                        </div>
+                                    </div>
+                                    <div id="validation-content" style="display: none;"></div>
+                                </div>
+                                @error('source_urls')
+                                    <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <!-- File Uploads Field -->
+                            <div>
+                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 14px;">
+                                    Upload Files
+                                    <span class="info-tooltip" data-tooltip="Upload supporting documents such as PDF reports, Excel spreadsheets, CSV data files, or text documents. The AI will extract and analyze data from these files, including numerical data, trends, patterns, and structured information. This data is integrated with your text input to provide more comprehensive predictions.">
+                                        <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                    </span>
+                                </label>
+                                <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 2px dashed #cbd5e1; text-align: center;">
+                                    <input type="file" 
+                                           id="uploaded_files" 
+                                           name="uploaded_files[]" 
+                                           multiple
+                                           accept=".pdf,.xlsx,.xls,.csv,.txt"
+                                           style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; background: white; cursor: pointer;"
+                                           onchange="handleFileSelection(this)">
+                                    <p style="color: #64748b; font-size: 12px; margin-top: 8px; margin-bottom: 0;">
+                                        PDF, Excel, CSV, TXT • Max 10MB per file
+                                    </p>
+                                    <!-- File Preview Area -->
+                                    <div id="file-preview-container" style="display: none; margin-top: 12px;">
+                                        <div id="file-preview-list" style="max-height: 120px; overflow-y: auto; font-size: 12px;"></div>
+                                    </div>
+                                </div>
+                                @error('uploaded_files')
+                                    <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
-                        <div id="validation-content" style="display: none;"></div>
-                    </div>
-                    
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Add links to articles, reports, or sources that provide additional context for your analysis. The AI will automatically fetch and read the actual content from these URLs, then explicitly cite specific facts, numbers, and insights from the source material in the analysis.</p>
-                    @error('source_urls')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- File Uploads Field -->
-                <div style="margin-bottom: 32px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 600; color: #374151; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
-                        Upload Files (Optional)
-                    </label>
-                    <div style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); padding: 24px; border-radius: 16px; border: 2px dashed #cbd5e1; transition: all 0.3s ease;">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
-                            <h3 style="font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 18px;">Upload Supporting Documents</h3>
-                            <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin-bottom: 0;">
-                                Upload Excel spreadsheets, PDF reports, CSV data, or text files to enhance your prediction analysis
-                            </p>
-                        </div>
-                        
-                        <div style="margin-bottom: 20px;">
-                            <input type="file" 
-                                   id="uploaded_files" 
-                                   name="uploaded_files[]" 
-                                   multiple
-                                   accept=".pdf,.xlsx,.xls,.csv,.txt"
-                                   style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: white; cursor: pointer;"
-                                   onchange="handleFileSelection(this)">
-                            <p style="color: #64748b; font-size: 12px; margin-top: 8px; margin-bottom: 0; text-align: center;">
-                                Supported formats: PDF, Excel (.xlsx, .xls), CSV, TXT • Max file size: 10MB per file
-                            </p>
-                        </div>
-                        
-                        <!-- File Preview Area -->
-                        <div id="file-preview-container" style="display: none;">
-                            <h4 style="font-weight: 600; color: #374151; margin-bottom: 16px; font-size: 16px; text-align: center;">Selected Files</h4>
-                            <div id="file-preview-list" style="max-height: 200px; overflow-y: auto;"></div>
-                        </div>
-                        
-                        <!-- File Upload Benefits -->
-                        <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px;">
-                            <h4 style="font-weight: 600; color: #1e40af; margin-bottom: 12px; font-size: 16px;">🚀 How Files Enhance Your Analysis</h4>
-                            <div style="color: #475569; font-size: 14px; line-height: 1.6;">
-                                <ul style="margin: 0; padding-left: 20px;">
-                                    <li style="margin-bottom: 6px;"><strong>Excel/CSV:</strong> AI extracts numerical data, trends, and patterns for quantitative analysis</li>
-                                    <li style="margin-bottom: 6px;"><strong>PDF Reports:</strong> AI reads and analyzes structured reports, research papers, and documents</li>
-                                    <li style="margin-bottom: 6px;"><strong>Text Files:</strong> AI processes additional context, notes, or detailed information</li>
-                                    <li style="margin-bottom: 0;"><strong>Combined Analysis:</strong> AI integrates all data sources for comprehensive predictions</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    @error('uploaded_files')
-                        <p style="color: #dc2626; font-size: 14px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Analysis Type Info -->
-                <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid #bfdbfe;">
-                    <h3 style="font-weight: 600; color: #1e40af; margin-bottom: 16px; font-size: 18px;">📋 Prediction Analysis Information</h3>
-                    <div style="color: #1e40af; font-size: 14px; line-height: 1.6;">
-                        <p style="margin-bottom: 12px;">This AI system will analyze your input and generate comprehensive predictions for any topic including:</p>
-                        <ul style="margin: 0; padding-left: 20px;">
-                            <li style="margin-bottom: 6px;"><strong>Executive Summary:</strong> Key insights and overview</li>
-                            <li style="margin-bottom: 6px;"><strong>Current Situation:</strong> Analysis of present circumstances</li>
-                            <li style="margin-bottom: 6px;"><strong>Key Factors:</strong> Important elements influencing outcomes</li>
-                            <li style="margin-bottom: 6px;"><strong>Predictions:</strong> Future scenarios and forecasts</li>
-                            <li style="margin-bottom: 6px;"><strong>Policy Implications:</strong> Impact on decision-making and strategy</li>
-                            <li style="margin-bottom: 6px;"><strong>Risk Assessment:</strong> Potential challenges and mitigation</li>
-                            <li style="margin-bottom: 0;"><strong>Recommendations:</strong> Strategic guidance and next steps</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- System Status -->
-                <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 24px; border-radius: 16px; margin-bottom: 32px; border: 1px solid #bbf7d0;">
-                    <h3 style="font-weight: 600; color: #166534; margin-bottom: 16px; font-size: 18px;">✅ System Status</h3>
-                    <div style="color: #166534; font-size: 14px; line-height: 1.6;">
-                        <p style="margin-bottom: 8px;"><strong>AI System:</strong> Advanced AI Prediction Engine</p>
-                        <p style="margin: 0;">Advanced AI-powered prediction analysis for comprehensive future forecasting and strategic insights.</p>
                     </div>
                 </div>
 
                 <!-- Submit Buttons -->
-                 <div class="submit-buttons-container" style="display: flex; justify-content: center; gap: 16px; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap;">
-                    <a href="{{ route('predictions.index') }}" style="display: inline-block; padding: 16px 32px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 12px; font-weight: 600; font-size: 16px; transition: all 0.3s ease;">
+                <div class="submit-buttons-container" style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
+                    <a href="{{ route('dashboard') }}" style="display: inline-block; padding: 12px 24px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 15px; transition: all 0.3s ease;">
                         Cancel
                     </a>
-                                         <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 16px 32px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
-                         🚀 Create Prediction
-                     </button>
+                    <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                        Create Prediction
+                    </button>
                 </div>
                 
                 <!-- Loading Indicator -->
@@ -271,10 +249,104 @@
         box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
     }
     
+    /* Info Tooltip Styles */
+    .info-tooltip {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .info-tooltip:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #1f2937;
+        color: white;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 400;
+        white-space: normal;
+        width: 280px;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        line-height: 1.5;
+        pointer-events: none;
+    }
+    
+    .info-tooltip:hover::before {
+        content: '';
+        position: absolute;
+        bottom: 115%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #1f2937;
+        z-index: 1001;
+        pointer-events: none;
+    }
+    
+    @media (max-width: 768px) {
+        .info-tooltip:hover::after,
+        .info-tooltip.active::after {
+            width: calc(100vw - 32px);
+            max-width: 320px;
+            font-size: 12px;
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+            bottom: 125%;
+        }
+        
+        .info-tooltip:hover::before,
+        .info-tooltip.active::before {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+            bottom: 115%;
+        }
+        
+        /* For very small screens, position tooltip below icon */
+        @media (max-width: 480px) {
+            .info-tooltip:hover::after,
+            .info-tooltip.active::after {
+                bottom: auto;
+                top: 125%;
+            }
+            
+            .info-tooltip:hover::before,
+            .info-tooltip.active::before {
+                bottom: auto;
+                top: 115%;
+                border-top-color: transparent;
+                border-bottom-color: #1f2937;
+            }
+        }
+    }
+    
+    /* Responsive grid layout */
+    @media (max-width: 1024px) {
+        div[style*="grid-template-columns: 2fr 1fr"],
+        div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        div[style*="max-width: 900px"] {
+            padding: 16px !important;
+        }
+        
+        div[style*="padding: 32px"] {
+            padding: 20px !important;
+        }
+    }
+    
     @media (max-width: 768px) {
          .source-url-row {
              flex-direction: column;
-             gap: 8px;
+             gap: 6px;
          }
          
          .remove-source-url {
@@ -286,77 +358,65 @@
              min-width: 44px;
          }
          
-                   /* Source URLs responsive improvements */
-          #add-source-url, #validate-urls-btn {
-              width: 100%;
-              justify-content: center;
-              padding: 16px 20px;
-              font-size: 16px;
-              min-height: 48px;
-          }
+         /* Source URLs responsive improvements */
+         #add-source-url, #validate-urls-btn {
+             width: 100%;
+             justify-content: center;
+             padding: 10px 16px;
+             font-size: 13px;
+             min-height: 44px;
+         }
           
-          /* Submit buttons responsive improvements */
-          .submit-buttons-container a, .submit-buttons-container button[type="submit"] {
-              width: 100%;
-              justify-content: center;
-              padding: 16px 20px;
-              font-size: 16px;
-              min-height: 48px;
-              text-align: center;
-          }
+         /* Submit buttons responsive improvements */
+         .submit-buttons-container a, .submit-buttons-container button[type="submit"] {
+             width: 100%;
+             justify-content: center;
+             padding: 12px 20px;
+             font-size: 14px;
+             min-height: 44px;
+             text-align: center;
+         }
          
          /* URL input field mobile optimization */
          input[name="source_urls[]"] {
-            font-size: 16px !important;
-            padding: 14px 16px !important;
-             min-height: 48px;
+             font-size: 16px !important;
+             padding: 10px 12px !important;
+             min-height: 44px;
          }
          
-                   /* Button container mobile layout */
-          div[style*="display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap;"] {
-              flex-direction: column;
-              gap: 8px;
-          }
-          
-          /* Submit buttons container mobile layout */
-          .submit-buttons-container {
-              flex-direction: column;
-              gap: 12px;
-        }
-        
-        /* File upload section mobile optimization */
-        #uploaded_files {
-            font-size: 16px !important;
-            padding: 14px 16px !important;
-            min-height: 48px;
-        }
-        
-        /* File preview container mobile layout */
-        #file-preview-container {
-            padding: 16px;
-        }
-        
-        #file-preview-list {
-            max-height: 150px;
-        }
-        
-        /* File item mobile layout */
-        #file-preview-list > div {
-            flex-direction: column;
-            gap: 8px;
-            align-items: stretch;
-        }
-        
-        #file-preview-list > div > div:first-child {
-            justify-content: flex-start;
-        }
-        
-        #file-preview-list button {
-            width: 100%;
-            padding: 12px 16px;
-            font-size: 14px;
-            min-height: 44px;
-        }
+         /* File upload section mobile optimization */
+         #uploaded_files {
+             font-size: 16px !important;
+             padding: 10px 12px !important;
+             min-height: 44px;
+         }
+         
+         /* File preview container mobile layout */
+         #file-preview-container {
+             padding: 8px;
+         }
+         
+         #file-preview-list {
+             max-height: 120px;
+         }
+         
+         /* File item mobile layout */
+         #file-preview-list > div {
+             flex-direction: column;
+             gap: 6px;
+             align-items: stretch;
+         }
+         
+         #file-preview-list > div > div:first-child {
+             justify-content: flex-start;
+         }
+         
+         #file-preview-list button {
+             width: 100%;
+             padding: 8px 12px;
+             font-size: 12px;
+             min-height: 40px;
+         }
     }
     
     @media (max-width: 480px) {
@@ -418,26 +478,26 @@ function handleFileSelection(input) {
 
 function createFilePreviewItem(file, index) {
     const fileItem = document.createElement('div');
-    fileItem.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px;';
+    fileItem.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: white; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 6px;';
     
     const fileInfo = document.createElement('div');
-    fileInfo.style.cssText = 'display: flex; align-items: center; gap: 12px; flex: 1;';
+    fileInfo.style.cssText = 'display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;';
     
     // File icon based on type
     const icon = getFileIcon(file.name);
     const iconDiv = document.createElement('div');
-    iconDiv.style.cssText = 'font-size: 24px;';
+    iconDiv.style.cssText = 'font-size: 18px; flex-shrink: 0;';
     iconDiv.textContent = icon;
     
     const fileDetails = document.createElement('div');
-    fileDetails.style.cssText = 'flex: 1;';
+    fileDetails.style.cssText = 'flex: 1; min-width: 0; overflow: hidden;';
     
     const fileName = document.createElement('div');
-    fileName.style.cssText = 'font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 4px;';
+    fileName.style.cssText = 'font-weight: 600; color: #374151; font-size: 12px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;';
     fileName.textContent = file.name;
     
     const fileSize = document.createElement('div');
-    fileSize.style.cssText = 'color: #64748b; font-size: 12px;';
+    fileSize.style.cssText = 'color: #64748b; font-size: 11px;';
     fileSize.textContent = formatFileSize(file.size);
     
     fileDetails.appendChild(fileName);
@@ -449,7 +509,7 @@ function createFilePreviewItem(file, index) {
     // Remove button
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
-    removeBtn.style.cssText = 'padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.3s ease; min-width: 60px;';
+    removeBtn.style.cssText = 'padding: 6px 10px; background: #ef4444; color: white; border: none; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.3s ease; flex-shrink: 0; margin-left: 8px;';
     removeBtn.textContent = 'Remove';
     removeBtn.onclick = function() {
         removeFile(index);
@@ -506,19 +566,19 @@ function addSourceUrlField() {
         
         const newRow = document.createElement('div');
         newRow.className = 'source-url-row';
-        newRow.style.cssText = 'display: flex; gap: 12px; margin-bottom: 12px; align-items: center; border: 2px solid #10b981; background-color: #f0fdf4; padding: 8px; border-radius: 8px;';
+        newRow.style.cssText = 'display: flex; gap: 6px; margin-bottom: 6px; align-items: center; border: 2px solid #10b981; background-color: #f0fdf4; padding: 4px; border-radius: 6px;';
         
         newRow.innerHTML = `
             <input type="url" 
                    name="source_urls[]" 
-                    style="width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 16px; transition: all 0.3s ease; background: #f9fafb;"
-                   placeholder="https://example.com/article or https://news.example.com/report"
+                   style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; background: #f9fafb;"
+                   placeholder="https://www.thestar.com.my/business"
                    pattern="https?://.+">
             <button type="button" 
                     class="remove-source-url" 
-                    style="padding: 16px 20px; background: #ef4444; color: white; border: none; border-radius: 12px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease; min-width: 60px;"
+                    style="padding: 10px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.3s ease; min-width: 44px;"
                     onclick="removeSourceUrl(this)">
-                🗑️
+                ×
             </button>
         `;
         
@@ -783,9 +843,55 @@ function displayValidationResults(data) {
     validationContent.innerHTML = html;
 }
 
+// Toggle optional section
+function toggleOptionalSection() {
+    const section = document.getElementById('optional-section');
+    const icon = document.getElementById('toggle-icon');
+    const button = document.getElementById('toggle-optional');
+    
+    if (section.style.display === 'none' || !section.style.display) {
+        section.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+        button.style.background = '#f1f5f9';
+    } else {
+        section.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+        button.style.background = '#f8fafc';
+    }
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded, initializing...');
+    
+    // Add click/tap support for tooltips on mobile
+    const tooltips = document.querySelectorAll('.info-tooltip');
+    tooltips.forEach(tooltip => {
+        tooltip.addEventListener('click', function(e) {
+            // Only handle click on mobile devices
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Toggle active class
+                const isActive = this.classList.contains('active');
+                // Remove active from all tooltips
+                tooltips.forEach(t => t.classList.remove('active'));
+                // Toggle current tooltip
+                if (!isActive) {
+                    this.classList.add('active');
+                }
+            }
+        });
+    });
+    
+    // Close tooltips when clicking outside
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            if (!e.target.closest('.info-tooltip')) {
+                tooltips.forEach(t => t.classList.remove('active'));
+            }
+        }
+    });
         
         // Set up initial remove button visibility
         updateRemoveButtonVisibility();
