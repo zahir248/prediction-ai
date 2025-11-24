@@ -21,24 +21,24 @@
             </div>
 
             <!-- History Stats Overview -->
-            @if($predictions->count() > 0)
+            @if($predictions->total() > 0)
                 <div style="margin-bottom: 32px;">
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">History Overview</h2>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
                         <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $predictions->total() }}</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? $predictions->total() }}</div>
                             <div style="font-size: 13px; color: #64748b;">Total</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
-                            <div style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $predictions->where('status', 'completed')->count() }}</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
                             <div style="font-size: 13px; color: #64748b;">Completed</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
-                            <div style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $predictions->where('status', 'processing')->count() }}</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
                             <div style="font-size: 13px; color: #64748b;">Processing</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
-                            <div style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $predictions->where('status', 'failed')->count() }}</div>
+                            <div style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
                             <div style="font-size: 13px; color: #64748b;">Failed</div>
                         </div>
                     </div>

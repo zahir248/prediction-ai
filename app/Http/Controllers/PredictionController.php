@@ -324,8 +324,18 @@ class PredictionController extends Controller
 
     public function history()
     {
-        $predictions = Auth::user()->predictions()->latest()->paginate(20);
-        return view('predictions.history', compact('predictions'));
+        $predictions = Auth::user()->predictions()->latest()->paginate(5);
+        
+        // Get total counts for stats (not just current page)
+        $allPredictions = Auth::user()->predictions();
+        $stats = [
+            'total' => $allPredictions->count(),
+            'completed' => $allPredictions->where('status', 'completed')->count(),
+            'processing' => $allPredictions->where('status', 'processing')->count(),
+            'failed' => $allPredictions->where('status', 'failed')->count(),
+        ];
+        
+        return view('predictions.history', compact('predictions', 'stats'));
     }
     
     /**
