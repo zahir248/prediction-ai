@@ -59,5 +59,14 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+ 
+    'apify' => [
+        'api_token' => env('APIFY_API_TOKEN'),
+        'timeout' => env('APIFY_TIMEOUT', 300),
+        'ssl_verify' => env('APIFY_SSL_VERIFY', false),
+        'facebook_actor_id' => env('APIFY_FACEBOOK_ACTOR_ID', 'apify/facebook-posts-scraper'),
+        'instagram_actor_id' => env('APIFY_INSTAGRAM_ACTOR_ID', 'apify/instagram-post-scraper'),
+        'tiktok_actor_id' => env('APIFY_TIKTOK_ACTOR_ID', 'clockworks/tiktok-profile-scraper'),
+    ],
 
 ];

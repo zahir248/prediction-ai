@@ -274,6 +274,11 @@ class GeminiService implements AIServiceInterface
 
     protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null, $target = null)
     {
+        // Handle social media analysis differently
+        if ($analysisType === 'social-media-analysis') {
+            return $this->createSocialMediaAnalysisPrompt($text);
+        }
+        
         $prompt = "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.\n\n";
         $prompt .= "Text to analyze: {$text}\n\n";
         
@@ -434,6 +439,182 @@ class GeminiService implements AIServiceInterface
         }
         
         $prompt .= "\nGenerate high-quality, professional prediction analysis suitable for executive decision-making.";
+        
+        return $prompt;
+    }
+
+    /**
+     * Create prompt for social media analysis
+     */
+    protected function createSocialMediaAnalysisPrompt($text)
+    {
+        $prompt = "You are an expert professional profile analyst specializing in comprehensive social media profile assessment for recruitment, hiring, and professional evaluation purposes. Please analyze the following social media profile data across multiple platforms and provide a detailed, professional assessment.\n\n";
+        $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
+        
+        $prompt .= "Provide a comprehensive professional analysis covering the following areas:\n\n";
+        
+        $prompt .= "Provide analysis in this JSON structure:\n";
+        $prompt .= "{\n";
+        $prompt .= "  \"title\": \"[Professional Profile Analysis: Name/Username]\",\n";
+        $prompt .= "  \"executive_summary\": \"[3-4 sentence summary of key findings, professional strengths, and risk indicators]\",\n";
+        $prompt .= "  \"risk_assessment\": {\n";
+        $prompt .= "    \"overall_risk_level\": \"[Low/Medium/High]\",\n";
+        $prompt .= "    \"risk_factors\": [\n";
+        $prompt .= "      {\n";
+        $prompt .= "        \"risk\": \"[Specific risk description]\",\n";
+        $prompt .= "        \"level\": \"[Low/Medium/High]\",\n";
+        $prompt .= "        \"description\": \"[Detailed explanation of the risk]\",\n";
+        $prompt .= "        \"mitigation\": \"[How to address or mitigate this risk]\"\n";
+        $prompt .= "      }\n";
+        $prompt .= "    ],\n";
+        $prompt .= "    \"red_flags\": [\n";
+        $prompt .= "      \"[Any concerning content, behavior, or patterns]\",\n";
+        $prompt .= "      \"[Any concerning content, behavior, or patterns]\"\n";
+        $prompt .= "    ],\n";
+        $prompt .= "    \"positive_indicators\": [\n";
+        $prompt .= "      \"[Positive professional indicators]\",\n";
+        $prompt .= "      \"[Positive professional indicators]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"professional_footprint\": {\n";
+        $prompt .= "    \"professionalism_score\": [A numeric score from 0-100 representing overall professionalism],\n";
+        $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+        $prompt .= "    \"overview\": \"[2-3 sentence overview describing the professionalism score and what it's based on, including number of posts analyzed and platforms]\",\n";
+        $prompt .= "    \"content_relevance\": \"[Assessment of content relevance and professional focus]\",\n";
+        $prompt .= "    \"tone_analysis\": \"[Analysis of tone and sentiment in communications]\",\n";
+        $prompt .= "    \"engagement_quality\": \"[Quality of engagement and interactions]\",\n";
+        $prompt .= "    \"online_presence\": \"[Assessment of overall online presence and professionalism]\",\n";
+        $prompt .= "    \"content_quality\": \"[Evaluation of content quality, relevance, and professionalism]\",\n";
+        $prompt .= "    \"brand_consistency\": \"[Consistency of personal/professional brand across platforms]\",\n";
+        $prompt .= "    \"platform_utilization\": \"[How effectively platforms are used for professional purposes]\",\n";
+        $prompt .= "    \"audience_engagement\": \"[Quality and nature of audience interactions]\",\n";
+        $prompt .= "    \"concerns\": \"[Any concerns or red flags that require further investigation]\",\n";
+        $prompt .= "    \"recommendations\": [\n";
+        $prompt .= "      \"[Specific recommendation for improving professional footprint]\",\n";
+        $prompt .= "      \"[Specific recommendation for improving professional footprint]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"work_ethic_indicators\": {\n";
+        $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+        $prompt .= "    \"consistency_score\": [Numeric score 0-100 for consistency dimension],\n";
+        $prompt .= "    \"consistency\": \"[Description of posting consistency and activity patterns]\",\n";
+        $prompt .= "    \"follow_through_score\": [Numeric score 0-100 for follow-through dimension],\n";
+        $prompt .= "    \"follow_through\": \"[Description of evidence of completing tasks and following through on commitments]\",\n";
+        $prompt .= "    \"collaboration_score\": [Numeric score 0-100 for collaboration dimension],\n";
+        $prompt .= "    \"collaboration\": \"[Description of teamwork and collaborative behavior indicators]\",\n";
+        $prompt .= "    \"initiative_score\": [Numeric score 0-100 for initiative dimension],\n";
+        $prompt .= "    \"initiative\": \"[Description of proactive behavior and self-directed action]\",\n";
+        $prompt .= "    \"productivity_score\": [Numeric score 0-100 for productivity dimension],\n";
+        $prompt .= "    \"productivity\": \"[Description of productivity and professional activity signs]\",\n";
+        $prompt .= "    \"overall_assessment\": \"[Overall work ethic assessment]\",\n";
+        $prompt .= "    \"evidence\": [\n";
+        $prompt .= "      \"[Specific evidence supporting the assessment]\",\n";
+        $prompt .= "      \"[Specific evidence supporting the assessment]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"cultural_fit_indicators\": {\n";
+        $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+        $prompt .= "    \"overview\": \"[2-3 sentence overview describing the candidate's overall cultural fit and potential challenges]\",\n";
+        $prompt .= "    \"value_alignment_level\": [Numeric value 0-100 or text: Low/Medium/High for value alignment],\n";
+        $prompt .= "    \"value_alignment\": \"[Description of how the candidate's values align with company values]\",\n";
+        $prompt .= "    \"teamwork_ethos_level\": [Numeric value 0-100 or text: Low/Medium/Strong for teamwork],\n";
+        $prompt .= "    \"teamwork_ethos\": \"[Description of the candidate's teamwork and collaboration indicators]\",\n";
+        $prompt .= "    \"innovation_mindset_level\": [Numeric value 0-100 or text: Low/Medium/Strong for innovation],\n";
+        $prompt .= "    \"innovation_mindset\": \"[Description of the candidate's innovation mindset and creative thinking]\",\n";
+        $prompt .= "    \"overall_fit\": \"[Overall cultural fit assessment]\",\n";
+        $prompt .= "    \"concerns\": [\n";
+        $prompt .= "      \"[Any cultural fit concerns]\",\n";
+        $prompt .= "      \"[Any cultural fit concerns]\"\n";
+        $prompt .= "    ],\n";
+        $prompt .= "    \"strengths\": [\n";
+        $prompt .= "      \"[Cultural fit strengths]\",\n";
+        $prompt .= "      \"[Cultural fit strengths]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"professional_growth_signals\": {\n";
+        $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+        $prompt .= "    \"overview\": \"[2-3 sentence overview describing the candidate's professional growth potential and areas for development]\",\n";
+        $prompt .= "    \"learning_initiative_level\": [Numeric value 0-100 or text: Low/Medium/Strong for learning initiative],\n";
+        $prompt .= "    \"learning_initiative\": \"[Description of the candidate's active learning and engagement with new technologies]\",\n";
+        $prompt .= "    \"skill_development_level\": [Numeric value 0-100 or text: Low/Medium/Strong for skill development],\n";
+        $prompt .= "    \"skill_development\": \"[Description of evidence of skill development and learning]\",\n";
+        $prompt .= "    \"mentorship_activity_level\": [Numeric value 0-100 or text: Low/Medium/Strong for mentorship],\n";
+        $prompt .= "    \"mentorship_activity\": \"[Description of mentoring activities or seeking mentorship]\",\n";
+        $prompt .= "    \"growth_trajectory\": \"[Assessment of professional growth trajectory]\",\n";
+        $prompt .= "    \"indicators\": [\n";
+        $prompt .= "      \"[Specific growth indicators]\",\n";
+        $prompt .= "      \"[Specific growth indicators]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"activity_overview\": {\n";
+        $prompt .= "    \"posting_frequency\": \"[Analysis of posting frequency and patterns]\",\n";
+        $prompt .= "    \"content_types\": \"[Types of content posted and their distribution]\",\n";
+        $prompt .= "    \"peak_activity_times\": \"[When the person is most active]\",\n";
+        $prompt .= "    \"engagement_patterns\": \"[Patterns in how they engage with others]\",\n";
+        $prompt .= "    \"behavioral_consistency\": \"[Consistency in behavior across platforms and time]\",\n";
+        $prompt .= "    \"notable_patterns\": [\n";
+        $prompt .= "      \"[Notable behavioral patterns observed]\",\n";
+        $prompt .= "      \"[Notable behavioral patterns observed]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"personality_communication\": {\n";
+        $prompt .= "    \"confidence\": [Numeric value 0-100 for confidence in personality assessment],\n";
+        $prompt .= "    \"overview\": \"[Summary of personality and communication profile]\",\n";
+        $prompt .= "    \"tone_analysis\": \"[Analysis of communication tone, e.g., casual and constructive, formal, friendly, etc.]\",\n";
+        $prompt .= "    \"openness_score\": [Numeric value 0-100 for Openness to experience trait],\n";
+        $prompt .= "    \"openness\": \"[Description of openness to experience, creativity, and intellectual curiosity]\",\n";
+        $prompt .= "    \"conscientiousness_score\": [Numeric value 0-100 for Conscientiousness trait],\n";
+        $prompt .= "    \"conscientiousness\": \"[Description of organization, dependability, and self-discipline]\",\n";
+        $prompt .= "    \"extraversion_score\": [Numeric value 0-100 for Extraversion trait],\n";
+        $prompt .= "    \"extraversion\": \"[Description of sociability, assertiveness, and energy in social situations]\",\n";
+        $prompt .= "    \"agreeableness_score\": [Numeric value 0-100 for Agreeableness trait],\n";
+        $prompt .= "    \"agreeableness\": \"[Description of trust, altruism, kindness, and cooperation]\",\n";
+        $prompt .= "    \"neuroticism_score\": [Numeric value 0-100 for Neuroticism trait (emotional stability)],\n";
+        $prompt .= "    \"neuroticism\": \"[Description of emotional stability and resilience to stress]\",\n";
+        $prompt .= "    \"communication_strengths\": [\n";
+        $prompt .= "      \"[Communication strength 1, e.g., Tone: casual approach to discussions]\",\n";
+        $prompt .= "      \"[Communication strength 2, e.g., Engagement: conversationalist interaction style]\",\n";
+        $prompt .= "      \"[Communication strength 3, e.g., Frequency: monthly posting pattern]\"\n";
+        $prompt .= "    ],\n";
+        $prompt .= "    \"overall_assessment\": \"[Overall assessment of personality and communication fit for collaborative environments]\"\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"career_profile\": {\n";
+        $prompt .= "    \"current_focus\": \"[Current professional focus and interests]\",\n";
+        $prompt .= "    \"expertise_areas\": \"[Areas of expertise and specialization]\",\n";
+        $prompt .= "    \"industry_positioning\": \"[Position within industry and professional community]\",\n";
+        $prompt .= "    \"career_goals\": \"[Inferred career goals and aspirations]\",\n";
+        $prompt .= "    \"growth_potential\": \"[Assessment of career growth potential]\",\n";
+        $prompt .= "    \"market_value\": \"[Professional market value and positioning]\",\n";
+        $prompt .= "    \"recommendations\": [\n";
+        $prompt .= "      \"[Career development recommendations]\",\n";
+        $prompt .= "      \"[Career development recommendations]\"\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"overall_assessment\": \"[Comprehensive overall assessment and summary]\",\n";
+        $prompt .= "  \"recommendations\": [\n";
+        $prompt .= "    \"[Overall recommendations for hiring/recruitment decision]\",\n";
+        $prompt .= "    \"[Overall recommendations for hiring/recruitment decision]\",\n";
+        $prompt .= "    \"[Overall recommendations for hiring/recruitment decision]\"\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"confidence_level\": \"[High (90-95%)/Medium (75-89%)/Low (60-74%)]\",\n";
+        $prompt .= "  \"analysis_date\": \"[Current date in YYYY-MM-DD format]\",\n";
+        $prompt .= "  \"data_quality\": \"[Assessment of data quality and completeness]\",\n";
+        $prompt .= "  \"limitations\": \"[Any limitations or caveats to the analysis]\"\n";
+        $prompt .= "}\n\n";
+        
+        $prompt .= "INSTRUCTIONS:\n";
+        $prompt .= "1. Be objective and evidence-based in your analysis\n";
+        $prompt .= "2. Focus on professional indicators relevant to hiring/recruitment\n";
+        $prompt .= "3. Identify both strengths and areas of concern\n";
+        $prompt .= "4. Provide specific examples from the data to support your assessments\n";
+        $prompt .= "5. Consider context and avoid making assumptions without evidence\n";
+        $prompt .= "6. Be fair and balanced in your evaluation\n";
+        $prompt .= "7. Focus on professional relevance rather than personal opinions\n";
+        $prompt .= "8. Consider privacy and ethical boundaries\n";
+        $prompt .= "9. Provide actionable insights for decision-making\n";
+        $prompt .= "10. Ensure comprehensive coverage of all requested analysis areas\n\n";
+        
+        $prompt .= "Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.";
         
         return $prompt;
     }

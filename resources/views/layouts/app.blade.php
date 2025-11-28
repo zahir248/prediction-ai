@@ -964,7 +964,7 @@
                             </a>
                             <div class="nav-dropdown-menu">
                                 <a href="{{ route('predictions.create') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
-                                    New Prediction
+                                    Analyze Prediction
                                 </a>
                                 <a href="{{ route('predictions.history') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
                                     History
@@ -974,9 +974,19 @@
                                 </a>
                             </div>
                         </div>
-                        <a href="#" class="nav-link">
+                        <div class="nav-dropdown {{ request()->routeIs('social-media.*') ? 'has-active-child' : '' }}" id="socialMediaDropdown">
+                            <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('socialMediaDropdown');">
                             Social Media Analysis
                         </a>
+                            <div class="nav-dropdown-menu">
+                                <a href="{{ route('social-media.index') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.index') ? 'active' : '' }}">
+                                    Analyze Profile
+                                </a>
+                                <a href="{{ route('social-media.history') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
+                                    History
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
@@ -1018,7 +1028,7 @@
                         </div>
                         <div class="mobile-nav-section-content" id="mobilePredictionsDropdown" style="display: none;">
                             <a href="{{ route('predictions.create') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
-                                New Prediction
+                                Analyze Prediction
                             </a>
                             <a href="{{ route('predictions.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
                                 History
@@ -1028,9 +1038,20 @@
                             </a>
                         </div>
                     </div>
-                    <a href="#" class="mobile-nav-link">
+                    <div class="mobile-nav-section {{ request()->routeIs('social-media.*') ? 'active has-active-child' : '' }}" id="mobileSocialMediaSection">
+                        <div class="mobile-nav-section-header" onclick="toggleMobileDropdown('mobileSocialMediaDropdown', 'mobileSocialMediaSection')">
                         Social Media Analysis
+                            <span class="mobile-nav-arrow">▼</span>
+                        </div>
+                        <div class="mobile-nav-section-content" id="mobileSocialMediaDropdown" style="display: {{ request()->routeIs('social-media.*') ? 'block' : 'none' }};">
+                            <a href="{{ route('social-media.index') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('social-media.index') ? 'active' : '' }}">
+                                Analyze Profile
                     </a>
+                            <a href="{{ route('social-media.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                        </div>
+                    </div>
                     @auth
                         <div class="mobile-nav-user">
                             <div class="mobile-nav-username">
@@ -1122,19 +1143,35 @@
         
         // Close dropdown when clicking outside (but preserve highlighting)
         document.addEventListener('click', function(event) {
-            const dropdown = document.getElementById('predictionsDropdown');
-            if (dropdown && !dropdown.contains(event.target)) {
+            const predictionsDropdown = document.getElementById('predictionsDropdown');
+            const socialMediaDropdown = document.getElementById('socialMediaDropdown');
+            
+            if (predictionsDropdown && !predictionsDropdown.contains(event.target)) {
                 // Only remove 'active' class, keep 'has-active-child' for highlighting
-                dropdown.classList.remove('active');
+                predictionsDropdown.classList.remove('active');
+            }
+            
+            if (socialMediaDropdown && !socialMediaDropdown.contains(event.target)) {
+                // Only remove 'active' class, keep 'has-active-child' for highlighting
+                socialMediaDropdown.classList.remove('active');
             }
         });
         
         // Keep dropdown highlighted (but closed) if on a predictions route
         document.addEventListener('DOMContentLoaded', function() {
-            const dropdown = document.getElementById('predictionsDropdown');
+            const predictionsDropdown = document.getElementById('predictionsDropdown');
+            const socialMediaDropdown = document.getElementById('socialMediaDropdown');
+            
             @if(request()->routeIs('predictions.*'))
-                if (dropdown) {
-                    dropdown.classList.add('has-active-child');
+                if (predictionsDropdown) {
+                    predictionsDropdown.classList.add('has-active-child');
+                    // Don't auto-open, just keep it highlighted
+                }
+            @endif
+            
+            @if(request()->routeIs('social-media.*'))
+                if (socialMediaDropdown) {
+                    socialMediaDropdown.classList.add('has-active-child');
                     // Don't auto-open, just keep it highlighted
                 }
             @endif

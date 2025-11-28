@@ -7,6 +7,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
 
@@ -86,6 +87,21 @@ Route::middleware(['auth'])->group(function () {
         return response()->json($results);
     })->name('test-ai-providers');
     Route::get('/predictions/test-url-validation', [PredictionController::class, 'testUrlValidation'])->name('predictions.test-url-validation');
+    
+    // Social Media Analysis routes
+    Route::get('/social-media', [SocialMediaController::class, 'index'])->name('social-media.index');
+    Route::get('/social-media/history', [SocialMediaController::class, 'history'])->name('social-media.history');
+    Route::get('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'show'])->name('social-media.show');
+    Route::get('/social-media/{socialMediaAnalysis}/export', [SocialMediaController::class, 'export'])->name('social-media.export');
+    Route::delete('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'destroy'])->name('social-media.destroy');
+    Route::post('/social-media/analyze', [SocialMediaController::class, 'analyze'])->name('social-media.analyze');
+    Route::post('/social-media/search-all', [SocialMediaController::class, 'searchAll'])->name('social-media.search-all');
+    Route::post('/social-media/get-existing-data', [SocialMediaController::class, 'getExistingPlatformData'])->name('social-media.get-existing-data');
+    Route::post('/social-media/ai-analysis', [SocialMediaController::class, 'aiAnalysis'])->name('social-media.ai-analysis');
+    Route::post('/social-media/{socialMediaAnalysis}/re-analyze', [SocialMediaController::class, 'reAnalyze'])->name('social-media.re-analyze');
+    Route::post('/social-media/facebook', [SocialMediaController::class, 'getFacebookInfo'])->name('social-media.facebook');
+    Route::post('/social-media/instagram', [SocialMediaController::class, 'getInstagramInfo'])->name('social-media.instagram');
+    Route::post('/social-media/instagram-from-page', [SocialMediaController::class, 'getInstagramFromFacebookPage'])->name('social-media.instagram-from-page');
     
     // Parameterized routes must come LAST
     Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');
