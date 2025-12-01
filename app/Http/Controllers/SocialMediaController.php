@@ -50,8 +50,20 @@ class SocialMediaController extends Controller
      */
     public function show(SocialMediaAnalysis $socialMediaAnalysis)
     {
+        // Check if user is authenticated
+        if (!Auth::check()) {
+            abort(401, 'User not authenticated.');
+        }
+        
         // Ensure user owns this analysis
-        if ($socialMediaAnalysis->user_id !== Auth::id()) {
+        // Fix: Convert both values to integers for comparison to handle string vs integer mismatch
+        if ((int)Auth::id() !== (int)$socialMediaAnalysis->user_id) {
+            Log::warning('Unauthorized social media analysis access attempt', [
+                'user_id' => Auth::id(),
+                'analysis_id' => $socialMediaAnalysis->id,
+                'analysis_user_id' => $socialMediaAnalysis->user_id,
+                'user_role' => Auth::user()->role ?? 'unknown'
+            ]);
             abort(403, 'Unauthorized access');
         }
         
@@ -332,7 +344,8 @@ class SocialMediaController extends Controller
     public function reAnalyze(Request $request, SocialMediaAnalysis $socialMediaAnalysis)
     {
         // Check if user owns this analysis
-        if ($socialMediaAnalysis->user_id !== Auth::id()) {
+        // Fix: Convert both values to integers for comparison to handle string vs integer mismatch
+        if ((int)Auth::id() !== (int)$socialMediaAnalysis->user_id) {
             return response()->json([
                 'success' => false,
                 'error' => 'Unauthorized access to this analysis.'
@@ -750,7 +763,8 @@ class SocialMediaController extends Controller
     public function destroy(SocialMediaAnalysis $socialMediaAnalysis)
     {
         // Ensure the user owns this analysis
-        if ($socialMediaAnalysis->user_id !== Auth::id()) {
+        // Fix: Convert both values to integers for comparison to handle string vs integer mismatch
+        if ((int)Auth::id() !== (int)$socialMediaAnalysis->user_id) {
             return response()->json([
                 'success' => false,
                 'error' => 'Unauthorized. You do not have permission to delete this analysis.'
