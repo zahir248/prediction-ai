@@ -916,7 +916,7 @@
             background-color: #dc2626;
         }
         
-        .nav-user a:hover {
+        .nav-user a:not(.nav-link):hover {
             background-color: #5a67d8;
         }
         
@@ -993,7 +993,9 @@
                 <div class="nav-user hidden-mobile">
                     @auth
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <span style="color: #64748b; font-size: 13px;">{{ Auth::user()->name }}</span>
+                            <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                                Profile
+                            </a>
                             <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
                                 Logout
                             </button>
@@ -1053,14 +1055,12 @@
                         </div>
                     </div>
                     @auth
-                        <div class="mobile-nav-user">
-                            <div class="mobile-nav-username">
-                                {{ Auth::user()->name }}
-                            </div>
-                            <button type="button" onclick="showLogoutModal()" class="mobile-nav-link">
-                                Logout
-                            </button>
-                        </div>
+                        <a href="{{ route('profile.show') }}" class="mobile-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                            Profile
+                        </a>
+                        <button type="button" onclick="showLogoutModal()" class="mobile-nav-link">
+                            Logout
+                        </button>
                     @endauth
                 </div>
             </div>

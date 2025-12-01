@@ -8,6 +8,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\SocialMediaController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
 
@@ -37,6 +38,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/home', function () {
         return view('dashboard');
     })->name('dashboard');
+    
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     
     // Prediction routes - ALL specific routes must come BEFORE parameterized routes
     Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
