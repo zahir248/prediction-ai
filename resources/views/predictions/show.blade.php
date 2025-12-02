@@ -2,17 +2,17 @@
 
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
-    <div style="max-width: 900px; margin: 0 auto;">
+<div class="prediction-show-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
+    <div class="prediction-content-wrapper" style="max-width: 900px; margin: 0 auto;">
         <!-- Main Card -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <div class="prediction-main-card" style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
             <!-- Header -->
             <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
-                    <div style="flex: 1;">
-                        <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">{{ $prediction->topic }}</h1>
+                    <div style="flex: 1; min-width: 0;">
+                        <h1 class="prediction-topic" style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0; word-wrap: break-word; overflow-wrap: break-word;">{{ $prediction->topic }}</h1>
                         @if($prediction->target)
-                            <p style="color: #166534; font-size: 13px; margin: 8px 0; font-weight: 500; background: #f0fdf4; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbf7d0; display: inline-block;">
+                            <p class="prediction-target" style="color: #166534; font-size: 13px; margin: 8px 0; font-weight: 500; background: #f0fdf4; padding: 8px 12px; border-radius: 6px; border: 1px solid #bbf7d0; display: inline-block; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word;">
                                 <strong>Target:</strong> {{ $prediction->target }}
                             </p>
                         @endif
@@ -20,16 +20,16 @@
                             Created on {{ $prediction->created_at->format('M d, Y \a\t g:i A') }}
                         </p>
                     </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <a href="{{ route('predictions.history') }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease;">
+                    <div class="header-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="{{ route('predictions.history') }}" class="action-btn" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease;">
                             <i class="bi bi-arrow-left"></i> Back
                         </a>
                         @if($prediction->status === 'completed')
-                        <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" style="padding: 10px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); cursor: pointer;">
+                        <button onclick="confirmExport({{ $prediction->id }}, '{{ Str::limit($prediction->topic, 50) }}')" class="action-btn" style="display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); cursor: pointer;">
                             Export PDF
                         </button>
                         @endif
-                        <a href="{{ route('predictions.create') }}" style="display: inline-block; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                        <a href="{{ route('predictions.create') }}" class="action-btn" style="display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
                             New Analysis
                         </a>
                     </div>
@@ -60,8 +60,8 @@
                 <!-- Issue Details Section -->
                 <div style="margin-bottom: 32px;">
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Issue Details</h2>
-                    <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <p style="color: #374151; line-height: 1.6; margin: 0; white-space: pre-wrap; font-size: 14px;">{{ $prediction->input_data['text'] }}</p>
+                    <div class="issue-details-container" style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; overflow-x: auto; overflow-wrap: break-word;">
+                        <p class="issue-details-text" style="color: #374151; line-height: 1.6; margin: 0; white-space: pre-wrap; font-size: 14px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;">{{ $prediction->input_data['text'] }}</p>
                     </div>
                 </div>
 
@@ -71,9 +71,9 @@
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Uploaded Files</h2>
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         @foreach($prediction->uploaded_files as $index => $file)
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="flex: 1;">
-                                <div style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 4px;">{{ $file['original_name'] }}</div>
+                        <div class="file-item" style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; gap: 12px;">
+                            <div class="file-info" style="flex: 1; min-width: 0;">
+                                <div class="file-name" style="font-weight: 600; color: #374151; font-size: 14px; margin-bottom: 4px; word-wrap: break-word; overflow-wrap: break-word;">{{ $file['original_name'] }}</div>
                                 <div style="font-size: 12px; color: #64748b;">
                                     {{ number_format($file['size'] / 1024 / 1024, 2) }} MB • {{ strtoupper($file['extension']) }}
                                 </div>
@@ -81,7 +81,8 @@
                             <a href="{{ Storage::url($file['stored_path']) }}" 
                                target="_blank" 
                                rel="noopener noreferrer"
-                               style="padding: 8px 16px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease;">
+                               class="file-download-btn"
+                               style="padding: 8px 16px; background: #3b82f6; color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0;">
                                 Download
                             </a>
                         </div>
@@ -96,8 +97,8 @@
                     <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">📋 Extracted Content from Files</h2>
                     <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 24px; border-radius: 16px; border: 1px solid #f59e0b;">
                         <p style="color: #92400e; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📊 AI-Processed File Content</p>
-                        <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-height: 400px; overflow-y: auto;">
-                            <pre style="color: #92400e; line-height: 1.6; margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px;">{{ $prediction->extracted_text }}</pre>
+                        <div class="extracted-text-container" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-height: 400px; overflow-y: auto; overflow-x: hidden;">
+                            <pre class="extracted-text" style="color: #92400e; line-height: 1.6; margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; overflow-x: hidden;">{{ $prediction->extracted_text }}</pre>
                         </div>
                         <p style="color: #92400e; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
                             This content was automatically extracted from your uploaded files and analyzed by the AI system to enhance the prediction accuracy.
@@ -115,8 +116,9 @@
                         <a href="{{ $sourceUrl }}" 
                            target="_blank" 
                            rel="noopener noreferrer"
-                           style="display: block; padding: 10px 12px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; border: 1px solid #fde68a;">
-                            Source {{ $index + 1 }}: {{ Str::limit($sourceUrl, 60) }}
+                           class="source-url-link"
+                           style="display: block; padding: 10px 12px; background: #fef3c7; color: #92400e; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; border: 1px solid #fde68a; word-wrap: break-word; overflow-wrap: break-word;">
+                            Source {{ $index + 1 }}: <span class="source-url-text">{{ Str::limit($sourceUrl, 60) }}</span>
                         </a>
                         @endforeach
                     </div>
@@ -139,8 +141,8 @@
                                 <p style="font-weight: 600; margin-bottom: 12px; color: #374151;">Source Details:</p>
                                 @foreach($prediction->prediction_result['scraping_metadata']['source_details'] as $index => $source)
                                 <div style="background: white; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 8px;">
-                                    <p style="margin: 0 0 4px 0; color: #374151;"><strong>Source {{ $index + 1 }}:</strong> 
-                                        <a href="{{ $source['url'] }}" target="_blank" style="color: #3b82f6; text-decoration: underline;">{{ $source['url'] }}</a>
+                                    <p style="margin: 0 0 4px 0; color: #374151; word-wrap: break-word; overflow-wrap: break-word;"><strong>Source {{ $index + 1 }}:</strong> 
+                                        <a href="{{ $source['url'] }}" target="_blank" class="source-detail-url" style="color: #3b82f6; text-decoration: underline; word-break: break-all;">{{ $source['url'] }}</a>
                                     </p>
                                     <p style="margin: 0 0 4px 0; font-size: 13px; color: #64748b;"><strong>Title:</strong> {{ $source['title'] }}</p>
                                     <p style="margin: 0 0 4px 0; font-size: 13px; color: #64748b;"><strong>Word Count:</strong> {{ $source['word_count'] }}</p>
@@ -395,8 +397,8 @@
                                         
                                         @if($isArrayOfObjects)
                                             <!-- Display as table if it's an array of risk objects -->
-                                            <div style="overflow-x: auto;">
-                                                <table style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px;">
+                                            <div class="risk-table-container" style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                                                <table class="risk-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; min-width: 600px;">
                                                     <thead>
                                                         <tr>
                                                             <th style="background-color: #f0f0f0; color: #1e293b; font-weight: 600; padding: 10px; text-align: left; border: 1px solid #d1d5db; width: 35%;">Risk</th>
@@ -409,10 +411,10 @@
                                                         @foreach($report['risk_assessment'] as $risk)
                                                             @if(is_array($risk))
                                                                 <tr style="background-color: {{ $loop->even ? '#f9fafb' : 'white' }};">
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top;">{{ isset($risk['risk']) ? (is_string($risk['risk']) ? $risk['risk'] : (string)$risk['risk']) : 'N/A' }}</td>
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top;">{{ isset($risk['level']) ? (is_string($risk['level']) ? $risk['level'] : (string)$risk['level']) : '-' }}</td>
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top;">{{ isset($risk['probability']) ? (is_string($risk['probability']) ? $risk['probability'] : (string)$risk['probability']) : '-' }}</td>
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top;">{{ isset($risk['mitigation']) ? (is_string($risk['mitigation']) ? $risk['mitigation'] : (string)$risk['mitigation']) : '-' }}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word;">{{ isset($risk['risk']) ? (is_string($risk['risk']) ? $risk['risk'] : (string)$risk['risk']) : 'N/A' }}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word;">{{ isset($risk['level']) ? (is_string($risk['level']) ? $risk['level'] : (string)$risk['level']) : '-' }}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word;">{{ isset($risk['probability']) ? (is_string($risk['probability']) ? $risk['probability'] : (string)$risk['probability']) : '-' }}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word;">{{ isset($risk['mitigation']) ? (is_string($risk['mitigation']) ? $risk['mitigation'] : (string)$risk['mitigation']) : '-' }}</td>
                                                                 </tr>
                                                             @endif
                                                         @endforeach
@@ -674,20 +676,320 @@
 </div>
 
 <style>
+    /* Mobile Responsive Styles */
     @media (max-width: 768px) {
-        div[style*="max-width: 900px"] {
-            padding: 16px !important;
+        /* Container and card padding */
+        .prediction-show-container {
+            padding: 16px 8px !important;
         }
         
-        div[style*="padding: 32px"] {
-            padding: 20px !important;
+        .prediction-content-wrapper {
+            padding: 0 !important;
         }
+        
+        .prediction-main-card {
+            padding: 20px 16px !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Header section */
+        .prediction-topic {
+            font-size: 18px !important;
+            line-height: 1.4 !important;
+        }
+        
+        .prediction-target {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        /* Header actions - keep in one row on mobile */
+        .header-actions {
+            flex-direction: row !important;
+            width: 100% !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
+        }
+        
+        .header-actions .action-btn {
+            flex: 1 !important;
+            min-width: 0 !important;
+            justify-content: center !important;
+            padding: 10px 8px !important;
+            font-size: 11px !important;
+            min-height: 44px !important;
+        }
+        
+        /* Issue details */
+        .issue-details-container {
+            padding: 12px !important;
+        }
+        
+        .issue-details-text {
+            font-size: 13px !important;
+        }
+        
+        /* File items */
+        .file-item {
+            flex-direction: column !important;
+            align-items: stretch !important;
+        }
+        
+        .file-info {
+            margin-bottom: 8px !important;
+        }
+        
+        .file-name {
+            font-size: 13px !important;
+            word-break: break-word !important;
+        }
+        
+        .file-download-btn {
+            width: 100% !important;
+            text-align: center !important;
+        }
+        
+        /* Extracted text */
+        .extracted-text-container {
+            padding: 12px !important;
+            max-height: 300px !important;
+        }
+        
+        .extracted-text {
+            font-size: 12px !important;
+        }
+        
+        /* Source URLs */
+        .source-url-link {
+            font-size: 12px !important;
+            padding: 10px !important;
+        }
+        
+        .source-url-text {
+            word-break: break-all !important;
+        }
+        
+        /* Source detail URLs */
+        .source-detail-url {
+            word-break: break-all !important;
+            display: inline-block !important;
+            max-width: 100% !important;
+        }
+        
+        /* Risk table - make scrollable */
+        .risk-table-container {
+            margin: 0 -16px !important;
+            padding: 0 16px !important;
+        }
+        
+        .risk-table {
+            font-size: 12px !important;
+        }
+        
+        .risk-table th,
+        .risk-table td {
+            padding: 8px 6px !important;
+            font-size: 11px !important;
+        }
+        
+        /* Section headings */
+        h2 {
+            font-size: 14px !important;
+        }
+        
+        h3 {
+            font-size: 16px !important;
+        }
+        
+        h4 {
+            font-size: 14px !important;
+        }
+        
+        /* Text content */
+        p, li, div[style*="font-size: 14px"] {
+            font-size: 13px !important;
+        }
+        
+        /* Code/pre blocks */
+        pre {
+            font-size: 11px !important;
+            padding: 12px !important;
+        }
+        
+        /* Extracted content section */
+        div[style*="background: white; border-radius: 20px"] {
+            padding: 20px 16px !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Status section */
+        div[style*="display: flex; align-items: center; gap: 16px"] {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Very small screens */
+        .prediction-show-container {
+            padding: 12px 4px !important;
+        }
+        
+        .prediction-main-card {
+            padding: 16px 12px !important;
+            border-radius: 10px !important;
+        }
+        
+        .prediction-topic {
+            font-size: 16px !important;
+        }
+        
+        .header-actions {
+            gap: 6px !important;
+        }
+        
+        .header-actions .action-btn {
+            padding: 10px 6px !important;
+            font-size: 10px !important;
+            min-height: 42px !important;
+        }
+        
+        .issue-details-container {
+            padding: 10px !important;
+        }
+        
+        .issue-details-text {
+            font-size: 12px !important;
+        }
+        
+        .extracted-text-container {
+            padding: 10px !important;
+            max-height: 250px !important;
+        }
+        
+        .extracted-text {
+            font-size: 11px !important;
+        }
+        
+        .risk-table {
+            font-size: 11px !important;
+            min-width: 500px !important;
+        }
+        
+        .risk-table th,
+        .risk-table td {
+            padding: 6px 4px !important;
+            font-size: 10px !important;
+        }
+        
+        h2 {
+            font-size: 13px !important;
+        }
+        
+        h3 {
+            font-size: 15px !important;
+        }
+        
+        h4 {
+            font-size: 13px !important;
+        }
+        
+        p, li, div[style*="font-size: 14px"] {
+            font-size: 12px !important;
+        }
+        
+        pre {
+            font-size: 10px !important;
+            padding: 10px !important;
+        }
+        
+        .source-url-link {
+            font-size: 11px !important;
+            padding: 8px !important;
+        }
+        
+        /* Modal improvements for very small screens */
+        .export-modal-overlay {
+            padding: 12px !important;
+            align-items: flex-start !important;
+            padding-top: 20vh !important;
+        }
+        
+        .export-modal-content {
+            padding: 20px 16px !important;
+        }
+        
+        .export-modal-content h3 {
+            font-size: 16px !important;
+        }
+        
+        .export-modal-content p {
+            font-size: 12px !important;
+        }
+        
+        .export-modal-content button {
+            padding: 10px 16px !important;
+            font-size: 12px !important;
+            min-height: 42px !important;
+        }
+    }
+    
+    /* Modal responsive styles */
+    @media (max-width: 768px) {
+        .export-modal-overlay {
+            padding: 16px !important;
+            align-items: flex-start !important;
+            padding-top: 20vh !important;
+        }
+        
+        .export-modal-content {
+            padding: 24px 20px !important;
+            max-width: 100% !important;
+        }
+        
+        .export-modal-content h3 {
+            font-size: 18px !important;
+        }
+        
+        .export-modal-content p {
+            font-size: 14px !important;
+        }
+        
+        .export-modal-content button {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            min-height: 44px !important;
+        }
+        
+        .export-modal-content div[style*="display: flex; gap: 16px"] {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        
+        .export-modal-content div[style*="display: flex; gap: 16px"] button {
+            width: 100% !important;
+        }
+    }
+    
+    /* Ensure all text wraps properly */
+    * {
+        box-sizing: border-box;
+    }
+    
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
     }
 </style>
 
 <!-- Export Confirmation Modal -->
-<div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+<div id="exportModal" class="export-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="export-modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
         <div style="margin-bottom: 24px;">
             <span style="font-size: 48px; color: #10b981;">📄</span>
         </div>

@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
-    <div style="max-width: 900px; margin: 0 auto;">
+<div class="social-show-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
+    <div class="social-show-wrapper" style="max-width: 900px; margin: 0 auto;">
         <!-- Main Card -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <div class="social-show-main-card" style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
             <!-- Header -->
             <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
@@ -14,13 +14,14 @@
                             Analyzed on {{ $socialMediaAnalysis->created_at->format('M d, Y \a\t g:i A') }}
                         </p>
                     </div>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <a href="{{ route('social-media.history') }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease;">
+                    <div class="social-header-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <a href="{{ route('social-media.history') }}" class="social-action-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease;">
                             ← Back
                         </a>
                         @if($socialMediaAnalysis->status === 'completed')
                             <button onclick="confirmExport({{ $socialMediaAnalysis->id }}, '{{ $socialMediaAnalysis->username }}')" 
-                                    style="padding: 10px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);"
+                                    class="social-action-btn"
+                                    style="display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);"
                                     onmouseover="this.style.opacity='0.9';"
                                     onmouseout="this.style.opacity='1';">
                                 Export PDF
@@ -28,7 +29,8 @@
                         @endif
                         @if($socialMediaAnalysis->platform_data)
                             <button onclick="confirmReAnalyze({{ $socialMediaAnalysis->id }}, '{{ $socialMediaAnalysis->username }}')" 
-                                    style="padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);"
+                                    class="social-action-btn"
+                                    style="display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);"
                                     onmouseover="this.style.opacity='0.9';"
                                     onmouseout="this.style.opacity='1';">
                                 Re-analyze
@@ -71,7 +73,7 @@
             @if($socialMediaAnalysis->platform_data && is_array($socialMediaAnalysis->platform_data))
                 <div style="margin-bottom: 32px;">
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Platform Data</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                    <div class="social-platform-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                         @php
                             $platforms = ['facebook', 'instagram', 'tiktok'];
                             $platformNames = [
@@ -142,9 +144,9 @@
 
                     <!-- Executive Summary -->
                     @if(isset($analysis['executive_summary']) && is_string($analysis['executive_summary']))
-                        <div style="margin-bottom: 32px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
+                        <div class="social-executive-summary" style="margin-bottom: 32px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
                             <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: white;">Executive Summary & Risk Assessment</h3>
-                            <p style="color: rgba(255,255,255,0.95); line-height: 1.8; margin: 0;">{{ $analysis['executive_summary'] }}</p>
+                            <p style="color: rgba(255,255,255,0.95); line-height: 1.8; margin: 0; word-wrap: break-word; overflow-wrap: break-word;">{{ $analysis['executive_summary'] }}</p>
                         </div>
                     @endif
 
@@ -256,9 +258,9 @@
 
                     <!-- Overall Assessment -->
                     @if(isset($analysis['overall_assessment']) && is_string($analysis['overall_assessment']))
-                        <div style="margin-bottom: 32px; padding: 24px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #667eea;">
+                        <div class="social-overall-assessment" style="margin-bottom: 32px; padding: 24px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #667eea;">
                             <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">Overall Assessment</h3>
-                            <p style="color: #374151; line-height: 1.8; margin: 0;">{{ $analysis['overall_assessment'] }}</p>
+                            <p style="color: #374151; line-height: 1.8; margin: 0; word-wrap: break-word; overflow-wrap: break-word;">{{ $analysis['overall_assessment'] }}</p>
                         </div>
                     @endif
 
@@ -343,8 +345,8 @@
 </div>
 
  <!-- Export Confirmation Modal -->
- <div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
-     <div style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+ <div id="exportModal" class="social-export-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+     <div class="social-export-modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
          <div style="margin-bottom: 24px;">
              <span style="font-size: 48px; color: #10b981;">📄</span>
          </div>
@@ -367,8 +369,8 @@
  </div>
 
  <!-- Platform Modal -->
- <div id="platformModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;">
-     <div onclick="event.stopPropagation();" style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: auto;">
+ <div id="platformModal" class="social-platform-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;">
+     <div onclick="event.stopPropagation();" class="social-platform-modal-content" style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: auto;">
          <div style="padding: 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
              <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Platform Details</h2>
              <button onclick="closePlatformModal()" style="background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';" onmouseout="this.style.background='none'; this.style.color='#64748b';">&times;</button>
@@ -380,8 +382,8 @@
  </div>
 
  <!-- Re-analyze Confirmation Modal -->
- <div id="reAnalyzeModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;">
-    <div onclick="event.stopPropagation();" style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: auto;">
+ <div id="reAnalyzeModal" class="social-reanalyze-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; overflow-y: auto; padding: 20px;">
+    <div onclick="event.stopPropagation();" class="social-reanalyze-modal-content" style="background: white; border-radius: 16px; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: auto;">
         <div style="padding: 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
             <h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">Re-analyze Profile</h2>
             <button onclick="closeReAnalyzeModal()" style="background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';" onmouseout="this.style.background='none'; this.style.color='#64748b';">&times;</button>
@@ -972,5 +974,527 @@ document.getElementById('platformModal').onclick = function(e) {
      });
  }
  </script>
- @endsection
+
+<style>
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        /* Container and card padding */
+        .social-show-container {
+            padding: 16px 8px !important;
+        }
+        
+        .social-show-wrapper {
+            padding: 0 !important;
+        }
+        
+        .social-show-main-card {
+            padding: 20px 16px !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Header section */
+        h1 {
+            font-size: 18px !important;
+            line-height: 1.4 !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+        }
+        
+        p[style*="color: #64748b; font-size: 13px"] {
+            font-size: 12px !important;
+        }
+        
+        /* Header actions - keep in one row on mobile */
+        .social-header-actions {
+            flex-direction: row !important;
+            width: 100% !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
+        }
+        
+        .social-action-btn {
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding: 10px 8px !important;
+            font-size: 11px !important;
+            min-height: 44px !important;
+        }
+        
+        /* Status section */
+        div[style*="display: flex; align-items: center; gap: 16px"] {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+        
+        /* Platform grid */
+        .social-platform-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+        
+        .social-platform-grid > div {
+            padding: 10px !important;
+        }
+        
+        /* Executive summary */
+        .social-executive-summary {
+            padding: 16px !important;
+        }
+        
+        .social-executive-summary h3 {
+            font-size: 16px !important;
+        }
+        
+        .social-executive-summary p {
+            font-size: 13px !important;
+        }
+        
+        /* Risk assessment */
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f8fafc"] {
+            padding: 16px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f8fafc"] h3 {
+            font-size: 16px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f8fafc"] ul {
+            padding-left: 18px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f8fafc"] li {
+            font-size: 13px !important;
+            margin-bottom: 6px !important;
+        }
+        
+        /* Overall assessment */
+        .social-overall-assessment {
+            padding: 16px !important;
+        }
+        
+        .social-overall-assessment h3 {
+            font-size: 16px !important;
+        }
+        
+        .social-overall-assessment p {
+            font-size: 13px !important;
+        }
+        
+        /* Recommendations */
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f0fdf4"] {
+            padding: 16px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f0fdf4"] h3 {
+            font-size: 16px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f0fdf4"] li {
+            font-size: 13px !important;
+        }
+        
+        /* Section headings */
+        h2 {
+            font-size: 16px !important;
+        }
+        
+        h3 {
+            font-size: 16px !important;
+        }
+        
+        /* Text content */
+        p, li {
+            font-size: 13px !important;
+        }
+        
+        /* Platform data warning message */
+        div[style*="margin-bottom: 32px; padding: 24px; background: #fef3c7"] {
+            padding: 16px !important;
+            flex-direction: column !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #fef3c7"] > div:first-child {
+            font-size: 24px !important;
+            margin-bottom: 12px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #fef3c7"] h3 {
+            font-size: 16px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #fef3c7"] p {
+            font-size: 13px !important;
+        }
+        
+        /* Metadata section */
+        div[style*="margin-top: 32px; padding: 16px; background: #f8fafc"] {
+            padding: 12px !important;
+            font-size: 11px !important;
+        }
+        
+        /* Empty state */
+        div[style*="text-align: center; padding: 60px 20px"] {
+            padding: 40px 16px !important;
+        }
+        
+        div[style*="text-align: center; padding: 60px 20px"] > div[style*="font-size: 48px"] {
+            font-size: 36px !important;
+        }
+        
+        div[style*="text-align: center; padding: 60px 20px"] h2 {
+            font-size: 18px !important;
+        }
+        
+        /* Modal improvements */
+        .social-export-modal-overlay {
+            padding: 16px !important;
+            align-items: flex-start !important;
+            padding-top: 20vh !important;
+        }
+        
+        .social-export-modal-content {
+            padding: 24px 20px !important;
+            max-width: 100% !important;
+        }
+        
+        .social-export-modal-content h3 {
+            font-size: 18px !important;
+        }
+        
+        .social-export-modal-content p {
+            font-size: 14px !important;
+        }
+        
+        .social-export-modal-content button {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            min-height: 44px !important;
+        }
+        
+        .social-export-modal-content div[style*="display: flex; gap: 16px"] {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        
+        .social-export-modal-content div[style*="display: flex; gap: 16px"] button {
+            width: 100% !important;
+        }
+        
+        /* Platform modal */
+        .social-platform-modal-overlay {
+            padding: 12px !important;
+        }
+        
+        .social-platform-modal-content {
+            max-height: 95vh !important;
+        }
+        
+        .social-platform-modal-content > div:first-child {
+            padding: 16px !important;
+        }
+        
+        .social-platform-modal-content > div:first-child h2 {
+            font-size: 18px !important;
+        }
+        
+        #platformModalContent {
+            padding: 16px !important;
+        }
+        
+        /* Re-analyze modal */
+        .social-reanalyze-modal-overlay {
+            padding: 12px !important;
+        }
+        
+        .social-reanalyze-modal-content {
+            max-height: 95vh !important;
+        }
+        
+        .social-reanalyze-modal-content > div:first-child {
+            padding: 16px !important;
+        }
+        
+        .social-reanalyze-modal-content > div:first-child h2 {
+            font-size: 18px !important;
+        }
+        
+        #reAnalyzeModalContent {
+            padding: 16px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Very small screens */
+        .social-show-container {
+            padding: 12px 4px !important;
+        }
+        
+        .social-show-main-card {
+            padding: 16px 12px !important;
+            border-radius: 10px !important;
+        }
+        
+        h1 {
+            font-size: 16px !important;
+        }
+        
+        /* Header actions */
+        .social-header-actions {
+            gap: 6px !important;
+        }
+        
+        .social-action-btn {
+            padding: 10px 6px !important;
+            font-size: 10px !important;
+            min-height: 42px !important;
+        }
+        
+        /* Platform grid */
+        .social-platform-grid {
+            gap: 8px !important;
+        }
+        
+        .social-platform-grid > div {
+            padding: 8px !important;
+        }
+        
+        /* Executive summary */
+        .social-executive-summary {
+            padding: 12px !important;
+        }
+        
+        .social-executive-summary h3 {
+            font-size: 14px !important;
+        }
+        
+        .social-executive-summary p {
+            font-size: 12px !important;
+        }
+        
+        /* Risk assessment */
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f8fafc"] {
+            padding: 12px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f8fafc"] h3 {
+            font-size: 14px !important;
+        }
+        
+        /* Overall assessment */
+        .social-overall-assessment {
+            padding: 12px !important;
+        }
+        
+        .social-overall-assessment h3 {
+            font-size: 14px !important;
+        }
+        
+        .social-overall-assessment p {
+            font-size: 12px !important;
+        }
+        
+        /* Recommendations */
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f0fdf4"] {
+            padding: 12px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: #f0fdf4"] h3 {
+            font-size: 14px !important;
+        }
+        
+        /* Section headings */
+        h2 {
+            font-size: 14px !important;
+        }
+        
+        h3 {
+            font-size: 14px !important;
+        }
+        
+        /* Text content */
+        p, li {
+            font-size: 12px !important;
+        }
+        
+        /* Modal improvements */
+        .social-export-modal-overlay {
+            padding: 12px !important;
+            padding-top: 15vh !important;
+        }
+        
+        .social-export-modal-content {
+            padding: 20px 16px !important;
+        }
+        
+        .social-export-modal-content h3 {
+            font-size: 16px !important;
+        }
+        
+        .social-export-modal-content p {
+            font-size: 13px !important;
+        }
+        
+        .social-export-modal-content button {
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+            min-height: 42px !important;
+        }
+        
+        /* Platform modal */
+        .social-platform-modal-overlay {
+            padding: 8px !important;
+        }
+        
+        .social-platform-modal-content > div:first-child {
+            padding: 12px !important;
+        }
+        
+        .social-platform-modal-content > div:first-child h2 {
+            font-size: 16px !important;
+        }
+        
+        #platformModalContent {
+            padding: 12px !important;
+        }
+        
+        /* Re-analyze modal */
+        .social-reanalyze-modal-overlay {
+            padding: 8px !important;
+        }
+        
+        .social-reanalyze-modal-content > div:first-child {
+            padding: 12px !important;
+        }
+        
+        .social-reanalyze-modal-content > div:first-child h2 {
+            font-size: 16px !important;
+        }
+        
+        #reAnalyzeModalContent {
+            padding: 12px !important;
+        }
+    }
+    
+    /* Ensure all text wraps properly */
+    * {
+        box-sizing: border-box;
+    }
+    
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
+    }
+    
+    /* Improve platform modal content on mobile */
+    @media (max-width: 768px) {
+        #platformModalContent div[style*="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        #platformModalContent div[style*="background: rgba(255,255,255,0.15); padding: 16px"] {
+            padding: 12px !important;
+        }
+        
+        #platformModalContent div[style*="font-size: 24px; font-weight: 700"] {
+            font-size: 18px !important;
+        }
+        
+        #platformModalContent div[style*="font-size: 11px"] {
+            font-size: 10px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        #platformModalContent div[style*="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr))"] {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+    }
+    
+    /* Partial views mobile improvements */
+    @media (max-width: 768px) {
+        /* Professional footprint */
+        div[style*="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px"] {
+            padding: 16px !important;
+        }
+        
+        div[style*="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px"] h3 {
+            font-size: 16px !important;
+        }
+        
+        div[style*="display: flex; justify-content: space-between; align-items: center"] {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+        
+        div[style*="position: relative; width: 140px; height: 140px"] {
+            width: 120px !important;
+            height: 120px !important;
+        }
+        
+        svg[width="140"] {
+            width: 120px !important;
+            height: 120px !important;
+        }
+        
+        div[style*="font-size: 36px; font-weight: 700"] {
+            font-size: 28px !important;
+        }
+        
+        /* Activity overview */
+        div[style*="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap"] {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+        
+        div[style*="display: flex; align-items: center; gap: 16px"] {
+            flex-wrap: wrap !important;
+            gap: 12px !important;
+        }
+        
+        /* Text content in partials */
+        div[style*="color: #374151; line-height: 1.8; font-size: 14px"] {
+            font-size: 13px !important;
+        }
+        
+        p[style*="color: #64748b; line-height: 1.8; font-size: 14px"] {
+            font-size: 13px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Professional footprint - smaller gauge */
+        div[style*="position: relative; width: 140px; height: 140px"] {
+            width: 100px !important;
+            height: 100px !important;
+        }
+        
+        svg[width="140"] {
+            width: 100px !important;
+            height: 100px !important;
+        }
+        
+        div[style*="font-size: 36px; font-weight: 700"] {
+            font-size: 24px !important;
+        }
+        
+        div[style*="font-size: 12px; color: #64748b"] {
+            font-size: 10px !important;
+        }
+        
+        /* Text content */
+        div[style*="color: #374151; line-height: 1.8; font-size: 14px"] {
+            font-size: 12px !important;
+        }
+        
+        p[style*="color: #64748b; line-height: 1.8; font-size: 14px"] {
+            font-size: 12px !important;
+        }
+    }
+</style>
+@endsection
 

@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
+<div class="social-history-page-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
     <div style="max-width: 900px; margin: 0 auto;">
         <!-- Main Card -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <div class="social-history-main-card" style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
             <!-- Header Section -->
             <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
@@ -13,7 +13,7 @@
                         <p style="color: #64748b; font-size: 14px; margin: 0;">Complete history of all your social media profile analyses</p>
                     </div>
                     <div>
-                        <a href="{{ route('social-media.index') }}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                        <a href="{{ route('social-media.index') }}" class="new-analysis-btn" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
                             New Analysis
                         </a>
                     </div>
@@ -24,22 +24,22 @@
             @if($analyses->total() > 0)
                 <div style="margin-bottom: 32px;">
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">History Overview</h2>
-                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div class="social-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
                         <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? $analyses->total() }}</div>
-                            <div style="font-size: 13px; color: #64748b;">Total</div>
+                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? $analyses->total() }}</div>
+                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Total</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
-                            <div style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
-                            <div style="font-size: 13px; color: #64748b;">Completed</div>
+                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
+                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Completed</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
-                            <div style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
-                            <div style="font-size: 13px; color: #64748b;">Processing</div>
+                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
+                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Processing</div>
                         </div>
                         <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
-                            <div style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
-                            <div style="font-size: 13px; color: #64748b;">Failed</div>
+                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
+                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Failed</div>
                         </div>
                     </div>
                 </div>
@@ -192,22 +192,25 @@
                                 </div>
                             </div>
                             @if($analysis->platform_data)
-                                <div style="display: flex; gap: 8px;">
+                                <div class="social-mobile-actions" style="display: flex; gap: 8px;">
                                     <a href="{{ route('social-media.show', $analysis) }}" 
+                                       class="social-mobile-action-btn"
                                        style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; text-align: center; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
                                         View
                                     </a>
                                     @if($analysis->status === 'completed')
                                         <button onclick="confirmExport({{ $analysis->id }}, '{{ $analysis->username }}')" 
+                                                class="social-mobile-action-btn"
                                                 style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
                                             Export
                                         </button>
                                     @else
-                                        <span style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 13px; opacity: 0.5; text-align: center;">
+                                        <span class="social-mobile-action-btn" style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 13px; opacity: 0.5; text-align: center;">
                                             Export
                                         </span>
                                     @endif
                                     <button onclick="confirmDelete({{ $analysis->id }}, '{{ $analysis->username }}')" 
+                                            class="social-mobile-action-btn"
                                             style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
                                         Delete
                                     </button>
@@ -229,46 +232,46 @@
 
                     <!-- Pagination -->
                     @if($analyses->hasPages())
-                        <div style="padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
+                        <div class="social-pagination-container" style="padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px;">
-                                <div style="display: flex; align-items: center;">
+                                <div class="social-pagination-nav" style="display: flex; align-items: center;">
                                     @if ($analyses->onFirstPage())
                                         <span style="color: #9ca3af; margin-right: 12px;">« Previous</span>
                                     @else
-                                        <a href="{{ $analyses->previousPageUrl() }}" style="color: #64748b; text-decoration: none; margin-right: 12px; transition: color 0.3s ease;">« Previous</a>
+                                        <a href="{{ $analyses->previousPageUrl() }}" class="social-pagination-link" style="color: #64748b; text-decoration: none; margin-right: 12px; transition: color 0.3s ease;">« Previous</a>
                                     @endif
 
                                     @if ($analyses->hasMorePages())
-                                        <a href="{{ $analyses->nextPageUrl() }}" style="color: #64748b; text-decoration: none; transition: color 0.3s ease;">Next »</a>
+                                        <a href="{{ $analyses->nextPageUrl() }}" class="social-pagination-link" style="color: #64748b; text-decoration: none; transition: color 0.3s ease;">Next »</a>
                                     @else
                                         <span style="color: #9ca3af;">Next »</span>
                                     @endif
                                 </div>
                                 
-                                <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                                    <div style="color: #64748b; font-size: 14px;">
+                                <div class="social-pagination-info" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                    <div class="social-pagination-text" style="color: #64748b; font-size: 14px;">
                                         Showing {{ $analyses->firstItem() }} to {{ $analyses->lastItem() }} of {{ $analyses->total() }} results
                                     </div>
                                     
-                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div class="social-pagination-numbers" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                         @if (!$analyses->onFirstPage())
-                                            <a href="{{ $analyses->previousPageUrl() }}" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease;">
+                                            <a href="{{ $analyses->previousPageUrl() }}" class="social-pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
                                                 <span style="font-size: 16px;">‹</span>
                                             </a>
                                         @endif
                                         
-                                        <div style="display: flex; gap: 4px;">
+                                        <div class="social-pagination-pages" style="display: flex; gap: 4px; flex-wrap: wrap;">
                                             @foreach ($analyses->getUrlRange(1, $analyses->lastPage()) as $page => $url)
                                                 @if ($page == $analyses->currentPage())
-                                                    <span style="background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px;">{{ $page }}</span>
+                                                    <span class="social-pagination-current" style="background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</span>
                                                 @else
-                                                    <a href="{{ $url }}" style="color: #64748b; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease; hover:background: #f1f5f9;">{{ $page }}</a>
+                                                    <a href="{{ $url }}" class="social-pagination-page" style="color: #64748b; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</a>
                                                 @endif
                                             @endforeach
                                         </div>
                                         
                                         @if ($analyses->hasMorePages())
-                                            <a href="{{ $analyses->nextPageUrl() }}" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease;">
+                                            <a href="{{ $analyses->nextPageUrl() }}" class="social-pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
                                                 <span style="font-size: 16px;">›</span>
                                             </a>
                                         @endif
@@ -296,8 +299,8 @@
 </div>
 
 <!-- Export Confirmation Modal -->
-<div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+<div id="exportModal" class="social-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="social-modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
         <div style="margin-bottom: 24px;">
             <span style="font-size: 48px; color: #10b981;">📄</span>
         </div>
@@ -320,8 +323,8 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+<div id="deleteModal" class="social-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="social-modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
         <div style="margin-bottom: 24px;">
             <span style="font-size: 48px; color: #ef4444;">⚠️</span>
         </div>
@@ -471,20 +474,269 @@ document.getElementById('exportModal').onclick = function(e) {
 </script>
 
 <style>
-@media (max-width: 768px) {
+    /* Hide/show classes for responsive design */
     .hidden-mobile {
-        display: none !important;
+        display: block;
     }
+    
     .mobile-only {
-        display: block !important;
+        display: none;
     }
-}
-
-@media (min-width: 769px) {
-    .mobile-only {
-        display: none !important;
+    
+    @media (max-width: 768px) {
+        .hidden-mobile {
+            display: none !important;
+        }
+        
+        .mobile-only {
+            display: block !important;
+        }
     }
-}
+    
+    @media (min-width: 769px) {
+        .mobile-only {
+            display: none !important;
+        }
+    }
+    
+    /* Responsive Stats Grid */
+    .social-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        /* Container and card padding */
+        .social-history-page-container {
+            padding: 16px 8px !important;
+        }
+        
+        .social-history-main-card {
+            padding: 20px 16px !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Header section */
+        h1 {
+            font-size: 20px !important;
+        }
+        
+        p[style*="color: #64748b; font-size: 14px"] {
+            font-size: 12px !important;
+        }
+        
+        /* New analysis button */
+        .new-analysis-btn {
+            width: 100% !important;
+            padding: 14px 20px !important;
+            font-size: 14px !important;
+            text-align: center !important;
+        }
+        
+        /* Stats grid: 2x2 on tablet/mobile */
+        .social-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        .social-stat-number {
+            font-size: 24px !important;
+        }
+        
+        .social-stat-label {
+            font-size: 12px !important;
+        }
+        
+        /* Mobile card improvements */
+        .mobile-only > div {
+            padding: 14px !important;
+            border-radius: 10px !important;
+        }
+        
+        /* Mobile actions - keep in one row */
+        .social-mobile-actions {
+            flex-direction: row !important;
+            gap: 8px !important;
+            flex-wrap: nowrap !important;
+        }
+        
+        .social-mobile-action-btn {
+            flex: 1 !important;
+            min-width: 0 !important;
+            padding: 12px 8px !important;
+            font-size: 12px !important;
+            min-height: 44px !important;
+        }
+        
+        /* Pagination improvements */
+        .social-pagination-container {
+            padding-top: 20px !important;
+        }
+        
+        .social-pagination-container > div {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 16px !important;
+        }
+        
+        .social-pagination-info {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 12px !important;
+        }
+        
+        .social-pagination-text {
+            text-align: center !important;
+            font-size: 12px !important;
+        }
+        
+        .social-pagination-numbers {
+            justify-content: center !important;
+            flex-wrap: wrap !important;
+        }
+        
+        .social-pagination-pages {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+        }
+        
+        /* Modal improvements */
+        .social-modal-overlay {
+            padding: 16px !important;
+            align-items: flex-start !important;
+            padding-top: 20vh !important;
+        }
+        
+        .social-modal-content {
+            padding: 24px 20px !important;
+            max-width: 100% !important;
+        }
+        
+        .social-modal-content h3 {
+            font-size: 18px !important;
+        }
+        
+        .social-modal-content p {
+            font-size: 14px !important;
+        }
+        
+        .social-modal-content button {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            min-height: 44px !important;
+        }
+        
+        .social-modal-content div[style*="display: flex; gap: 16px"] {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        
+        .social-modal-content div[style*="display: flex; gap: 16px"] button {
+            width: 100% !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Very small screens */
+        .social-history-page-container {
+            padding: 12px 4px !important;
+        }
+        
+        .social-history-main-card {
+            padding: 16px 12px !important;
+            border-radius: 10px !important;
+        }
+        
+        h1 {
+            font-size: 18px !important;
+        }
+        
+        /* Stats grid: stacked on very small screens */
+        .social-stats-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+        
+        .social-stat-number {
+            font-size: 22px !important;
+        }
+        
+        /* Mobile actions */
+        .social-mobile-actions {
+            gap: 6px !important;
+        }
+        
+        .social-mobile-action-btn {
+            padding: 10px 6px !important;
+            font-size: 11px !important;
+            min-height: 42px !important;
+        }
+        
+        /* Pagination improvements */
+        .social-pagination-text {
+            font-size: 11px !important;
+        }
+        
+        .social-pagination-arrow,
+        .social-pagination-page,
+        .social-pagination-current {
+            min-width: 32px !important;
+            min-height: 32px !important;
+            padding: 6px 8px !important;
+            font-size: 12px !important;
+        }
+        
+        /* Modal improvements */
+        .social-modal-overlay {
+            padding: 12px !important;
+            padding-top: 15vh !important;
+        }
+        
+        .social-modal-content {
+            padding: 20px 16px !important;
+        }
+        
+        .social-modal-content h3 {
+            font-size: 16px !important;
+        }
+        
+        .social-modal-content p {
+            font-size: 13px !important;
+        }
+        
+        .social-modal-content button {
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+            min-height: 42px !important;
+        }
+    }
+    
+    /* Touch-friendly improvements */
+    @media (max-width: 768px) {
+        /* Ensure all interactive elements are touch-friendly */
+        a, button {
+            min-height: 44px !important;
+            min-width: 44px !important;
+        }
+        
+        /* Pagination link hover states */
+        .social-pagination-link:hover,
+        .social-pagination-arrow:hover,
+        .social-pagination-page:hover {
+            background: #f1f5f9 !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Even smaller touch targets for very small screens */
+        .social-pagination-arrow,
+        .social-pagination-page,
+        .social-pagination-current {
+            min-height: 36px !important;
+            min-width: 36px !important;
+        }
+    }
 </style>
 @endsection
 

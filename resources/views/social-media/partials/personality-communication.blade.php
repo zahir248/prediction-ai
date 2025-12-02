@@ -61,8 +61,8 @@
     unset($trait);
     
     // Radar chart configuration
-    $centerX = 200;
-    $centerY = 200;
+    $centerX = 250;
+    $centerY = 250;
     $radius = 150;
     $numAxes = 5;
     $angleStep = (2 * M_PI) / $numAxes;
@@ -146,9 +146,9 @@
     @endif
     
     <!-- Radar Chart -->
-    <div style="display: flex; justify-content: center; margin: 40px 0; position: relative;">
-        <div style="position: relative;">
-            <svg width="400" height="400" style="overflow: visible;">
+    <div class="radar-chart-container" style="display: flex; justify-content: center; margin: 40px 0; position: relative; width: 100%; overflow: hidden;">
+        <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px;">
+            <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
                 <!-- Grid circles -->
                 @for($i = 1; $i <= 5; $i++)
                     <circle cx="{{ $centerX }}" cy="{{ $centerY }}" r="{{ ($i / 5) * $radius }}" 
@@ -206,7 +206,7 @@
                           fill="#374151" 
                           font-size="13" 
                           font-weight="600"
-                          class="personality-label"
+                          class="personality-label radar-label-text"
                           data-trait="{{ $point['key'] }}"
                           style="cursor: pointer; pointer-events: all;">
                         {{ $point['label'] }}
@@ -233,6 +233,71 @@
         .personality-label:hover {
             fill: #3b82f6;
             font-size: 14;
+        }
+        
+        /* Mobile responsive styles for radar chart */
+        @media (max-width: 768px) {
+            .radar-chart-container {
+                margin: 24px 0 !important;
+                padding: 0 !important;
+                overflow-x: auto !important;
+                overflow-y: visible !important;
+                -webkit-overflow-scrolling: touch !important;
+                justify-content: flex-start !important;
+            }
+            
+            .radar-chart-wrapper {
+                padding: 15px 20px !important;
+                min-width: 420px !important;
+                max-width: 100% !important;
+            }
+            
+            .radar-chart-svg {
+                max-width: 100% !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+            
+            .radar-label-text {
+                font-size: 11px !important;
+            }
+            
+            /* Add scrollbar styling */
+            .radar-chart-container::-webkit-scrollbar {
+                height: 6px !important;
+            }
+            
+            .radar-chart-container::-webkit-scrollbar-track {
+                background: #f1f5f9 !important;
+                border-radius: 3px !important;
+            }
+            
+            .radar-chart-container::-webkit-scrollbar-thumb {
+                background: #cbd5e1 !important;
+                border-radius: 3px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .radar-chart-container {
+                margin: 20px 0 !important;
+                padding: 0 !important;
+            }
+            
+            .radar-chart-wrapper {
+                padding: 10px 15px !important;
+                min-width: 380px !important;
+            }
+            
+            .radar-label-text {
+                font-size: 10px !important;
+            }
+            
+            /* Scale down the entire chart slightly on very small screens */
+            .radar-chart-svg {
+                transform: scale(0.85);
+                transform-origin: center;
+            }
         }
     </style>
     
@@ -296,17 +361,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (target.tagName === 'circle' || (target.parentElement && target.parentElement.classList.contains('personality-point'))) {
                 // For circle points, get the exact circle center position
                 const circle = target.tagName === 'circle' ? target : target.querySelector('circle');
-                if (circle) {
-                    const svgRect = svg.getBoundingClientRect();
-                    // SVG is 400x400, so scale factor is based on actual rendered size
-                    const scaleX = svgRect.width / 400;
-                    const scaleY = svgRect.height / 400;
-                    
-                    const cx = parseFloat(circle.getAttribute('cx'));
-                    const cy = parseFloat(circle.getAttribute('cy'));
-                    
-                    x = svgRect.left + (cx * scaleX);
-                    y = svgRect.top + (cy * scaleY);
+                    if (circle) {
+                        const svgRect = svg.getBoundingClientRect();
+                        // SVG uses viewBox (500x500), so scale factor is based on actual rendered size
+                        const scaleX = svgRect.width / 500;
+                        const scaleY = svgRect.height / 500;
+                        
+                        const cx = parseFloat(circle.getAttribute('cx'));
+                        const cy = parseFloat(circle.getAttribute('cy'));
+                        
+                        x = svgRect.left + (cx * scaleX);
+                        y = svgRect.top + (cy * scaleY);
                 } else {
                     // Fallback to mouse position
                     x = event.clientX || event.pageX;

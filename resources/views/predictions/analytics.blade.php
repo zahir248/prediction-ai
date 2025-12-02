@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
-    <div style="max-width: 900px; margin: 0 auto;">
+<div class="analytics-page-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
+    <div class="analytics-content-wrapper" style="max-width: 900px; margin: 0 auto;">
         <!-- Main Card -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+        <div class="analytics-main-card" style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
             <!-- Header Section -->
             <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                 <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">My Analytics Dashboard</h1>
@@ -14,30 +14,32 @@
             <!-- Date Range Selector Section -->
             <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Date Range Selection</h2>
-                <form method="GET" style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end;">
-                    <div>
+                <form method="GET" class="date-range-form" style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end;">
+                    <div class="form-field">
                         <label for="start_date" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
                             Start Date
                         </label>
                         <input type="date" id="start_date" name="start_date" 
                                value="{{ request('start_date', now()->subMonth()->format('Y-m-d')) }}"
+                               class="date-input"
                                style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;">
                     </div>
-                    <div>
+                    <div class="form-field">
                         <label for="end_date" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
                             End Date
                         </label>
                         <input type="date" id="end_date" name="end_date" 
                                value="{{ request('end_date', now()->format('Y-m-d')) }}"
+                               class="date-input"
                                style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;">
                     </div>
-                    <div>
-                        <button type="submit" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); white-space: nowrap;">
+                    <div class="form-button">
+                        <button type="submit" class="update-btn" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); white-space: nowrap;">
                             Update
                         </button>
                     </div>
-                    <div>
-                        <a href="{{ route('predictions.analytics') }}" style="padding: 12px 24px; background: transparent; color: #64748b; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; text-decoration: none; display: inline-block; white-space: nowrap;">
+                    <div class="form-button">
+                        <a href="{{ route('predictions.analytics') }}" class="clear-btn" style="padding: 12px 24px; background: transparent; color: #64748b; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; text-decoration: none; display: inline-block; white-space: nowrap;">
                             Clear
                         </a>
                     </div>
@@ -47,7 +49,7 @@
             <!-- Key Metrics Section -->
             <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Key Metrics</h2>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+                <div class="key-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                     <!-- Total Analyses -->
                     <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <div style="font-size: 28px; font-weight: 700; color: #667eea; margin-bottom: 8px;">{{ number_format($analytics['total_analyses']) }}</div>
@@ -81,7 +83,7 @@
             <!-- Performance Metrics Section -->
             <div style="margin-bottom: 32px;">
                 <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Performance Metrics</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="performance-metrics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <!-- Performance Metrics -->
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f8fafc; border-radius: 8px; margin-bottom: 12px;">
@@ -142,7 +144,7 @@
             <!-- Usage Trends Section -->
             <div>
                 <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Usage Trends</h2>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="usage-trends-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <!-- Daily Analysis Count -->
                     <div>
                         <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 16px;">Daily Analysis Count</h3>
@@ -197,27 +199,279 @@
 </div>
 
 <style>
+    /* Mobile Responsive Styles */
     @media (max-width: 1024px) {
-        div[style*="grid-template-columns: 1fr 1fr auto auto"] {
+        /* Date range form - 2 columns on tablet */
+        .date-range-form {
             grid-template-columns: 1fr 1fr !important;
         }
         
-        div[style*="grid-template-columns: repeat(4, 1fr)"] {
+        .form-button {
+            grid-column: span 1 !important;
+        }
+        
+        /* Key metrics - 2 columns on tablet */
+        .key-metrics-grid {
             grid-template-columns: repeat(2, 1fr) !important;
         }
         
-        div[style*="grid-template-columns: 1fr 1fr"] {
+        /* Performance metrics - stack on tablet */
+        .performance-metrics-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        /* Usage trends - stack on tablet */
+        .usage-trends-grid {
             grid-template-columns: 1fr !important;
         }
     }
     
     @media (max-width: 768px) {
-        div[style*="max-width: 900px"] {
+        /* Container and card padding */
+        .analytics-page-container {
+            padding: 16px 8px !important;
+        }
+        
+        .analytics-content-wrapper {
+            padding: 0 !important;
+        }
+        
+        .analytics-main-card {
+            padding: 20px 16px !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Header section */
+        h1 {
+            font-size: 20px !important;
+        }
+        
+        p[style*="color: #64748b; font-size: 14px"] {
+            font-size: 12px !important;
+        }
+        
+        /* Date range form - stack on mobile */
+        .date-range-form {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+        
+        .form-field {
+            width: 100% !important;
+        }
+        
+        .form-button {
+            width: 100% !important;
+        }
+        
+        .update-btn,
+        .clear-btn {
+            width: 100% !important;
+            padding: 12px 16px !important;
+            text-align: center !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .date-input {
+            font-size: 16px !important; /* Prevent zoom on iOS */
+        }
+        
+        /* Key metrics - 2 columns on mobile */
+        .key-metrics-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        .key-metrics-grid > div {
             padding: 16px !important;
         }
         
-        div[style*="padding: 32px"] {
-            padding: 20px !important;
+        .key-metrics-grid > div > div[style*="font-size: 28px"] {
+            font-size: 22px !important;
+        }
+        
+        .key-metrics-grid > div > div[style*="font-size: 13px"] {
+            font-size: 12px !important;
+        }
+        
+        .key-metrics-grid > div > div[style*="font-size: 12px"] {
+            font-size: 11px !important;
+        }
+        
+        /* Performance metrics - already stacked */
+        .performance-metrics-grid {
+            gap: 12px !important;
+        }
+        
+        .performance-metrics-grid > div > div {
+            padding: 12px !important;
+            flex-wrap: wrap !important;
+        }
+        
+        .performance-metrics-grid span {
+            font-size: 13px !important;
+        }
+        
+        /* Prediction period breakdown */
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 10px !important;
+        }
+        
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] > div {
+            padding: 12px !important;
+        }
+        
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] > div > div[style*="font-size: 24px"] {
+            font-size: 20px !important;
+        }
+        
+        /* Usage trends - already stacked */
+        .usage-trends-grid {
+            gap: 16px !important;
+        }
+        
+        .usage-trends-grid > div {
+            min-width: 0 !important;
+        }
+        
+        .usage-trends-grid h3 {
+            font-size: 13px !important;
+        }
+        
+        .usage-trends-grid > div > div[style*="min-height: 220px"] {
+            min-height: 180px !important;
+            padding: 16px 8px 8px 8px !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        
+        .usage-trends-grid > div > div > div {
+            min-width: 30px !important;
+        }
+        
+        .usage-trends-grid span[style*="font-size: 10px"] {
+            font-size: 9px !important;
+        }
+        
+        .usage-trends-grid span[style*="font-size: 9px"] {
+            font-size: 8px !important;
+        }
+        
+        /* Section headings */
+        h2 {
+            font-size: 14px !important;
+        }
+        
+        h3 {
+            font-size: 13px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Very small screens */
+        .analytics-page-container {
+            padding: 12px 4px !important;
+        }
+        
+        .analytics-main-card {
+            padding: 16px 12px !important;
+            border-radius: 10px !important;
+        }
+        
+        h1 {
+            font-size: 18px !important;
+        }
+        
+        /* Date range form */
+        .date-range-form {
+            gap: 10px !important;
+        }
+        
+        .update-btn,
+        .clear-btn {
+            padding: 10px 14px !important;
+            font-size: 13px !important;
+        }
+        
+        /* Key metrics - single column on very small screens */
+        .key-metrics-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+        
+        .key-metrics-grid > div {
+            padding: 14px !important;
+        }
+        
+        .key-metrics-grid > div > div[style*="font-size: 28px"] {
+            font-size: 20px !important;
+        }
+        
+        /* Performance metrics */
+        .performance-metrics-grid > div > div {
+            padding: 10px !important;
+        }
+        
+        .performance-metrics-grid span {
+            font-size: 12px !important;
+        }
+        
+        /* Prediction period breakdown */
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+        }
+        
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] > div {
+            padding: 10px !important;
+        }
+        
+        /* Usage trends */
+        .usage-trends-grid > div > div[style*="min-height: 220px"] {
+            min-height: 160px !important;
+            padding: 12px 6px 6px 6px !important;
+        }
+        
+        .usage-trends-grid > div > div > div {
+            min-width: 25px !important;
+        }
+        
+        h2 {
+            font-size: 13px !important;
+        }
+        
+        h3 {
+            font-size: 12px !important;
+        }
+    }
+    
+    /* Ensure all text wraps properly */
+    * {
+        box-sizing: border-box;
+    }
+    
+    /* Prevent horizontal overflow */
+    body {
+        overflow-x: hidden;
+    }
+    
+    /* Improve chart scrolling on mobile */
+    @media (max-width: 768px) {
+        .usage-trends-grid > div > div[style*="min-height: 220px"]::-webkit-scrollbar {
+            height: 4px !important;
+        }
+        
+        .usage-trends-grid > div > div[style*="min-height: 220px"]::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 2px !important;
+        }
+        
+        .usage-trends-grid > div > div[style*="min-height: 220px"]::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 2px !important;
         }
     }
 </style>
