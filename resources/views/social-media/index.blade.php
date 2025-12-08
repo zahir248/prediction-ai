@@ -39,6 +39,12 @@
                 </div>
             @endif
 
+            <!-- JavaScript Base Path Configuration --> 
+            <script>
+                // Base path for the application (includes subdirectory if deployed in one)
+                const APP_BASE_PATH = '{{ url("/") }}';
+            </script>
+
             <!-- Search Form -->
             <div id="searchSection">
                 <form id="searchForm" style="margin-bottom: 24px;">
@@ -1909,18 +1915,66 @@ async function startAnalysis(analysisType = 'professional') {
         const result = await response.json();
         
         if (result.success && result.analysis) {
-            displayAnalysisResult(result.analysis);
-            // If analysis was saved, show option to view saved analysis
+            // If analysis was saved, fetch the full rendered HTML with all charts
             if (result.analysis_id) {
                 window.lastAnalysisId = result.analysis_id;
-                // Add a button to view saved analysis
+                
+                // Show loading message
                 const modalContent = document.getElementById('analysisModalContent');
                 if (modalContent) {
-                    const viewSavedBtn = document.createElement('div');
-                    viewSavedBtn.style.cssText = 'margin-top: 24px; text-align: center; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.2);';
-                    viewSavedBtn.innerHTML = `<a href="/social-media/${result.analysis_id}" style="display: inline-block; padding: 12px 24px; background: rgba(255,255,255,0.25); color: white; border: 2px solid rgba(255,255,255,0.5); border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.3s ease;">View Saved Analysis</a>`;
-                    modalContent.appendChild(viewSavedBtn);
+                    modalContent.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 48px; margin-bottom: 16px; animation: spin 1s linear infinite;">⏳</div>
+                            <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">Loading Full Analysis...</h3>
+                            <p style="color: #64748b;">Preparing complete analysis with all charts and details</p>
+                        </div>
+                    `;
                 }
+                
+                // Wait a moment for the analysis to be fully saved, then fetch the HTML
+                setTimeout(async () => {
+                    try {
+                        const analysisHtmlUrl = `${APP_BASE_PATH}/social-media/${result.analysis_id}/analysis-html`;
+                        const htmlResponse = await fetch(analysisHtmlUrl, {
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]').value
+                            }
+                        });
+                        const htmlResult = await htmlResponse.json();
+                        if (htmlResult.success && htmlResult.html) {
+                            displayAnalysisResultHtml(htmlResult.html, result.analysis_id);
+                        } else {
+                            // Fallback: retry after a longer delay
+                            setTimeout(async () => {
+                                try {
+                                    const retryResponse = await fetch(analysisHtmlUrl, {
+                                        headers: {
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]').value
+                                        }
+                                    });
+                                    const retryResult = await retryResponse.json();
+                                    if (retryResult.success && retryResult.html) {
+                                        displayAnalysisResultHtml(retryResult.html, result.analysis_id);
+                                    } else {
+                                        // Final fallback to summary
+                                        console.warn('Could not fetch full HTML, showing summary instead');
+                                        displayAnalysisSummary(result.analysis, result.analysis_id);
+                                    }
+                                } catch (retryError) {
+                                    console.error('Error fetching analysis HTML (retry):', retryError);
+                                    displayAnalysisSummary(result.analysis, result.analysis_id);
+                                }
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        console.error('Error fetching analysis HTML:', error);
+                        // Fallback to summary if fetch fails
+                        displayAnalysisSummary(result.analysis, result.analysis_id);
+                    }
+                }, 1000);
+            } else {
+                // If no analysis_id, show summary without link
+                displayAnalysisSummary(result.analysis, null);
             }
         } else {
             displayAnalysisError(result.error || 'Analysis failed');
@@ -2089,6 +2143,136 @@ function generateSection(title, data) {
     return html;
 }
 
+function displayAnalysisResultHtml(html, analysisId) {
+    const modalContent = document.getElementById('analysisModalContent');
+    if (!modalContent) return;
+    
+    // Wrap the HTML in a scrollable container
+    let fullHtml = '<div style="max-height: 80vh; overflow-y: auto; padding-right: 8px;">' + html;
+    
+    // Add button to view full analysis page at the bottom
+    if (analysisId) {
+        const analysisUrl = `${APP_BASE_PATH}/social-media/${analysisId}`;
+        fullHtml += `<div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 2px solid #e2e8f0;">`;
+        fullHtml += `<a href="${analysisUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5); cursor: pointer;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 24px rgba(102, 126, 234, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(102, 126, 234, 0.5)';" onclick="closeAnalysisModal();">View Full Analysis Page</a>`;
+        fullHtml += `<p style="margin-top: 12px; color: #64748b; font-size: 13px;">Open in a new page for better viewing and PDF export</p>`;
+        fullHtml += `</div>`;
+    }
+    
+    fullHtml += '</div>';
+    
+    modalContent.innerHTML = fullHtml;
+}
+
+function displayAnalysisSummary(analysis, analysisId) {
+    const modalContent = document.getElementById('analysisModalContent');
+    if (!modalContent) return;
+    
+    let html = '<div style="max-height: 80vh; overflow-y: auto; padding-right: 8px;">';
+    
+    // Title
+    if (analysis.title) {
+        html += `<h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px;">${analysis.title}</h2>`;
+    }
+    
+    // Success message
+    html += `<div style="margin-bottom: 24px; padding: 16px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 8px;">`;
+    html += `<div style="display: flex; align-items: center; gap: 12px;">`;
+    html += `<div style="font-size: 32px;">✅</div>`;
+    html += `<div><strong style="color: #166534; font-size: 16px;">Analysis Completed Successfully!</strong><p style="color: #166534; margin: 4px 0 0 0; font-size: 14px;">Your analysis has been saved and is ready to view.</p></div>`;
+    html += `</div></div>`;
+    
+    // Executive Summary
+    if (analysis.executive_summary) {
+        html += `<div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">`;
+        html += `<h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: white;">Executive Summary & Risk Assessment</h3>`;
+        html += `<p style="color: rgba(255,255,255,0.95); line-height: 1.8; margin: 0; word-wrap: break-word; overflow-wrap: break-word;">${analysis.executive_summary}</p>`;
+        html += `</div>`;
+    }
+    
+    // Risk Assessment Summary
+    if (analysis.risk_assessment) {
+        html += `<div style="margin-bottom: 24px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">`;
+        html += `<h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Risk Assessment</h3>`;
+        
+        if (analysis.risk_assessment.overall_risk_level) {
+            const riskColor = analysis.risk_assessment.overall_risk_level === 'High' ? '#ef4444' : 
+                            analysis.risk_assessment.overall_risk_level === 'Medium' ? '#f59e0b' : '#10b981';
+            html += `<div style="margin-bottom: 12px;"><strong style="color: #374151;">Overall Risk Level:</strong> <span style="color: ${riskColor}; font-weight: 600; font-size: 16px;">${analysis.risk_assessment.overall_risk_level}</span></div>`;
+        }
+        
+        if (analysis.risk_assessment.red_flags && analysis.risk_assessment.red_flags.length > 0) {
+            html += `<div style="margin-bottom: 12px; padding: 12px; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;">`;
+            html += `<strong style="color: #991b1b;">Red Flags Found:</strong> <span style="color: #991b1b; font-weight: 600;">${analysis.risk_assessment.red_flags.length}</span>`;
+            html += `</div>`;
+        }
+        
+        if (analysis.risk_assessment.positive_indicators && analysis.risk_assessment.positive_indicators.length > 0) {
+            html += `<div style="padding: 12px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 6px;">`;
+            html += `<strong style="color: #166534;">Positive Indicators Found:</strong> <span style="color: #166534; font-weight: 600;">${analysis.risk_assessment.positive_indicators.length}</span>`;
+            html += `</div>`;
+        }
+        
+        html += `</div>`;
+    }
+    
+    // Analysis Type
+    const analysisType = analysis.analysis_type || 'professional';
+    const typeLabel = analysisType === 'political' ? 'Political' : 'Professional';
+    html += `<div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">`;
+    html += `<div style="display: flex; align-items: center; gap: 12px;">`;
+    html += `<div style="font-size: 20px;">📊</div>`;
+    html += `<div><strong style="color: #374151;">Analysis Type:</strong> <span style="color: #667eea; font-weight: 600; text-transform: capitalize;">${typeLabel}</span></div>`;
+    html += `</div></div>`;
+    
+    // Sections summary
+    html += `<div style="margin-bottom: 24px; padding: 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">`;
+    html += `<h3 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Analysis Sections Included:</h3>`;
+    html += `<ul style="margin: 0; padding-left: 20px; color: #64748b;">`;
+    
+    if (analysisType === 'professional') {
+        if (analysis.professional_footprint) html += `<li>Professional Footprint Analysis (with circular gauge chart)</li>`;
+        if (analysis.work_ethic_indicators) html += `<li>Work Ethic Indicators (with radar chart)</li>`;
+        if (analysis.cultural_fit_indicators) html += `<li>Cultural Fit Indicators (with radar chart)</li>`;
+        if (analysis.professional_growth_signals) html += `<li>Professional Growth Signals (with radar chart)</li>`;
+        if (analysis.personality_communication) html += `<li>Personality & Communication (with radar chart)</li>`;
+        if (analysis.career_profile) html += `<li>Career Profile & Growth Signals</li>`;
+    } else {
+        if (analysis.political_profile) html += `<li>Political Profile</li>`;
+        if (analysis.political_engagement_indicators) html += `<li>Political Engagement Indicators (with radar chart)</li>`;
+        if (analysis.political_alignment_indicators) html += `<li>Political Alignment Indicators (with radar chart)</li>`;
+        if (analysis.political_growth_signals) html += `<li>Political Growth Signals (with radar chart)</li>`;
+        if (analysis.political_communication_style) html += `<li>Political Communication Style (with radar chart)</li>`;
+        if (analysis.political_career_profile) html += `<li>Political Career Profile</li>`;
+    }
+    
+    if (analysis.activity_overview) html += `<li>Activity Overview & Behavioral Patterns</li>`;
+    if (analysis.overall_assessment) html += `<li>Overall Assessment</li>`;
+    if (analysis.recommendations) html += `<li>Recommendations</li>`;
+    
+    html += `</ul></div>`;
+    
+    // Button to view full analysis
+    html += `<div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 2px solid #e2e8f0;">`;
+    if (analysisId) {
+        // Link to specific analysis page
+        const analysisUrl = `${APP_BASE_PATH}/social-media/${analysisId}`;
+        html += `<a href="${analysisUrl}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5); cursor: pointer;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 24px rgba(102, 126, 234, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(102, 126, 234, 0.5)';" onclick="closeAnalysisModal();">View Full Analysis with All Charts & Details</a>`;
+        html += `<p style="margin-top: 16px; color: #64748b; font-size: 14px; line-height: 1.6;">View complete analysis including all interactive charts, detailed breakdowns, and export to PDF</p>`;
+        html += `<p style="margin-top: 8px; color: #10b981; font-size: 13px; font-weight: 600;">✓ Analysis ID: ${analysisId} - Saved successfully</p>`;
+    } else {
+        // Fallback to history page if no analysis ID
+        const historyUrl = `${APP_BASE_PATH}/social-media/history`;
+        html += `<a href="${historyUrl}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; border: none; border-radius: 10px; font-weight: 700; font-size: 16px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5); cursor: pointer;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 24px rgba(102, 126, 234, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(102, 126, 234, 0.5)';" onclick="closeAnalysisModal();">View Analysis History</a>`;
+        html += `<p style="margin-top: 16px; color: #64748b; font-size: 14px; line-height: 1.6;">View all your saved analyses with complete details and charts</p>`;
+    }
+    html += `</div>`;
+    
+    html += '</div>';
+    
+    modalContent.innerHTML = html;
+}
+
 function displayAnalysisError(error) {
     const modalContent = document.getElementById('analysisModalContent');
     if (!modalContent) return;
@@ -2105,8 +2289,8 @@ function displayAnalysisError(error) {
 </script>
 
 <!-- Analysis Modal -->
-<div id="analysisModal" onclick="if(event.target.id === 'analysisModal') closeAnalysisModal();" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
-    <div onclick="event.stopPropagation();" style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+<div id="analysisModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
         <div style="padding: 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
             <h2 id="analysisModalTitle" style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">AI Analysis</h2>
             <button onclick="closeAnalysisModal()" style="background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';" onmouseout="this.style.background='none'; this.style.color='#64748b';">&times;</button>

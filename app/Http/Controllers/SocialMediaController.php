@@ -883,5 +883,38 @@ class SocialMediaController extends Controller
         // Return PDF for download
         return $pdf->download($filename);
     }
+
+    /**
+     * Get rendered analysis HTML for modal display
+     */
+    public function getAnalysisHtml(SocialMediaAnalysis $socialMediaAnalysis)
+    {
+        // Check if user owns this analysis
+        if (!Auth::check()) {
+            abort(401, 'User not authenticated.');
+        }
+        
+        if ((int)Auth::id() !== (int)$socialMediaAnalysis->user_id) {
+            abort(403, 'Unauthorized access to analysis.');
+        }
+
+        if ($socialMediaAnalysis->status !== 'completed' || !$socialMediaAnalysis->ai_analysis) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Analysis not completed yet'
+            ], 400);
+        }
+
+        // Render the analysis content using the same partials as the view page
+        // Pass only socialMediaAnalysis - the partial will extract ai_analysis from it
+        $html = view('social-media.partials.analysis-content', [
+            'socialMediaAnalysis' => $socialMediaAnalysis
+        ])->render();
+
+        return response()->json([
+            'success' => true,
+            'html' => $html
+        ]);
+    }
 }
 

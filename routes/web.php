@@ -98,6 +98,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/social-media/history', [SocialMediaController::class, 'history'])->name('social-media.history');
     Route::get('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'show'])->name('social-media.show');
     Route::get('/social-media/{socialMediaAnalysis}/export', [SocialMediaController::class, 'export'])->name('social-media.export');
+    Route::get('/social-media/{socialMediaAnalysis}/analysis-html', [SocialMediaController::class, 'getAnalysisHtml'])->name('social-media.analysis-html');
     Route::delete('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'destroy'])->name('social-media.destroy');
     Route::post('/social-media/analyze', [SocialMediaController::class, 'analyze'])->name('social-media.analyze');
     Route::post('/social-media/search-all', [SocialMediaController::class, 'searchAll'])->name('social-media.search-all');
