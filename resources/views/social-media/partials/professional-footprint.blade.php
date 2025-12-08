@@ -112,32 +112,62 @@
     @endif
 
     <!-- Circular Gauge and Score Display -->
+    @php
+        $isPdfExport = isset($GLOBALS['isPdfExport']) && $GLOBALS['isPdfExport'] === true;
+        
+        if ($isPdfExport) {
+            // For PDF: Generate SVG as base64 data URI
+            $gaugeSvg = '<?xml version="1.0" encoding="UTF-8"?>';
+            $gaugeSvg .= '<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" style="transform: rotate(-90deg);">';
+            $gaugeSvg .= sprintf(
+                '<circle cx="70" cy="70" r="%s" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"/>',
+                $radius
+            );
+            $gaugeSvg .= sprintf(
+                '<circle cx="70" cy="70" r="%s" fill="none" stroke="%s" stroke-width="12" stroke-linecap="round" stroke-dasharray="%s" stroke-dashoffset="%s"/>',
+                $radius, htmlspecialchars($scoreColor), $circumference, $offset
+            );
+            $gaugeSvg .= '</svg>';
+            $gaugeDataUri = 'data:image/svg+xml;base64,' . base64_encode($gaugeSvg);
+        }
+    @endphp
+    
     @if(true)
-        <div style="display: flex; justify-content: center; align-items: center; margin: 32px 0;">
-            <div style="position: relative; width: 140px; height: 140px;">
-                <!-- Circular Gauge SVG -->
-                <svg width="140" height="140" style="transform: rotate(-90deg);">
-                    <!-- Background circle -->
-                    <circle cx="70" cy="70" r="{{ $radius }}" 
-                            fill="none" 
-                            stroke="#e5e7eb" 
-                            stroke-width="12" 
-                            stroke-linecap="round"/>
-                    <!-- Progress circle -->
-                    <circle cx="70" cy="70" r="{{ $radius }}" 
-                            fill="none" 
-                            stroke="{{ $scoreColor }}" 
-                            stroke-width="12" 
-                            stroke-linecap="round"
-                            stroke-dasharray="{{ $circumference }}"
-                            stroke-dashoffset="{{ $offset }}"
-                            style="transition: stroke-dashoffset 0.5s ease;"/>
-                </svg>
-                <!-- Score Text in Center -->
-                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                    <div style="font-size: 36px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1;">{{ $score }}</div>
-                    <div style="font-size: 12px; color: #64748b; margin-top: 4px;">out of {{ $maxScore }}</div>
-                </div>
+        <div style="display: flex; justify-content: center; align-items: center; margin: 32px 0; text-align: center;">
+            <div style="position: relative; width: 140px; height: 140px; margin: 0 auto;">
+                @if($isPdfExport)
+                    <!-- For PDF: Use img tag with base64 SVG -->
+                    <img src="{{ $gaugeDataUri }}" alt="Professionalism Score Gauge" style="width: 140px; height: 140px; margin: 0 auto; display: block;" />
+                    <!-- Score Text in Center -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 36px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1;">{{ $score }}</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">out of {{ $maxScore }}</div>
+                    </div>
+                @else
+                    <!-- For Web: Use inline SVG -->
+                    <svg width="140" height="140" style="transform: rotate(-90deg);">
+                        <!-- Background circle -->
+                        <circle cx="70" cy="70" r="{{ $radius }}" 
+                                fill="none" 
+                                stroke="#e5e7eb" 
+                                stroke-width="12" 
+                                stroke-linecap="round"/>
+                        <!-- Progress circle -->
+                        <circle cx="70" cy="70" r="{{ $radius }}" 
+                                fill="none" 
+                                stroke="{{ $scoreColor }}" 
+                                stroke-width="12" 
+                                stroke-linecap="round"
+                                stroke-dasharray="{{ $circumference }}"
+                                stroke-dashoffset="{{ $offset }}"
+                                style="transition: stroke-dashoffset 0.5s ease;"/>
+                    </svg>
+                    <!-- Score Text in Center -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 36px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1;">{{ $score }}</div>
+                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">out of {{ $maxScore }}</div>
+                    </div>
+                @endif
             </div>
         </div>
     @endif

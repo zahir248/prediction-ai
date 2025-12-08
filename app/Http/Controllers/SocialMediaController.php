@@ -853,8 +853,11 @@ class SocialMediaController extends Controller
             abort(403, 'Unauthorized access to analysis.');
         }
 
-        // Generate PDF using the analysis data
-        $pdf = Pdf::loadView('social-media.export-pdf', compact('socialMediaAnalysis'));
+        // Render the view as HTML first (this ensures all partials with charts are rendered)
+        $html = view('social-media.export-pdf', compact('socialMediaAnalysis'))->render();
+        
+        // Generate PDF using the rendered HTML
+        $pdf = Pdf::loadHTML($html);
         
         // Set PDF options for better formatting and page break handling
         $pdf->setPaper('a4', 'portrait');
@@ -869,7 +872,9 @@ class SocialMediaController extends Controller
             'defaultPaperSize' => 'a4',
             'defaultPaperOrientation' => 'portrait',
             'dpi' => 150,
-            'fontHeightRatio' => 0.9
+            'fontHeightRatio' => 0.9,
+            'enable-smart-shrinking' => true,
+            'enable-local-file-access' => true
         ]);
 
         // Generate filename

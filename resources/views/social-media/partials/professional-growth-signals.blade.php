@@ -170,71 +170,138 @@
     @endphp
     
     <!-- Spider Graph -->
-    <div class="radar-chart-container" style="display: flex; justify-content: center; margin: 40px 0; position: relative; width: 100%; overflow: hidden;">
-        <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px;">
-            <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
-                <!-- Grid circles -->
-                @for($i = 1; $i <= 5; $i++)
-                    <circle cx="{{ $centerX }}" cy="{{ $centerY }}" r="{{ ($i / 5) * $radius }}" 
-                            fill="none" 
-                            stroke="#e5e7eb" 
-                            stroke-width="1" 
-                            stroke-dasharray="2,2"/>
-                @endfor
+    @php
+        $isPdfExport = isset($GLOBALS['isPdfExport']) && $GLOBALS['isPdfExport'] === true;
+        
+        if ($isPdfExport) {
+            // For PDF: Generate SVG and convert to base64 data URI
+            $svg = '<?xml version="1.0" encoding="UTF-8"?>';
+            $svg .= '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">';
+            
+            // Grid circles
+            for ($i = 1; $i <= 5; $i++) {
+                $svg .= sprintf(
+                    '<circle cx="%s" cy="%s" r="%s" fill="none" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="2,2"/>',
+                    $centerX, $centerY, ($i / 5) * $radius
+                );
+            }
+            
+            // Axis lines
+            foreach ($angles as $angle) {
+                $svg .= sprintf(
+                    '<line x1="%s" y1="%s" x2="%s" y2="%s" stroke="#e5e7eb" stroke-width="1"/>',
+                    $centerX, $centerY,
+                    $centerX + ($radius * cos($angle)),
+                    $centerY + ($radius * sin($angle))
+                );
+            }
+            
+            // Data polygon
+            $pointsString = implode(' ', array_map(function($p) {
+                return round($p['x'], 2) . ',' . round($p['y'], 2);
+            }, $points));
+            $svg .= sprintf(
+                '<polygon points="%s" fill="rgba(16, 185, 129, 0.2)" stroke="#10b981" stroke-width="2"/>',
+                htmlspecialchars($pointsString)
+            );
+            
+            // Data points and labels
+            foreach ($points as $index => $point) {
+                $labelAngle = $angles[$index];
+                $labelDistance = $radius + 35;
+                $labelX = $centerX + ($labelDistance * cos($labelAngle));
+                $labelY = $centerY + ($labelDistance * sin($labelAngle));
+                $textAnchor = abs($labelX - $centerX) < 10 ? 'middle' : ($labelX > $centerX ? 'start' : 'end');
                 
-                <!-- Axis lines -->
-                @foreach($angles as $angle)
-                    <line x1="{{ $centerX }}" 
-                          y1="{{ $centerY }}" 
-                          x2="{{ $centerX + ($radius * cos($angle)) }}" 
-                          y2="{{ $centerY + ($radius * sin($angle)) }}" 
-                          stroke="#e5e7eb" 
-                          stroke-width="1"/>
-                @endforeach
+                // Point
+                $svg .= sprintf(
+                    '<circle cx="%s" cy="%s" r="6" fill="#10b981" stroke="white" stroke-width="2"/>',
+                    round($point['x'], 2), round($point['y'], 2)
+                );
                 
-                <!-- Data polygon -->
-                <polygon points="@foreach($points as $p){{ round($p['x'], 2) }},{{ round($p['y'], 2) }} @endforeach" 
-                         fill="rgba(16, 185, 129, 0.2)" 
-                         stroke="#10b981" 
-                         stroke-width="2"/>
-                
-                <!-- Data points and labels -->
-                @foreach($points as $index => $point)
-                    <g class="radar-point" data-dimension="{{ $point['key'] }}" style="cursor: pointer;">
-                        <circle cx="{{ round($point['x'], 2) }}" 
-                                cy="{{ round($point['y'], 2) }}" 
-                                r="6" 
-                                fill="#10b981" 
-                                stroke="white" 
-                                stroke-width="2"/>
-                        <circle cx="{{ round($point['x'], 2) }}" 
-                                cy="{{ round($point['y'], 2) }}" 
-                                r="12" 
-                                fill="transparent" 
-                                stroke="none"/>
-                    </g>
+                // Label
+                $svg .= sprintf(
+                    '<text x="%s" y="%s" text-anchor="%s" fill="#374151" font-size="13" font-weight="600" font-family="Arial, sans-serif">%s</text>',
+                    round($labelX, 2), round($labelY, 2), htmlspecialchars($textAnchor), htmlspecialchars($point['label'])
+                );
+            }
+            
+            $svg .= '</svg>';
+            $svgDataUri = 'data:image/svg+xml;base64,' . base64_encode($svg);
+        }
+    @endphp
+    
+    <div class="radar-chart-container" style="display: {{ $isPdfExport ? 'block' : 'flex' }}; justify-content: center; margin: 40px 0; position: relative; width: 100%; overflow: hidden; text-align: center;">
+        <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
+            @if($isPdfExport)
+                <!-- For PDF: Use img tag with base64 SVG -->
+                <img src="{{ $svgDataUri }}" alt="Professional Growth Signals Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+            @else
+                <!-- For Web: Use inline SVG with interactivity -->
+                <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
+                    <!-- Grid circles -->
+                    @for($i = 1; $i <= 5; $i++)
+                        <circle cx="{{ $centerX }}" cy="{{ $centerY }}" r="{{ ($i / 5) * $radius }}" 
+                                fill="none" 
+                                stroke="#e5e7eb" 
+                                stroke-width="1" 
+                                stroke-dasharray="2,2"/>
+                    @endfor
                     
-                    <!-- Label -->
-                    @php
-                        $labelAngle = $angles[$index];
-                        $labelDistance = $radius + 35;
-                        $labelX = $centerX + ($labelDistance * cos($labelAngle));
-                        $labelY = $centerY + ($labelDistance * sin($labelAngle));
-                        $textAnchor = abs($labelX - $centerX) < 10 ? 'middle' : ($labelX > $centerX ? 'start' : 'end');
-                    @endphp
-                    <text x="{{ round($labelX, 2) }}" 
-                          y="{{ round($labelY, 2) }}" 
-                          text-anchor="{{ $textAnchor }}" 
-                          fill="#374151" 
-                          font-size="13" 
-                          font-weight="600"
-                          class="radar-label radar-label-text"
-                          data-dimension="{{ $point['key'] }}"
-                          style="cursor: pointer; pointer-events: all;">
-                        {{ $point['label'] }}
-                    </text>
-                @endforeach
-            </svg>
+                    <!-- Axis lines -->
+                    @foreach($angles as $angle)
+                        <line x1="{{ $centerX }}" 
+                              y1="{{ $centerY }}" 
+                              x2="{{ $centerX + ($radius * cos($angle)) }}" 
+                              y2="{{ $centerY + ($radius * sin($angle)) }}" 
+                              stroke="#e5e7eb" 
+                              stroke-width="1"/>
+                    @endforeach
+                    
+                    <!-- Data polygon -->
+                    <polygon points="@foreach($points as $p){{ round($p['x'], 2) }},{{ round($p['y'], 2) }} @endforeach" 
+                             fill="rgba(16, 185, 129, 0.2)" 
+                             stroke="#10b981" 
+                             stroke-width="2"/>
+                    
+                    <!-- Data points and labels -->
+                    @foreach($points as $index => $point)
+                        <g class="radar-point" data-dimension="{{ $point['key'] }}" style="cursor: pointer;">
+                            <circle cx="{{ round($point['x'], 2) }}" 
+                                    cy="{{ round($point['y'], 2) }}" 
+                                    r="6" 
+                                    fill="#10b981" 
+                                    stroke="white" 
+                                    stroke-width="2"/>
+                            <circle cx="{{ round($point['x'], 2) }}" 
+                                    cy="{{ round($point['y'], 2) }}" 
+                                    r="12" 
+                                    fill="transparent" 
+                                    stroke="none"/>
+                        </g>
+                        
+                        <!-- Label -->
+                        @php
+                            $labelAngle = $angles[$index];
+                            $labelDistance = $radius + 35;
+                            $labelX = $centerX + ($labelDistance * cos($labelAngle));
+                            $labelY = $centerY + ($labelDistance * sin($labelAngle));
+                            $textAnchor = abs($labelX - $centerX) < 10 ? 'middle' : ($labelX > $centerX ? 'start' : 'end');
+                        @endphp
+                        <text x="{{ round($labelX, 2) }}" 
+                              y="{{ round($labelY, 2) }}" 
+                              text-anchor="{{ $textAnchor }}" 
+                              fill="#374151" 
+                              font-size="13" 
+                              font-weight="600"
+                              class="radar-label radar-label-text"
+                              data-dimension="{{ $point['key'] }}"
+                              style="cursor: pointer; pointer-events: all;">
+                            {{ $point['label'] }}
+                        </text>
+                    @endforeach
+                </svg>
+            @endif
         </div>
     </div>
     
