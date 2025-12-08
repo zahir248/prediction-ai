@@ -221,7 +221,9 @@ class SocialMediaController extends Controller
     public function searchAll(Request $request)
     {
         $request->validate([
-            'username' => 'required|string'
+            'username' => 'required|string',
+            'platforms' => 'nullable|array',
+            'platforms.*' => 'in:facebook,instagram,tiktok,twitter'
         ]);
 
         try {
@@ -229,13 +231,15 @@ class SocialMediaController extends Controller
             set_time_limit(600); // 10 minutes
             
             $username = trim($request->input('username'));
+            $selectedPlatforms = $request->input('platforms', ['facebook', 'instagram', 'tiktok', 'twitter']); // Default to all
 
-            Log::info('Searching all platforms', [
+            Log::info('Searching platforms', [
                 'user_id' => Auth::id(),
-                'username' => $username
+                'username' => $username,
+                'platforms' => $selectedPlatforms
             ]);
 
-            $results = $this->socialMediaService->searchAllPlatforms($username);
+            $results = $this->socialMediaService->searchAllPlatforms($username, $selectedPlatforms);
 
             // Save platform data immediately after search (if we have results)
             if (isset($results['platforms']) && $results['total_found'] > 0) {
@@ -364,8 +368,14 @@ class SocialMediaController extends Controller
         $username = $socialMediaAnalysis->username;
         $platformData = $socialMediaAnalysis->platform_data;
         
-        // Get selected platforms from request
+        // Get selected platforms and analysis type from request
         $selectedPlatforms = $request->input('selected_platforms', null);
+        $analysisType = $request->input('analysis_type', 'professional');
+        
+        // Validate analysis type
+        if (!in_array($analysisType, ['professional', 'political'])) {
+            $analysisType = 'professional';
+        }
         
         // Filter platform data based on selected platforms
         if ($selectedPlatforms && is_array($selectedPlatforms) && count($selectedPlatforms) > 0) {
@@ -388,8 +398,8 @@ class SocialMediaController extends Controller
                 'model_used' => \App\Services\AIServiceFactory::getCurrentProvider()
             ]);
 
-            // Prepare analysis text
-            $analysisText = $this->prepareAnalysisText($platformData);
+            // Prepare analysis text with analysis type
+            $analysisText = $this->prepareAnalysisText($platformData, $analysisType);
 
             // Get AI service
             $aiService = \App\Services\AIServiceFactory::create();
@@ -415,6 +425,11 @@ class SocialMediaController extends Controller
                 $analysisResult = $aiResult;
             }
 
+            // Store analysis type in result if it's an array
+            if (is_array($analysisResult)) {
+                $analysisResult['analysis_type'] = $analysisType;
+            }
+
             // Update analysis record
             $newAnalysis->update([
                 'ai_analysis' => $analysisResult,
@@ -427,6 +442,7 @@ class SocialMediaController extends Controller
                 'original_analysis_id' => $socialMediaAnalysis->id,
                 'new_analysis_id' => $newAnalysis->id,
                 'username' => $username,
+                'analysis_type' => $analysisType,
                 'processing_time' => $processingTime
             ]);
 
@@ -516,13 +532,20 @@ class SocialMediaController extends Controller
         $request->validate([
             'username' => 'required|string',
             'platform_data' => 'nullable|array',
-            'use_existing' => 'nullable|boolean'
+            'use_existing' => 'nullable|boolean',
+            'analysis_type' => 'nullable|in:professional,political'
         ]);
 
         $startTime = microtime(true);
         $username = $request->input('username');
         $useExisting = $request->input('use_existing', false);
         $platformData = $request->input('platform_data');
+        $analysisType = $request->input('analysis_type', 'professional');
+        
+        // Validate analysis type
+        if (!in_array($analysisType, ['professional', 'political'])) {
+            $analysisType = 'professional';
+        }
 
         try {
             // If use_existing is true, try to get existing platform data
@@ -607,8 +630,8 @@ class SocialMediaController extends Controller
             // Get AI service
             $aiService = \App\Services\AIServiceFactory::create();
             
-            // Prepare text data from all platforms
-            $analysisText = $this->prepareAnalysisText($platformData);
+            // Prepare text data from all platforms with analysis type
+            $analysisText = $this->prepareAnalysisText($platformData, $analysisType);
             
             // Perform AI analysis
             $result = $aiService->analyzeText(
@@ -622,6 +645,11 @@ class SocialMediaController extends Controller
 
             // Calculate processing time
             $processingTime = round(microtime(true) - $startTime, 3);
+            
+            // Store analysis type in result if it's an array
+            if (is_array($result)) {
+                $result['analysis_type'] = $analysisType;
+            }
 
             // Update analysis record with results
             $analysis->update([
@@ -661,10 +689,22 @@ class SocialMediaController extends Controller
     /**
      * Prepare analysis text from platform data
      */
-    protected function prepareAnalysisText($platformData)
+    protected function prepareAnalysisText($platformData, $analysisType = 'professional')
     {
-        $text = "SOCIAL MEDIA PROFILE ANALYSIS REQUEST\n\n";
-        $text .= "Please analyze the following social media profile data across multiple platforms to provide a comprehensive professional assessment.\n\n";
+        if ($analysisType === 'political') {
+            $text = "SOCIAL MEDIA PROFILE ANALYSIS REQUEST\n\n";
+            $text .= "ANALYSIS TYPE: POLITICAL PROFILE ANALYSIS\n\n";
+            $text .= "Please analyze the following social media profile data across multiple platforms to assess the person's POLITICAL VIEWS and POLITICAL INVOLVEMENT.\n\n";
+            $text .= "Focus on:\n";
+            $text .= "- Their political views, opinions, and ideologies\n";
+            $text .= "- Their level of political involvement and engagement\n";
+            $text .= "- Their political activities and participation\n";
+            $text .= "- Their political affiliations and associations\n\n";
+        } else {
+            $text = "SOCIAL MEDIA PROFILE ANALYSIS REQUEST\n\n";
+            $text .= "ANALYSIS TYPE: PROFESSIONAL ANALYSIS\n\n";
+            $text .= "Please analyze the following social media profile data across multiple platforms to provide a comprehensive professional assessment.\n\n";
+        }
         
         foreach ($platformData as $platform => $data) {
             if (!$data || !isset($data['data'])) {

@@ -80,6 +80,17 @@
                                                 <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;">
                                                     #{{ $analysis->id }}
                                                 </span>
+                                                @php
+                                                    $analysisType = $analysis->ai_analysis['analysis_type'] ?? 'professional';
+                                                @endphp
+                                                <span style="padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; 
+                                                    @if($analysisType === 'political') 
+                                                        background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+                                                    @else 
+                                                        background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+                                                    @endif">
+                                                    {{ ucfirst($analysisType) }}
+                                                </span>
                                                 <span style="color: #64748b; font-size: 12px;">
                                                     {{ $analysis->created_at->diffForHumans() }}
                                                 </span>
@@ -165,7 +176,21 @@
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; color: #1e293b; font-size: 16px; margin-bottom: 4px;">{{ $analysis->username }}</div>
-                                    <div style="color: #64748b; font-size: 12px;">#{{ $analysis->id }} • {{ $analysis->created_at->diffForHumans() }}</div>
+                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                                        <span style="color: #64748b; font-size: 12px;">#{{ $analysis->id }}</span>
+                                        @php
+                                            $analysisType = $analysis->ai_analysis['analysis_type'] ?? 'professional';
+                                        @endphp
+                                        <span style="padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; 
+                                            @if($analysisType === 'political') 
+                                                background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+                                            @else 
+                                                background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+                                            @endif">
+                                            {{ ucfirst($analysisType) }}
+                                        </span>
+                                        <span style="color: #64748b; font-size: 12px;">• {{ $analysis->created_at->diffForHumans() }}</span>
+                                    </div>
                                 </div>
                                 @if($analysis->status === 'completed')
                                     <span style="background: #dcfce7; color: #166534; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">

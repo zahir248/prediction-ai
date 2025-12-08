@@ -18,6 +18,7 @@ class SocialMediaService
     protected $facebookActorId;
     protected $instagramActorId;
     protected $tiktokActorId;
+    protected $twitterActorId;
 
     public function __construct()
     {
@@ -31,6 +32,7 @@ class SocialMediaService
         $this->facebookActorId = config('services.apify.facebook_actor_id', 'apify/facebook-posts-scraper');
         $this->instagramActorId = config('services.apify.instagram_actor_id', 'apify/instagram-scraper');
         $this->tiktokActorId = config('services.apify.tiktok_actor_id', 'clockworks/tiktok-profile-scraper');
+        $this->twitterActorId = config('services.apify.twitter_actor_id', 'apify/twitter-scraper');
         
         if (empty($this->apifyApiToken)) {
             Log::warning('Apify API token is not configured', [
@@ -92,6 +94,7 @@ class SocialMediaService
             // Include all possible input fields that different actors might need
             $requestBody = array_filter([
                 'startUrls' => $input['startUrls'] ?? [],
+                'searchTerms' => $input['searchTerms'] ?? null, // apidojo/tweet-scraper uses this
                 'profiles' => $input['profiles'] ?? null, // TikTok profile scraper uses this
                 'usernames' => $input['usernames'] ?? null, // Instagram scrapers often use this
                 'username' => $input['username'] ?? null,
@@ -100,6 +103,8 @@ class SocialMediaService
                 'maxComments' => $input['maxComments'] ?? null,
                 'resultsLimit' => $input['resultsLimit'] ?? null,
                 'resultsType' => $input['resultsType'] ?? null,
+                'sort' => $input['sort'] ?? null, // apidojo/tweet-scraper uses this
+                'tweetLanguage' => $input['tweetLanguage'] ?? null, // apidojo/tweet-scraper uses this
                 'dateFrom' => $input['dateFrom'] ?? null, // Optional: start date for historical posts
                 'dateTo' => $input['dateTo'] ?? null, // Optional: end date for historical posts
                 'extendOutputFunction' => $input['extendOutputFunction'] ?? null,
@@ -1450,70 +1455,184 @@ class SocialMediaService
     }
 
     /**
+     * Search Twitter/X account by username
+     */
+    public function searchTwitterAccount($username)
+    {
+        try {
+            $cleanUsername = trim($username);
+            $cleanUsername = preg_replace('/^@/', '', $cleanUsername);
+            $cleanUsername = preg_replace('/^https?:\/\/(www\.)?(twitter\.com\/|x\.com\/)/', '', $cleanUsername);
+            $cleanUsername = trim($cleanUsername, '/');
+
+            // apidojo/tweet-scraper uses searchTerms with "from:username" format
+            $input = [
+                'searchTerms' => ["from:{$cleanUsername}"],
+                'maxItems' => 100, // Get more tweets for better engagement analysis
+                'sort' => 'Latest',
+                'tweetLanguage' => 'en',
+            ];
+            
+            Log::info('Scraping Twitter/X account', [
+                'username' => $username,
+                'clean_username' => $cleanUsername,
+                'actor_id' => $this->twitterActorId,
+                'input_format' => 'searchTerms array'
+            ]);
+
+            $result = $this->runApifyActor($this->twitterActorId, $input);
+            
+            // Log raw Twitter API response
+            $twitterUrl = "https://twitter.com/{$cleanUsername}";
+            Log::info('Twitter/X API raw response', [
+                'username' => $username,
+                'clean_username' => $cleanUsername,
+                'twitter_url' => $twitterUrl,
+                'success' => $result['success'] ?? false,
+                'raw_data' => isset($result['data']) ? json_encode($result['data'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
+                'error' => $result['error'] ?? null
+            ]);
+
+            if ($result['success']) {
+                $data = $this->formatApifyTwitterData($result['data']);
+                
+                // Check if formatting returned an error (account doesn't exist or no valid data)
+                if (isset($data['error'])) {
+                    Log::info('Twitter/X account not found', [
+                        'username' => $username,
+                        'error' => $data['error']
+                    ]);
+                    return [
+                        'success' => false,
+                        'error' => $data['error'] ?? 'Account not found or not accessible'
+                    ];
+                }
+                
+                // Log formatted Twitter data
+                Log::info('Twitter/X formatted data', [
+                    'username' => $username,
+                    'formatted_data' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                ]);
+                    
+                return [
+                    'success' => true,
+                    'platform' => 'twitter',
+                    'data' => $data
+                ];
+            }
+
+            return $result;
+
+        } catch (Exception $e) {
+            Log::error('Twitter/X account search exception', [
+                'username' => $username,
+                'exception' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Exception: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Search all social media platforms simultaneously
      */
-    public function searchAllPlatforms($username)
+    public function searchAllPlatforms($username, $selectedPlatforms = null)
     {
         // Increase execution time limit for multi-platform search
         set_time_limit(600); // 10 minutes for all platforms
         
+        // Default to all platforms if none specified
+        if ($selectedPlatforms === null) {
+            $selectedPlatforms = ['facebook', 'instagram', 'tiktok', 'twitter'];
+        }
+        
+        // Initialize results structure for all platforms
+        $allPlatforms = ['facebook', 'instagram', 'tiktok', 'twitter'];
         $results = [
             'username' => $username,
-            'platforms' => [
-                'facebook' => ['found' => false, 'data' => null, 'error' => null],
-                'instagram' => ['found' => false, 'data' => null, 'error' => null],
-                'tiktok' => ['found' => false, 'data' => null, 'error' => null],
-            ],
+            'platforms' => [],
             'total_found' => 0
         ];
-
-        // Search all platforms sequentially with timeout protection
-        try {
-            $facebookResult = $this->searchFacebookPageByUsername($username);
-            if ($facebookResult['success']) {
-                $results['platforms']['facebook'] = ['found' => true, 'data' => $facebookResult['data'], 'error' => null];
-                $results['total_found']++;
-            } else {
-                $results['platforms']['facebook']['error'] = $facebookResult['error'] ?? 'Not found';
-            }
-        } catch (\Exception $e) {
-            Log::error('Facebook search exception in searchAllPlatforms', [
-                'username' => $username,
-                'exception' => $e->getMessage()
-            ]);
-            $results['platforms']['facebook']['error'] = 'Search timeout or error: ' . $e->getMessage();
+        
+        // Initialize all platforms as not found
+        foreach ($allPlatforms as $platform) {
+            $results['platforms'][$platform] = ['found' => false, 'data' => null, 'error' => null];
         }
 
-        try {
-            $instagramResult = $this->searchInstagramAccountByUsername($username);
-            if ($instagramResult['success']) {
-                $results['platforms']['instagram'] = ['found' => true, 'data' => $instagramResult['data'], 'error' => null];
-                $results['total_found']++;
-            } else {
-                $results['platforms']['instagram']['error'] = $instagramResult['error'] ?? 'Not found';
+        // Search only selected platforms sequentially with timeout protection
+        if (in_array('facebook', $selectedPlatforms)) {
+            try {
+                $facebookResult = $this->searchFacebookPageByUsername($username);
+                if ($facebookResult['success']) {
+                    $results['platforms']['facebook'] = ['found' => true, 'data' => $facebookResult['data'], 'error' => null];
+                    $results['total_found']++;
+                } else {
+                    $results['platforms']['facebook']['error'] = $facebookResult['error'] ?? 'Not found';
+                }
+            } catch (\Exception $e) {
+                Log::error('Facebook search exception in searchAllPlatforms', [
+                    'username' => $username,
+                    'exception' => $e->getMessage()
+                ]);
+                $results['platforms']['facebook']['error'] = 'Search timeout or error: ' . $e->getMessage();
             }
-        } catch (\Exception $e) {
-            Log::error('Instagram search exception in searchAllPlatforms', [
-                'username' => $username,
-                'exception' => $e->getMessage()
-            ]);
-            $results['platforms']['instagram']['error'] = 'Search timeout or error: ' . $e->getMessage();
         }
 
-        try {
-            $tiktokResult = $this->searchTikTokAccount($username);
-            if ($tiktokResult['success']) {
-                $results['platforms']['tiktok'] = ['found' => true, 'data' => $tiktokResult['data'], 'error' => null];
-                $results['total_found']++;
-            } else {
-                $results['platforms']['tiktok']['error'] = $tiktokResult['error'] ?? 'Not found';
+        if (in_array('instagram', $selectedPlatforms)) {
+            try {
+                $instagramResult = $this->searchInstagramAccountByUsername($username);
+                if ($instagramResult['success']) {
+                    $results['platforms']['instagram'] = ['found' => true, 'data' => $instagramResult['data'], 'error' => null];
+                    $results['total_found']++;
+                } else {
+                    $results['platforms']['instagram']['error'] = $instagramResult['error'] ?? 'Not found';
+                }
+            } catch (\Exception $e) {
+                Log::error('Instagram search exception in searchAllPlatforms', [
+                    'username' => $username,
+                    'exception' => $e->getMessage()
+                ]);
+                $results['platforms']['instagram']['error'] = 'Search timeout or error: ' . $e->getMessage();
             }
-        } catch (\Exception $e) {
-            Log::error('TikTok search exception in searchAllPlatforms', [
-                'username' => $username,
-                'exception' => $e->getMessage()
-            ]);
-            $results['platforms']['tiktok']['error'] = 'Search timeout or error: ' . $e->getMessage();
+        }
+
+        if (in_array('tiktok', $selectedPlatforms)) {
+            try {
+                $tiktokResult = $this->searchTikTokAccount($username);
+                if ($tiktokResult['success']) {
+                    $results['platforms']['tiktok'] = ['found' => true, 'data' => $tiktokResult['data'], 'error' => null];
+                    $results['total_found']++;
+                } else {
+                    $results['platforms']['tiktok']['error'] = $tiktokResult['error'] ?? 'Not found';
+                }
+            } catch (\Exception $e) {
+                Log::error('TikTok search exception in searchAllPlatforms', [
+                    'username' => $username,
+                    'exception' => $e->getMessage()
+                ]);
+                $results['platforms']['tiktok']['error'] = 'Search timeout or error: ' . $e->getMessage();
+            }
+        }
+
+        if (in_array('twitter', $selectedPlatforms)) {
+            try {
+                $twitterResult = $this->searchTwitterAccount($username);
+                if ($twitterResult['success']) {
+                    $results['platforms']['twitter'] = ['found' => true, 'data' => $twitterResult['data'], 'error' => null];
+                    $results['total_found']++;
+                } else {
+                    $results['platforms']['twitter']['error'] = $twitterResult['error'] ?? 'Not found';
+                }
+            } catch (\Exception $e) {
+                Log::error('Twitter/X search exception in searchAllPlatforms', [
+                    'username' => $username,
+                    'exception' => $e->getMessage()
+                ]);
+                $results['platforms']['twitter']['error'] = 'Search timeout or error: ' . $e->getMessage();
+            }
         }
 
         return $results;
@@ -1789,6 +1908,245 @@ class SocialMediaService
         }, $videos);
     }
 
+    /**
+     * Format Apify Twitter/X data
+     */
+    protected function formatApifyTwitterData($items)
+    {
+        if (empty($items) || !is_array($items)) {
+            return ['error' => 'No data returned from Apify'];
+        }
+
+        // apify/twitter-scraper returns tweets with user data
+        $profileData = null;
+        $tweets = [];
+
+        foreach ($items as $item) {
+            // Check if this is a tweet with user data
+            if (isset($item['user']) && is_array($item['user'])) {
+                $tweets[] = $item;
+                // Extract profile data from first tweet's user object
+                if (!$profileData) {
+                    $user = $item['user'];
+                    $profileData = [
+                        'id' => $user['id'] ?? $user['userId'] ?? null,
+                        'username' => $user['username'] ?? $user['screenName'] ?? null,
+                        'name' => $user['name'] ?? $user['displayName'] ?? null,
+                        'bio' => $user['description'] ?? $user['bio'] ?? null,
+                        'profile_picture' => $user['profileImageUrl'] ?? $user['profileImageUrlHttps'] ?? $user['avatar'] ?? null,
+                        'profile_url' => $user['url'] ?? ($user['username'] ? "https://twitter.com/{$user['username']}" : null),
+                        'followers_count' => $user['followersCount'] ?? $user['followers'] ?? 0,
+                        'following_count' => $user['followingCount'] ?? $user['following'] ?? 0,
+                        'tweets_count' => $user['tweetsCount'] ?? $user['statusesCount'] ?? 0,
+                    ];
+                }
+            } elseif (isset($item['type']) && $item['type'] === 'Profile') {
+                // Separate profile object
+                $profileData = $item;
+            } elseif (isset($item['type']) && $item['type'] === 'Tweet') {
+                // Separate tweet object
+                $tweets[] = $item;
+            } elseif (!$profileData && isset($item['username'])) {
+                // Fallback - assume first item might be profile
+                $profileData = $item;
+            } else {
+                // Assume it's a tweet
+                $tweets[] = $item;
+            }
+        }
+
+        // If no profile data found, try to extract from first tweet
+        if (!$profileData && !empty($tweets) && isset($tweets[0]['user'])) {
+            $user = $tweets[0]['user'];
+            $profileData = [
+                'id' => $user['id'] ?? $user['userId'] ?? null,
+                'username' => $user['username'] ?? $user['screenName'] ?? null,
+                'name' => $user['name'] ?? $user['displayName'] ?? null,
+                'bio' => $user['description'] ?? $user['bio'] ?? null,
+                'profile_picture' => $user['profileImageUrl'] ?? $user['profileImageUrlHttps'] ?? $user['avatar'] ?? null,
+                'profile_url' => $user['url'] ?? ($user['username'] ? "https://twitter.com/{$user['username']}" : null),
+                'followers_count' => $user['followersCount'] ?? $user['followers'] ?? 0,
+                'following_count' => $user['followingCount'] ?? $user['following'] ?? 0,
+                'tweets_count' => $user['tweetsCount'] ?? $user['statusesCount'] ?? 0,
+            ];
+        }
+
+        // If still no profile data, use first item as fallback
+        if (!$profileData && !empty($items)) {
+            $profileData = $items[0];
+        }
+
+        // Validate that we have actual account data
+        $hasValidData = false;
+        
+        // If we have any tweets, check if they have valid content
+        if (!empty($tweets)) {
+            foreach ($tweets as $tweet) {
+                // Check if tweet has valid content (id, text, or engagement data)
+                if (isset($tweet['id']) || isset($tweet['text']) || isset($tweet['likeCount']) || isset($tweet['retweetCount'])) {
+                    $hasValidData = true;
+                    break;
+                }
+            }
+        }
+        
+        // Also check if we have valid profile data with username or ID
+        if (!$hasValidData && !empty($profileData)) {
+            $username = $profileData['username'] ?? $profileData['screenName'] ?? null;
+            if ($username || isset($profileData['id']) || isset($profileData['userId'])) {
+                $hasValidData = true;
+            }
+        }
+        
+        // If no valid data found, account doesn't exist
+        if (!$hasValidData && empty($tweets) && empty($profileData)) {
+            Log::info('Twitter/X account has no valid data', [
+                'tweets_count' => count($tweets),
+                'has_profile_data' => !empty($profileData)
+            ]);
+            return [
+                'error' => 'Account not found or not accessible'
+            ];
+        }
+
+        $formattedTweets = $this->formatApifyTwitterTweets($tweets);
+        
+        // Get profile info
+        $username = $profileData['username'] ?? $profileData['screenName'] ?? null;
+        $profileUrl = $profileData['profile_url'] ?? $profileData['url'] ?? ($username ? "https://twitter.com/{$username}" : null);
+        
+        // Get follower count
+        $followersCount = $profileData['followers_count'] ?? $profileData['followersCount'] ?? $profileData['followers'] ?? 0;
+        
+        // Validate we have at least some engagement data or profile info
+        if (empty($formattedTweets) && !$username && !isset($profileData['id']) && !isset($profileData['userId'])) {
+            Log::info('Twitter/X account has no tweets and no profile data', [
+                'tweets_count' => count($formattedTweets),
+                'username' => $username,
+                'has_profile_id' => isset($profileData['id']) || isset($profileData['userId'])
+            ]);
+            return [
+                'error' => 'Account not found or not accessible'
+            ];
+        }
+        
+        // Calculate engagement metrics
+        $engagementMetrics = $this->calculateTwitterEngagementMetrics($formattedTweets, $followersCount);
+        
+        return [
+            'id' => $profileData['id'] ?? $profileData['userId'] ?? null,
+            'username' => $username,
+            'name' => $profileData['name'] ?? $profileData['displayName'] ?? null,
+            'bio' => $profileData['bio'] ?? $profileData['description'] ?? null,
+            'profile_picture' => $profileData['profile_picture'] ?? $profileData['profileImageUrl'] ?? $profileData['profileImageUrlHttps'] ?? $profileData['avatar'] ?? null,
+            'profile_url' => $profileUrl,
+            'followers_count' => $followersCount,
+            'following_count' => $profileData['following_count'] ?? $profileData['followingCount'] ?? $profileData['following'] ?? 0,
+            'tweets_count' => $profileData['tweets_count'] ?? $profileData['tweetsCount'] ?? $profileData['statusesCount'] ?? count($tweets),
+            'recent_tweets' => $formattedTweets,
+            'stats' => [
+                'total_followers' => $followersCount,
+                'total_following' => $profileData['following_count'] ?? $profileData['followingCount'] ?? $profileData['following'] ?? 0,
+                'total_tweets' => $profileData['tweets_count'] ?? $profileData['tweetsCount'] ?? $profileData['statusesCount'] ?? count($tweets),
+                'recent_tweets_count' => count($tweets)
+            ],
+            'engagement' => $engagementMetrics,
+        ];
+    }
+
+    /**
+     * Calculate Twitter/X engagement metrics
+     */
+    protected function calculateTwitterEngagementMetrics($tweets, $followersCount)
+    {
+        if (empty($tweets)) {
+            return [
+                'total_engagement' => 0,
+                'average_engagement_per_post' => 0,
+                'engagement_rate' => 0,
+                'average_likes' => 0,
+                'average_retweets' => 0,
+                'average_replies' => 0,
+                'total_posts_analyzed' => 0,
+                'total_likes' => 0,
+                'total_retweets' => 0,
+                'total_replies' => 0,
+            ];
+        }
+
+        $totalLikes = 0;
+        $totalRetweets = 0;
+        $totalReplies = 0;
+        $totalEngagement = 0;
+        $tweetCount = count($tweets);
+
+        foreach ($tweets as $tweet) {
+            $likes = max(0, (int)($tweet['likes'] ?? $tweet['like_count'] ?? $tweet['likeCount'] ?? 0));
+            $retweets = max(0, (int)($tweet['retweets'] ?? $tweet['retweet_count'] ?? $tweet['retweetCount'] ?? 0));
+            $replies = max(0, (int)($tweet['replies'] ?? $tweet['reply_count'] ?? $tweet['replyCount'] ?? 0));
+            
+            $totalLikes += $likes;
+            $totalRetweets += $retweets;
+            $totalReplies += $replies;
+            $totalEngagement += ($likes + $retweets + $replies);
+        }
+
+        $averageLikes = $tweetCount > 0 ? round($totalLikes / $tweetCount, 2) : 0;
+        $averageRetweets = $tweetCount > 0 ? round($totalRetweets / $tweetCount, 2) : 0;
+        $averageReplies = $tweetCount > 0 ? round($totalReplies / $tweetCount, 2) : 0;
+        $averageEngagement = $tweetCount > 0 ? round($totalEngagement / $tweetCount, 2) : 0;
+        
+        // Calculate engagement rate: (average engagement per post / followers) * 100
+        $engagementRate = ($followersCount > 0 && $averageEngagement > 0) 
+            ? round(($averageEngagement / $followersCount) * 100, 2) 
+            : 0;
+
+        return [
+            'total_engagement' => $totalEngagement,
+            'average_engagement_per_post' => $averageEngagement,
+            'engagement_rate' => $engagementRate,
+            'average_likes' => $averageLikes,
+            'average_retweets' => $averageRetweets,
+            'average_replies' => $averageReplies,
+            'total_posts_analyzed' => $tweetCount,
+            'total_likes' => $totalLikes,
+            'total_retweets' => $totalRetweets,
+            'total_replies' => $totalReplies,
+        ];
+    }
+
+    /**
+     * Format Apify Twitter/X tweets
+     */
+    protected function formatApifyTwitterTweets($tweets)
+    {
+        if (empty($tweets) || !is_array($tweets)) {
+            return [];
+        }
+
+        return array_map(function($tweet) {
+            $likes = max(0, (int)($tweet['likeCount'] ?? $tweet['likes'] ?? $tweet['like_count'] ?? 0));
+            $retweets = max(0, (int)($tweet['retweetCount'] ?? $tweet['retweets'] ?? $tweet['retweet_count'] ?? 0));
+            $replies = max(0, (int)($tweet['replyCount'] ?? $tweet['replies'] ?? $tweet['reply_count'] ?? 0));
+            $totalEngagement = $likes + $retweets + $replies;
+            
+            return [
+                'id' => $tweet['id'] ?? $tweet['tweetId'] ?? null,
+                'text' => $tweet['text'] ?? $tweet['fullText'] ?? $tweet['content'] ?? null,
+                'created_time' => $tweet['createdAt'] ?? $tweet['created_at'] ?? $tweet['timestamp'] ?? null,
+                'timestamp' => $tweet['timestamp'] ?? $tweet['created_at'] ?? null,
+                'likes' => $likes,
+                'like_count' => $likes,
+                'retweets' => $retweets,
+                'retweet_count' => $retweets,
+                'replies' => $replies,
+                'reply_count' => $replies,
+                'total_engagement' => $totalEngagement,
+                'url' => $tweet['url'] ?? $tweet['permalink'] ?? null,
+                'permalink' => $tweet['url'] ?? $tweet['permalink'] ?? null,
+            ];
+        }, $tweets);
+    }
 
     /**
      * Analyze social media account by username (primary method)

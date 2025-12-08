@@ -439,35 +439,156 @@ class ChatGPTService implements AIServiceInterface
      */
     protected function createSocialMediaAnalysisPrompt($text)
     {
-        $prompt = "You are an expert professional profile analyst specializing in comprehensive social media profile assessment for recruitment, hiring, and professional evaluation purposes. Please analyze the following social media profile data across multiple platforms and provide a detailed, professional assessment.\n\n";
-        $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
+        // Extract analysis type from text (professional or political)
+        $analysisType = 'professional';
+        if (stripos($text, 'ANALYSIS TYPE: POLITICAL') !== false || stripos($text, 'political profile') !== false) {
+            $analysisType = 'political';
+        }
         
-        $prompt .= "Provide a comprehensive professional analysis covering the following areas:\n\n";
+        if ($analysisType === 'political') {
+            $prompt = "You are an expert political profile analyst specializing in analyzing political views and political involvement based on social media data. Your task is to analyze the following social media profile data across multiple platforms to assess the person's political views, political involvement, political activities, and political engagement.\n\n";
+            $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
+            $prompt .= "Analyze the person's POLITICAL PROFILE focusing on:\n\n";
+            $prompt .= "- Political views: What are their political opinions, ideologies, and stances on political issues?\n";
+            $prompt .= "- Political involvement: How actively involved are they in political activities, discussions, and movements?\n";
+            $prompt .= "- Political affiliations: What political parties, groups, or movements do they support or associate with?\n";
+            $prompt .= "- Political engagement: What level of political engagement, activism, and participation do they demonstrate?\n";
+            $prompt .= "- Political content: What political topics, issues, and messages do they share and discuss?\n";
+            $prompt .= "- Political network: What political connections, associations, and relationships do they have?\n";
+            $prompt .= "- Political communication: How do they communicate about political matters?\n";
+            $prompt .= "- Political influence: What is their level of political influence and reach?\n\n";
+        } else {
+            $prompt = "You are an expert professional profile analyst specializing in comprehensive social media profile assessment for recruitment, hiring, and professional evaluation purposes. Please analyze the following social media profile data across multiple platforms and provide a detailed, professional assessment.\n\n";
+            $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
+            $prompt .= "Provide a comprehensive professional analysis covering the following areas:\n\n";
+        }
         
-        $prompt .= "Provide analysis in this JSON structure:\n";
-        $prompt .= "{\n";
-        $prompt .= "  \"title\": \"[Professional Profile Analysis: Name/Username]\",\n";
-        $prompt .= "  \"executive_summary\": \"[3-4 sentence summary of key findings, professional strengths, and risk indicators]\",\n";
+        if ($analysisType === 'political') {
+            $prompt .= "Provide analysis in this JSON structure:\n";
+            $prompt .= "{\n";
+            $prompt .= "  \"title\": \"[Political Profile Analysis: Name/Username]\",\n";
+            $prompt .= "  \"executive_summary\": \"[3-4 sentence summary of key findings, political leanings, affiliations, and risk indicators]\",\n";
+        } else {
+            $prompt .= "Provide analysis in this JSON structure:\n";
+            $prompt .= "{\n";
+            $prompt .= "  \"title\": \"[Professional Profile Analysis: Name/Username]\",\n";
+            $prompt .= "  \"executive_summary\": \"[3-4 sentence summary of key findings, professional strengths, and risk indicators]\",\n";
+        }
         $prompt .= "  \"risk_assessment\": {\n";
         $prompt .= "    \"overall_risk_level\": \"[Low/Medium/High]\",\n";
         $prompt .= "    \"risk_factors\": [\n";
         $prompt .= "      {\n";
-        $prompt .= "        \"risk\": \"[Specific risk description]\",\n";
-        $prompt .= "        \"level\": \"[Low/Medium/High]\",\n";
-        $prompt .= "        \"description\": \"[Detailed explanation of the risk]\",\n";
-        $prompt .= "        \"mitigation\": \"[How to address or mitigate this risk]\"\n";
+        if ($analysisType === 'political') {
+            $prompt .= "        \"risk\": \"[Specific political risk description]\",\n";
+            $prompt .= "        \"level\": \"[Low/Medium/High]\",\n";
+            $prompt .= "        \"description\": \"[Detailed explanation of the political risk]\",\n";
+            $prompt .= "        \"mitigation\": \"[How to address or mitigate this political risk]\"\n";
+        } else {
+            $prompt .= "        \"risk\": \"[Specific risk description]\",\n";
+            $prompt .= "        \"level\": \"[Low/Medium/High]\",\n";
+            $prompt .= "        \"description\": \"[Detailed explanation of the risk]\",\n";
+            $prompt .= "        \"mitigation\": \"[How to address or mitigate this risk]\"\n";
+        }
         $prompt .= "      }\n";
         $prompt .= "    ],\n";
         $prompt .= "    \"red_flags\": [\n";
-        $prompt .= "      \"[Any concerning content, behavior, or patterns]\",\n";
-        $prompt .= "      \"[Any concerning content, behavior, or patterns]\"\n";
+        if ($analysisType === 'political') {
+            $prompt .= "      \"[Any concerning political content, behavior, or patterns]\",\n";
+            $prompt .= "      \"[Any concerning political content, behavior, or patterns]\"\n";
+        } else {
+            $prompt .= "      \"[Any concerning content, behavior, or patterns]\",\n";
+            $prompt .= "      \"[Any concerning content, behavior, or patterns]\"\n";
+        }
         $prompt .= "    ],\n";
         $prompt .= "    \"positive_indicators\": [\n";
-        $prompt .= "      \"[Positive professional indicators]\",\n";
-        $prompt .= "      \"[Positive professional indicators]\"\n";
+        if ($analysisType === 'political') {
+            $prompt .= "      \"[Positive political indicators]\",\n";
+            $prompt .= "      \"[Positive political indicators]\"\n";
+        } else {
+            $prompt .= "      \"[Positive professional indicators]\",\n";
+            $prompt .= "      \"[Positive professional indicators]\"\n";
+        }
         $prompt .= "    ]\n";
         $prompt .= "  },\n";
-        $prompt .= "  \"professional_footprint\": {\n";
+        
+        if ($analysisType === 'political') {
+            $prompt .= "  \"political_profile\": {\n";
+            $prompt .= "    \"political_affiliation_score\": [A numeric score from 0-100 representing political alignment clarity and strength],\n";
+            $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+            $prompt .= "    \"overview\": \"[2-3 sentence overview describing the political profile and what it's based on, including number of posts analyzed and platforms]\",\n";
+            $prompt .= "    \"political_leanings\": \"[Detailed assessment of political orientation, ideology, and leanings]\",\n";
+            $prompt .= "    \"political_engagement\": \"[Level and type of political engagement, activism, and participation]\",\n";
+            $prompt .= "    \"political_content\": \"[Analysis of political content themes, messaging, and topics]\",\n";
+            $prompt .= "    \"political_network\": \"[Political associations, connections, and network analysis]\",\n";
+            $prompt .= "    \"political_consistency\": \"[Consistency of political positions, messaging, and values over time]\",\n";
+            $prompt .= "    \"political_influence\": \"[Assessment of political influence, reach, and audience engagement]\",\n";
+            $prompt .= "    \"political_controversies\": \"[Any political controversies, sensitive issues, or polarizing content]\",\n";
+            $prompt .= "    \"political_communication_style\": \"[Analysis of political communication approach, rhetoric, and tone]\",\n";
+            $prompt .= "    \"political_credibility\": \"[Assessment of political credibility, authenticity, and trustworthiness]\",\n";
+            $prompt .= "    \"political_brand_consistency\": \"[Consistency of political brand and messaging across platforms]\",\n";
+            $prompt .= "    \"political_platform_utilization\": \"[How effectively platforms are used for political purposes]\",\n";
+            $prompt .= "    \"political_audience_engagement\": \"[Quality and nature of political audience interactions]\",\n";
+            $prompt .= "    \"concerns\": \"[Any political concerns or red flags that require further investigation]\",\n";
+            $prompt .= "    \"recommendations\": [\n";
+            $prompt .= "      \"[Specific recommendation related to political profile]\",\n";
+            $prompt .= "      \"[Specific recommendation related to political profile]\"\n";
+            $prompt .= "    ]\n";
+            $prompt .= "  },\n";
+            $prompt .= "  \"political_engagement_indicators\": {\n";
+            $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+            $prompt .= "    \"consistency_score\": [Numeric score 0-100 for political posting consistency],\n";
+            $prompt .= "    \"consistency\": \"[Description of political posting consistency and activity patterns]\",\n";
+            $prompt .= "    \"activism_level_score\": [Numeric score 0-100 for political activism and engagement level],\n";
+            $prompt .= "    \"activism_level\": \"[Description of level of political activism, participation, and engagement]\",\n";
+            $prompt .= "    \"commitment_score\": [Numeric score 0-100 for political commitment and dedication],\n";
+            $prompt .= "    \"commitment\": \"[Description of evidence of political commitment and long-term engagement]\",\n";
+            $prompt .= "    \"advocacy_score\": [Numeric score 0-100 for political advocacy and cause support],\n";
+            $prompt .= "    \"advocacy\": \"[Description of political advocacy activities and cause support]\",\n";
+            $prompt .= "    \"influence_score\": [Numeric score 0-100 for political influence and reach],\n";
+            $prompt .= "    \"influence\": \"[Description of political influence, reach, and ability to mobilize]\",\n";
+            $prompt .= "    \"overall_assessment\": \"[Overall political engagement assessment]\",\n";
+            $prompt .= "    \"evidence\": [\n";
+            $prompt .= "      \"[Specific evidence supporting the political engagement assessment]\",\n";
+            $prompt .= "      \"[Specific evidence supporting the political engagement assessment]\"\n";
+            $prompt .= "    ]\n";
+            $prompt .= "  },\n";
+            $prompt .= "  \"political_alignment_indicators\": {\n";
+            $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+            $prompt .= "    \"overview\": \"[2-3 sentence overview describing the person's political alignment and ideological consistency]\",\n";
+            $prompt .= "    \"ideological_alignment_level\": [Numeric value 0-100 or text: Low/Medium/High for ideological alignment],\n";
+            $prompt .= "    \"ideological_alignment\": \"[Description of ideological alignment and political philosophy]\",\n";
+            $prompt .= "    \"party_alignment_level\": [Numeric value 0-100 or text: Low/Medium/High for party alignment],\n";
+            $prompt .= "    \"party_alignment\": \"[Description of party affiliation, support, and alignment]\",\n";
+            $prompt .= "    \"value_consistency_level\": [Numeric value 0-100 or text: Low/Medium/High for value consistency],\n";
+            $prompt .= "    \"value_consistency\": \"[Description of consistency of political values and positions]\",\n";
+            $prompt .= "    \"overall_alignment\": \"[Overall political alignment assessment]\",\n";
+            $prompt .= "    \"concerns\": [\n";
+            $prompt .= "      \"[Any political alignment concerns or inconsistencies]\",\n";
+            $prompt .= "      \"[Any political alignment concerns or inconsistencies]\"\n";
+            $prompt .= "    ],\n";
+            $prompt .= "    \"strengths\": [\n";
+            $prompt .= "      \"[Political alignment strengths]\",\n";
+            $prompt .= "      \"[Political alignment strengths]\"\n";
+            $prompt .= "    ]\n";
+            $prompt .= "  },\n";
+            $prompt .= "  \"political_growth_signals\": {\n";
+            $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
+            $prompt .= "    \"overview\": \"[2-3 sentence overview describing the person's political growth potential and trajectory]\",\n";
+            $prompt .= "    \"political_development_level\": [Numeric value 0-100 or text: Low/Medium/Strong for political development],\n";
+            $prompt .= "    \"political_development\": \"[Description of political knowledge growth and sophistication]\",\n";
+            $prompt .= "    \"influence_growth_level\": [Numeric value 0-100 or text: Low/Medium/Strong for influence growth],\n";
+            $prompt .= "    \"influence_growth\": \"[Description of evidence of growing political influence and reach]\",\n";
+            $prompt .= "    \"network_expansion_level\": [Numeric value 0-100 or text: Low/Medium/Strong for network expansion],\n";
+            $prompt .= "    \"network_expansion\": \"[Description of political network growth and connections]\",\n";
+            $prompt .= "    \"political_trajectory\": \"[Assessment of political trajectory and future potential]\",\n";
+            $prompt .= "    \"indicators\": [\n";
+            $prompt .= "      \"[Specific political growth indicators]\",\n";
+            $prompt .= "      \"[Specific political growth indicators]\"\n";
+            $prompt .= "    ]\n";
+            $prompt .= "  },\n";
+        } else {
+            $prompt .= "  \"professional_footprint\": {\n";
+        }
         $prompt .= "    \"professionalism_score\": [A numeric score from 0-100 representing overall professionalism],\n";
         $prompt .= "    \"confidence\": [Confidence level as a percentage (0-100) for this assessment],\n";
         $prompt .= "    \"overview\": \"[2-3 sentence overview describing the professionalism score and what it's based on, including number of posts analyzed and platforms]\",\n";
@@ -548,7 +669,44 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "      \"[Notable behavioral patterns observed]\"\n";
         $prompt .= "    ]\n";
         $prompt .= "  },\n";
-        $prompt .= "  \"personality_communication\": {\n";
+        
+        if ($analysisType === 'political') {
+            $prompt .= "  \"political_communication_style\": {\n";
+            $prompt .= "    \"confidence\": [Numeric value 0-100 for confidence in political communication assessment],\n";
+            $prompt .= "    \"overview\": \"[Summary of political communication style and approach]\",\n";
+            $prompt .= "    \"rhetoric_analysis\": \"[Analysis of political rhetoric, messaging style, and communication tone]\",\n";
+            $prompt .= "    \"persuasiveness_score\": [Numeric value 0-100 for persuasiveness and influence],\n";
+            $prompt .= "    \"persuasiveness\": \"[Description of persuasive communication abilities and techniques]\",\n";
+            $prompt .= "    \"authenticity_score\": [Numeric value 0-100 for authenticity and genuineness],\n";
+            $prompt .= "    \"authenticity\": \"[Description of authenticity in political communication]\",\n";
+            $prompt .= "    \"polarization_level\": [Numeric value 0-100 for polarization and divisiveness],\n";
+            $prompt .= "    \"polarization\": \"[Description of polarization level and divisive communication patterns]\",\n";
+            $prompt .= "    \"diplomacy_score\": [Numeric value 0-100 for diplomatic and respectful communication],\n";
+            $prompt .= "    \"diplomacy\": \"[Description of diplomatic communication and ability to engage across differences]\",\n";
+            $prompt .= "    \"emotional_appeal_score\": [Numeric value 0-100 for emotional appeal and connection],\n";
+            $prompt .= "    \"emotional_appeal\": \"[Description of emotional appeal and ability to connect with audience]\",\n";
+            $prompt .= "    \"communication_strengths\": [\n";
+            $prompt .= "      \"[Political communication strength 1, e.g., Rhetoric: compelling messaging style]\",\n";
+            $prompt .= "      \"[Political communication strength 2, e.g., Engagement: active dialogue with followers]\",\n";
+            $prompt .= "      \"[Political communication strength 3, e.g., Frequency: regular political content updates]\"\n";
+            $prompt .= "    ],\n";
+            $prompt .= "    \"overall_assessment\": \"[Overall assessment of political communication effectiveness and style]\"\n";
+            $prompt .= "  },\n";
+            $prompt .= "  \"political_career_profile\": {\n";
+            $prompt .= "    \"current_political_focus\": \"[Current political focus, interests, and priorities]\",\n";
+            $prompt .= "    \"political_expertise_areas\": \"[Areas of political expertise and specialization]\",\n";
+            $prompt .= "    \"political_positioning\": \"[Position within political community and influence level]\",\n";
+            $prompt .= "    \"political_goals\": \"[Inferred political goals, aspirations, and ambitions]\",\n";
+            $prompt .= "    \"political_growth_potential\": \"[Assessment of political growth potential and trajectory]\",\n";
+            $prompt .= "    \"political_market_value\": \"[Political influence value and positioning in political landscape]\",\n";
+            $prompt .= "    \"recommendations\": [\n";
+            $prompt .= "      \"[Political development recommendations]\",\n";
+            $prompt .= "      \"[Political development recommendations]\"\n";
+            $prompt .= "    ]\n";
+            $prompt .= "  },\n";
+        } else {
+            $prompt .= "  \"personality_communication\": {\n";
+        }
         $prompt .= "    \"confidence\": [Numeric value 0-100 for confidence in personality assessment],\n";
         $prompt .= "    \"overview\": \"[Summary of personality and communication profile]\",\n";
         $prompt .= "    \"tone_analysis\": \"[Analysis of communication tone, e.g., casual and constructive, formal, friendly, etc.]\",\n";
@@ -593,19 +751,44 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "  \"limitations\": \"[Any limitations or caveats to the analysis]\"\n";
         $prompt .= "}\n\n";
         
-        $prompt .= "INSTRUCTIONS:\n";
-        $prompt .= "1. Be objective and evidence-based in your analysis\n";
-        $prompt .= "2. Focus on professional indicators relevant to hiring/recruitment\n";
-        $prompt .= "3. Identify both strengths and areas of concern\n";
-        $prompt .= "4. Provide specific examples from the data to support your assessments\n";
-        $prompt .= "5. Consider context and avoid making assumptions without evidence\n";
-        $prompt .= "6. Be fair and balanced in your evaluation\n";
-        $prompt .= "7. Focus on professional relevance rather than personal opinions\n";
-        $prompt .= "8. Consider privacy and ethical boundaries\n";
-        $prompt .= "9. Provide actionable insights for decision-making\n";
-        $prompt .= "10. Ensure comprehensive coverage of all requested analysis areas\n\n";
-        
-        $prompt .= "Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.";
+        if ($analysisType === 'political') {
+            $prompt .= "INSTRUCTIONS:\n";
+            $prompt .= "1. Focus EXCLUSIVELY on political views and political involvement based on the social media data\n";
+            $prompt .= "2. Analyze what political opinions, ideologies, and stances the person holds (or infer from available content)\n";
+            $prompt .= "3. Assess their level of political involvement, activism, and engagement in political activities\n";
+            $prompt .= "4. Identify political affiliations, party support, and political group associations (or note absence if none found)\n";
+            $prompt .= "5. Examine political content they share: political topics, issues, messages, and discussions\n";
+            $prompt .= "6. Evaluate their political network: political connections, relationships, and associations\n";
+            $prompt .= "7. Analyze their political communication style and how they express political views\n";
+            $prompt .= "8. Assess their political influence, reach, and ability to mobilize or persuade\n";
+            $prompt .= "9. Provide specific examples from the social media data (quotes, posts, engagement patterns) to support all political assessments\n";
+            $prompt .= "10. Be objective, evidence-based, and focus solely on political aspects - do not analyze professional/work aspects\n";
+            $prompt .= "11. Include detailed metrics, scores, and comprehensive descriptions for all political indicators\n";
+            $prompt .= "12. Provide extensive evidence and examples from their social media activity related to politics\n";
+            $prompt .= "13. Ensure COMPREHENSIVE coverage of ALL political analysis areas with DETAILED content\n";
+            $prompt .= "14. Be thorough and detailed in analyzing political views and political involvement\n";
+            $prompt .= "15. CRITICAL: If no explicit political content is found, analyze what the available data (posts, bio, interests, connections, content themes) might indicate about political leanings, even if indirect\n";
+            $prompt .= "16. CRITICAL: NEVER use 'N/A', 'Not applicable', or 'No data' - always provide meaningful analysis based on available information\n";
+            $prompt .= "17. CRITICAL: If political data is limited, provide contextual analysis: what does the absence of political content indicate? What can be inferred from their general content, interests, or connections?\n";
+            $prompt .= "18. CRITICAL: For every field, provide a substantive assessment - use low scores (0-30) if no political indicators are found, but still provide descriptive analysis explaining why\n";
+            $prompt .= "19. CRITICAL: Even with minimal data, provide scores and descriptions - a score of 0-20 with explanation is better than 'N/A'\n\n";
+            
+            $prompt .= "Generate a high-quality, COMPREHENSIVE political profile analysis focusing on political views and political involvement. Always provide meaningful analysis for every field, even when data is limited. Use low scores and descriptive explanations rather than 'N/A' or 'Not applicable'.";
+        } else {
+            $prompt .= "INSTRUCTIONS:\n";
+            $prompt .= "1. Be objective and evidence-based in your analysis\n";
+            $prompt .= "2. Focus on professional indicators relevant to hiring/recruitment\n";
+            $prompt .= "3. Identify both strengths and areas of concern\n";
+            $prompt .= "4. Provide specific examples from the data to support your assessments\n";
+            $prompt .= "5. Consider context and avoid making assumptions without evidence\n";
+            $prompt .= "6. Be fair and balanced in your evaluation\n";
+            $prompt .= "7. Focus on professional relevance rather than personal opinions\n";
+            $prompt .= "8. Consider privacy and ethical boundaries\n";
+            $prompt .= "9. Provide actionable insights for decision-making\n";
+            $prompt .= "10. Ensure comprehensive coverage of all requested analysis areas\n\n";
+            
+            $prompt .= "Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.";
+        }
         
         return $prompt;
     }

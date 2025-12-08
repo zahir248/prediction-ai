@@ -123,6 +123,215 @@
         </p>
     @endif
     
+    @php
+        // Prepare data for spider graph
+        $dimensions = [
+            'value_alignment' => [
+                'score' => culturalFit_getSliderValue($indicators['value_alignment']['value']),
+                'label' => 'Value Alignment',
+                'description' => $indicators['value_alignment']['description']
+            ],
+            'teamwork_ethos' => [
+                'score' => culturalFit_getSliderValue($indicators['teamwork_ethos']['value']),
+                'label' => 'Teamwork Ethos',
+                'description' => $indicators['teamwork_ethos']['description']
+            ],
+            'innovation_mindset' => [
+                'score' => culturalFit_getSliderValue($indicators['innovation_mindset']['value']),
+                'label' => 'Innovation Mindset',
+                'description' => $indicators['innovation_mindset']['description']
+            ]
+        ];
+        
+        // Radar chart configuration
+        $centerX = 250;
+        $centerY = 250;
+        $radius = 150;
+        $numAxes = 3;
+        $angleStep = (2 * M_PI) / $numAxes;
+        
+        // Calculate points for each dimension
+        $points = [];
+        $angles = [];
+        
+        foreach ($dimensions as $key => $dim) {
+            $i = array_search($key, array_keys($dimensions));
+            $angle = ($i * $angleStep) - (M_PI / 2); // Start from top
+            $angles[] = $angle;
+            $score = $dim['score'];
+            $distance = ($score / 100) * $radius;
+            $x = $centerX + ($distance * cos($angle));
+            $y = $centerY + ($distance * sin($angle));
+            $points[] = [
+                'x' => $x, 
+                'y' => $y, 
+                'score' => $score, 
+                'label' => $dim['label'],
+                'description' => $dim['description'],
+                'key' => $key
+            ];
+        }
+    @endphp
+    
+    <!-- Spider Graph -->
+    <div class="radar-chart-container" style="display: flex; justify-content: center; margin: 40px 0; position: relative; width: 100%; overflow: hidden;">
+        <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px;">
+            <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
+                <!-- Grid circles -->
+                @for($i = 1; $i <= 5; $i++)
+                    <circle cx="{{ $centerX }}" cy="{{ $centerY }}" r="{{ ($i / 5) * $radius }}" 
+                            fill="none" 
+                            stroke="#e5e7eb" 
+                            stroke-width="1" 
+                            stroke-dasharray="2,2"/>
+                @endfor
+                
+                <!-- Axis lines -->
+                @foreach($angles as $angle)
+                    <line x1="{{ $centerX }}" 
+                          y1="{{ $centerY }}" 
+                          x2="{{ $centerX + ($radius * cos($angle)) }}" 
+                          y2="{{ $centerY + ($radius * sin($angle)) }}" 
+                          stroke="#e5e7eb" 
+                          stroke-width="1"/>
+                @endforeach
+                
+                <!-- Data polygon -->
+                <polygon points="@foreach($points as $p){{ round($p['x'], 2) }},{{ round($p['y'], 2) }} @endforeach" 
+                         fill="rgba(102, 126, 234, 0.2)" 
+                         stroke="#667eea" 
+                         stroke-width="2"/>
+                
+                <!-- Data points and labels -->
+                @foreach($points as $index => $point)
+                    <g class="radar-point" data-dimension="{{ $point['key'] }}" style="cursor: pointer;">
+                        <circle cx="{{ round($point['x'], 2) }}" 
+                                cy="{{ round($point['y'], 2) }}" 
+                                r="6" 
+                                fill="#667eea" 
+                                stroke="white" 
+                                stroke-width="2"/>
+                        <circle cx="{{ round($point['x'], 2) }}" 
+                                cy="{{ round($point['y'], 2) }}" 
+                                r="12" 
+                                fill="transparent" 
+                                stroke="none"/>
+                    </g>
+                    
+                    <!-- Label -->
+                    @php
+                        $labelAngle = $angles[$index];
+                        $labelDistance = $radius + 35;
+                        $labelX = $centerX + ($labelDistance * cos($labelAngle));
+                        $labelY = $centerY + ($labelDistance * sin($labelAngle));
+                        $textAnchor = abs($labelX - $centerX) < 10 ? 'middle' : ($labelX > $centerX ? 'start' : 'end');
+                    @endphp
+                    <text x="{{ round($labelX, 2) }}" 
+                          y="{{ round($labelY, 2) }}" 
+                          text-anchor="{{ $textAnchor }}" 
+                          fill="#374151" 
+                          font-size="13" 
+                          font-weight="600"
+                          class="radar-label radar-label-text"
+                          data-dimension="{{ $point['key'] }}"
+                          style="cursor: pointer; pointer-events: all;">
+                        {{ $point['label'] }}
+                    </text>
+                @endforeach
+            </svg>
+        </div>
+    </div>
+    
+    <!-- Tooltip Element -->
+    <div id="cultural-fit-tooltip" style="position: fixed; background: #1f2937; color: white; padding: 12px 16px; border-radius: 8px; font-size: 13px; font-weight: 400; white-space: pre-line; width: 280px; z-index: 10000; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); line-height: 1.6; pointer-events: none; opacity: 0; transition: opacity 0.2s; text-align: left; max-width: 280px;"></div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tooltip = document.getElementById('cultural-fit-tooltip');
+        const labels = document.querySelectorAll('.radar-label');
+        const dimensions = @json($dimensions);
+        const svg = document.querySelector('.radar-chart-svg');
+        
+        function showTooltip(event, key) {
+            const dim = dimensions[key];
+            if (!dim) return;
+            
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            tooltip.textContent = tooltipText;
+            
+            tooltip.style.opacity = '0';
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.display = 'block';
+            
+            let x, y;
+            if (event && event.target) {
+                const target = event.target;
+                if (target.tagName === 'text' || target.classList.contains('radar-label')) {
+                    if (event.clientX && event.clientY) {
+                        x = event.clientX;
+                        y = event.clientY;
+                    } else {
+                        const textRect = target.getBoundingClientRect();
+                        x = textRect.left + (textRect.width / 2);
+                        y = textRect.top + (textRect.height / 2);
+                    }
+                } else {
+                    x = event.clientX || event.pageX;
+                    y = event.clientY || event.pageY;
+                }
+            } else {
+                x = event.clientX || event.pageX;
+                y = event.clientY || event.pageY;
+            }
+            
+            const tooltipWidth = 280;
+            const tooltipHeight = tooltip.offsetHeight || 150;
+            let left = x - (tooltipWidth / 2);
+            let top = y + 20;
+            
+            if (left < 10) left = 10;
+            if (left + tooltipWidth > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipWidth - 10;
+            }
+            if (top < 10) top = y + 20;
+            if (top + tooltipHeight > window.innerHeight - 10) {
+                top = window.innerHeight - tooltipHeight - 10;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.visibility = 'visible';
+            tooltip.style.opacity = '1';
+        }
+        
+        function hideTooltip() {
+            tooltip.style.opacity = '0';
+            setTimeout(() => {
+                tooltip.style.visibility = 'hidden';
+            }, 200);
+        }
+        
+        labels.forEach(label => {
+            const key = label.getAttribute('data-dimension');
+            label.style.cursor = 'help';
+            
+            label.addEventListener('mouseenter', function(e) {
+                showTooltip(e, key);
+            });
+            
+            label.addEventListener('mousemove', function(e) {
+                if (tooltip.style.opacity === '1') {
+                    showTooltip(e, key);
+                }
+            });
+            
+            label.addEventListener('mouseleave', function() {
+                hideTooltip();
+            });
+        });
+    });
+    </script>
+    
     <!-- Indicators with Sliders -->
     <div style="display: grid; gap: 24px;">
         @foreach($indicators as $key => $indicator)
@@ -224,4 +433,14 @@
         </div>
     @endif
 </div>
+
+<style>
+    .radar-label {
+        transition: fill 0.2s ease, font-size 0.2s ease;
+    }
+    .radar-label:hover {
+        fill: #667eea;
+        font-size: 14;
+    }
+</style>
 

@@ -42,18 +42,41 @@
         }
     }
     
-    // TikTok posts (if available)
-    if (isset($platformData['tiktok']['data']['videos']) && is_array($platformData['tiktok']['data']['videos'])) {
-        foreach ($platformData['tiktok']['data']['videos'] as $post) {
-            if (isset($post['description']) || isset($post['text'])) {
+    // TikTok posts (if available) - check multiple possible locations
+    $tiktokVideos = $platformData['tiktok']['data']['recent_videos'] ?? 
+                    $platformData['tiktok']['data']['videos'] ?? 
+                    $platformData['tiktok']['data']['posts'] ?? [];
+    if (is_array($tiktokVideos)) {
+        foreach ($tiktokVideos as $post) {
+            if (isset($post['description']) || isset($post['text']) || isset($post['caption'])) {
                 $allPosts[] = [
                     'platform' => 'TikTok',
                     'platform_display' => 'Post on TikTok:',
-                    'date' => $post['createTime'] ?? $post['timestamp'] ?? $post['created_time'] ?? null,
-                    'content' => $post['description'] ?? $post['text'] ?? '',
-                    'likes' => $post['diggCount'] ?? $post['likes'] ?? $post['like_count'] ?? 0,
-                    'comments' => $post['commentCount'] ?? $post['comments'] ?? $post['comment_count'] ?? 0,
-                    'url' => $post['url'] ?? $post['webVideoUrl'] ?? null,
+                    'date' => $post['createTime'] ?? $post['timestamp'] ?? $post['created_time'] ?? $post['createdTime'] ?? null,
+                    'content' => $post['description'] ?? $post['text'] ?? $post['caption'] ?? '',
+                    'likes' => $post['diggCount'] ?? $post['likes'] ?? $post['like_count'] ?? $post['likeCount'] ?? 0,
+                    'comments' => $post['commentCount'] ?? $post['comments'] ?? $post['comment_count'] ?? $post['commentsCount'] ?? 0,
+                    'url' => $post['url'] ?? $post['webVideoUrl'] ?? $post['permalink'] ?? null,
+                ];
+            }
+        }
+    }
+    
+    // Twitter/X posts (if available) - check multiple possible locations
+    $twitterTweets = $platformData['twitter']['data']['recent_tweets'] ?? 
+                     $platformData['twitter']['data']['tweets'] ?? 
+                     $platformData['twitter']['data']['posts'] ?? [];
+    if (is_array($twitterTweets)) {
+        foreach ($twitterTweets as $post) {
+            if (isset($post['text']) || isset($post['content']) || isset($post['fullText'])) {
+                $allPosts[] = [
+                    'platform' => 'X (Twitter)',
+                    'platform_display' => 'Post on X (Twitter):',
+                    'date' => $post['created_time'] ?? $post['createdAt'] ?? $post['timestamp'] ?? $post['created_at'] ?? null,
+                    'content' => $post['text'] ?? $post['content'] ?? $post['fullText'] ?? '',
+                    'likes' => $post['likes'] ?? $post['like_count'] ?? $post['likeCount'] ?? 0,
+                    'comments' => $post['replies'] ?? $post['reply_count'] ?? $post['replyCount'] ?? 0,
+                    'url' => $post['url'] ?? $post['permalink'] ?? null,
                 ];
             }
         }
@@ -115,6 +138,66 @@
         <p style="color: #64748b; line-height: 1.8; font-size: 14px; margin-bottom: 24px;">
             {{ $overview }}
         </p>
+    @endif
+    
+    <!-- Activity Analysis Details -->
+    @if(isset($data['posting_frequency']) || isset($data['content_types']) || isset($data['peak_activity_times']) || isset($data['engagement_patterns']) || isset($data['behavioral_consistency']))
+        <div style="margin-bottom: 32px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+            <h4 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Activity Analysis</h4>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                @if(isset($data['posting_frequency']) && is_string($data['posting_frequency']))
+                    <div>
+                        <strong style="color: #374151; font-size: 14px; display: block; margin-bottom: 6px;">Posting Frequency:</strong>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">{{ $data['posting_frequency'] }}</p>
+                    </div>
+                @endif
+                
+                @if(isset($data['content_types']) && is_string($data['content_types']))
+                    <div>
+                        <strong style="color: #374151; font-size: 14px; display: block; margin-bottom: 6px;">Content Types:</strong>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">{{ $data['content_types'] }}</p>
+                    </div>
+                @endif
+                
+                @if(isset($data['peak_activity_times']) && is_string($data['peak_activity_times']))
+                    <div>
+                        <strong style="color: #374151; font-size: 14px; display: block; margin-bottom: 6px;">Peak Activity Times:</strong>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">{{ $data['peak_activity_times'] }}</p>
+                    </div>
+                @endif
+                
+                @if(isset($data['engagement_patterns']) && is_string($data['engagement_patterns']))
+                    <div>
+                        <strong style="color: #374151; font-size: 14px; display: block; margin-bottom: 6px;">Engagement Patterns:</strong>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">{{ $data['engagement_patterns'] }}</p>
+                    </div>
+                @endif
+                
+                @if(isset($data['behavioral_consistency']) && is_string($data['behavioral_consistency']))
+                    <div>
+                        <strong style="color: #374151; font-size: 14px; display: block; margin-bottom: 6px;">Behavioral Consistency:</strong>
+                        <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0;">{{ $data['behavioral_consistency'] }}</p>
+                    </div>
+                @endif
+            </div>
+            
+            @if(isset($data['notable_patterns']) && is_array($data['notable_patterns']) && count($data['notable_patterns']) > 0)
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <strong style="color: #374151; font-size: 14px; display: block; margin-bottom: 12px;">Notable Patterns:</strong>
+                    <ul style="margin: 0; padding-left: 20px; color: #64748b; font-size: 14px; line-height: 1.8;">
+                        @foreach($data['notable_patterns'] as $pattern)
+                            <li style="margin-bottom: 6px;">
+                                @if(is_string($pattern))
+                                    {{ $pattern }}
+                                @else
+                                    {{ json_encode($pattern) }}
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
     @endif
     
     <!-- Timeline of Posts -->

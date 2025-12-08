@@ -19,7 +19,7 @@
                             ← Back
                         </a>
                         @if($socialMediaAnalysis->status === 'completed')
-                            <button onclick="confirmExport({{ $socialMediaAnalysis->id }}, '{{ $socialMediaAnalysis->username }}')" 
+                            <button onclick="confirmExport({{ $socialMediaAnalysis->id }}, {{ json_encode($socialMediaAnalysis->username) }})" 
                                     class="social-action-btn"
                                     style="display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);"
                                     onmouseover="this.style.opacity='0.9';"
@@ -28,7 +28,7 @@
                             </button>
                         @endif
                         @if($socialMediaAnalysis->platform_data)
-                            <button onclick="confirmReAnalyze({{ $socialMediaAnalysis->id }}, '{{ $socialMediaAnalysis->username }}')" 
+                            <button onclick="confirmReAnalyze({{ $socialMediaAnalysis->id }}, {{ json_encode($socialMediaAnalysis->username) }})" 
                                     class="social-action-btn"
                                     style="display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);"
                                     onmouseover="this.style.opacity='0.9';"
@@ -43,6 +43,17 @@
                 <div style="margin-bottom: 32px;">
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Analysis Status</h2>
                     <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        @php
+                            $analysisType = $socialMediaAnalysis->ai_analysis['analysis_type'] ?? 'professional';
+                        @endphp
+                        <span style="padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; 
+                            @if($analysisType === 'political') 
+                                background: #fef2f2; color: #991b1b; border: 1px solid #fecaca;
+                            @else 
+                                background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
+                            @endif">
+                            {{ ucfirst($analysisType) }} Analysis
+                        </span>
                         <span style="padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; 
                             @if($socialMediaAnalysis->status === 'completed') 
                                 background: #dcfce7; color: #166534;
@@ -75,11 +86,12 @@
                     <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Platform Data</h2>
                     <div class="social-platform-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
                         @php
-                            $platforms = ['facebook', 'instagram', 'tiktok'];
+                            $platforms = ['facebook', 'instagram', 'tiktok', 'twitter'];
                             $platformNames = [
                                 'facebook' => 'Facebook',
                                 'instagram' => 'Instagram',
-                                'tiktok' => 'TikTok'
+                                'tiktok' => 'TikTok',
+                                'twitter' => 'X (Twitter)'
                             ];
                         @endphp
                         @foreach($platforms as $platform)
@@ -107,6 +119,10 @@
                                     @elseif($platform === 'tiktok')
                                         <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;">
                                             <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                                        </svg>
+                                    @elseif($platform === 'twitter')
+                                        <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;">
+                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                                         </svg>
                                     @endif
                                 </div>
@@ -221,39 +237,75 @@
                         </div>
                     @endif
 
-                    <!-- Professional Footprint -->
-                    @if(isset($analysis['professional_footprint']))
-                        @include('social-media.partials.professional-footprint', ['analysis' => $analysis, 'socialMediaAnalysis' => $socialMediaAnalysis])
+                    @php
+                        $analysisType = $socialMediaAnalysis->ai_analysis['analysis_type'] ?? 'professional';
+                    @endphp
+
+                    @if($analysisType === 'professional')
+                        <!-- Professional Footprint -->
+                        @if(isset($analysis['professional_footprint']))
+                            @include('social-media.partials.professional-footprint', ['analysis' => $analysis, 'socialMediaAnalysis' => $socialMediaAnalysis])
+                        @endif
+
+                        <!-- Work Ethic Indicators -->
+                        @if(isset($analysis['work_ethic_indicators']))
+                            @include('social-media.partials.work-ethic-indicators', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Cultural Fit Indicators -->
+                        @if(isset($analysis['cultural_fit_indicators']))
+                            @include('social-media.partials.cultural-fit-indicators', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Professional Growth Signals -->
+                        @if(isset($analysis['professional_growth_signals']))
+                            @include('social-media.partials.professional-growth-signals', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Personality & Communication -->
+                        @if(isset($analysis['personality_communication']))
+                            @include('social-media.partials.personality-communication', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Career Profile -->
+                        @if(isset($analysis['career_profile']))
+                            @include('social-media.partials.analysis-section', ['title' => 'Career Profile & Growth Signals', 'data' => $analysis['career_profile']])
+                        @endif
+                    @elseif($analysisType === 'political')
+                        <!-- Political Profile -->
+                        @if(isset($analysis['political_profile']))
+                            @include('social-media.partials.analysis-section', ['title' => 'Political Profile', 'data' => $analysis['political_profile']])
+                        @endif
+
+                        <!-- Political Engagement Indicators -->
+                        @if(isset($analysis['political_engagement_indicators']))
+                            @include('social-media.partials.political-engagement-indicators', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Political Alignment Indicators -->
+                        @if(isset($analysis['political_alignment_indicators']))
+                            @include('social-media.partials.political-alignment-indicators', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Political Growth Signals -->
+                        @if(isset($analysis['political_growth_signals']))
+                            @include('social-media.partials.political-growth-signals', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Political Communication Style -->
+                        @if(isset($analysis['political_communication_style']))
+                            @include('social-media.partials.political-communication-style', ['analysis' => $analysis])
+                        @endif
+
+                        <!-- Political Career Profile -->
+                        @if(isset($analysis['political_career_profile']))
+                            @include('social-media.partials.analysis-section', ['title' => 'Political Career Profile', 'data' => $analysis['political_career_profile']])
+                        @endif
                     @endif
 
-                    <!-- Work Ethic Indicators -->
-                    @if(isset($analysis['work_ethic_indicators']))
-                        @include('social-media.partials.work-ethic-indicators', ['analysis' => $analysis])
-                    @endif
-
-                    <!-- Cultural Fit Indicators -->
-                    @if(isset($analysis['cultural_fit_indicators']))
-                        @include('social-media.partials.cultural-fit-indicators', ['analysis' => $analysis])
-                    @endif
-
-                    <!-- Professional Growth Signals -->
-                    @if(isset($analysis['professional_growth_signals']))
-                        @include('social-media.partials.professional-growth-signals', ['analysis' => $analysis])
-                    @endif
-
-                    <!-- Activity Overview -->
+                    <!-- Activity Overview (shown for both types) -->
                     @if(isset($analysis['activity_overview']))
                         @include('social-media.partials.activity-overview', ['analysis' => $analysis, 'socialMediaAnalysis' => $socialMediaAnalysis])
-                    @endif
-
-                    <!-- Personality & Communication -->
-                    @if(isset($analysis['personality_communication']))
-                        @include('social-media.partials.personality-communication', ['analysis' => $analysis])
-                    @endif
-
-                    <!-- Career Profile -->
-                    @if(isset($analysis['career_profile']))
-                        @include('social-media.partials.analysis-section', ['title' => 'Career Profile & Growth Signals', 'data' => $analysis['career_profile']])
                     @endif
 
                     <!-- Overall Assessment -->
@@ -322,7 +374,7 @@
                                     Platform search has been completed, but AI analysis has not been performed yet. You can view the platform data above or start an analysis using the "Re-analyze" button.
                                 </p>
                                 @if($socialMediaAnalysis->platform_data)
-                                    <button onclick="confirmReAnalyze({{ $socialMediaAnalysis->id }}, '{{ $socialMediaAnalysis->username }}')" 
+                                    <button onclick="confirmReAnalyze({{ $socialMediaAnalysis->id }}, {{ json_encode($socialMediaAnalysis->username) }})" 
                                             style="padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);"
                                             onmouseover="this.style.opacity='0.9';"
                                             onmouseout="this.style.opacity='1';">
@@ -447,11 +499,12 @@
      
      // Get available platforms (only those that were found and have data)
      const availablePlatforms = [];
-     const platformNames = {
-         'facebook': 'Facebook',
-         'instagram': 'Instagram',
-         'tiktok': 'TikTok'
-     };
+    const platformNames = {
+        'facebook': 'Facebook',
+        'instagram': 'Instagram',
+        'tiktok': 'TikTok',
+        'twitter': 'X (Twitter)'
+    };
      
      Object.keys(window.platformDataStore).forEach(platform => {
          const platformInfo = window.platformDataStore[platform];
@@ -482,14 +535,55 @@
          window.reAnalyzeSelectedPlatforms[platform.key] = false;
      });
      
-     // Build platform selection UI
-     let html = `
-         <div style="padding: 0;">
-             <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center;">Select Platforms for Re-analysis</h3>
-             <p style="color: #64748b; margin-bottom: 32px; text-align: center; font-size: 14px;">Choose which platforms to include in the AI analysis</p>
-             
-             <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px;">
-     `;
+    // Initialize analysis type (default to professional)
+    window.reAnalyzeAnalysisType = 'professional';
+    
+    // Build platform selection UI
+    let html = `
+        <div style="padding: 0;">
+            <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center;">Re-analyze Profile</h3>
+            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Select analysis type and platforms to include</p>
+            
+            <!-- Analysis Type Selection -->
+            <div style="margin-bottom: 32px;">
+                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 15px;">Analysis Type</label>
+                <div style="display: flex; gap: 12px;">
+                    <div style="flex: 1; padding: 16px; background: #ffffff; border: 2px solid #667eea; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
+                         onclick="selectReAnalyzeType('professional')" 
+                         id="reAnalyzeTypeProfessional"
+                         onmouseover="if(window.reAnalyzeAnalysisType !== 'professional') this.style.borderColor='#9ca3af';" 
+                         onmouseout="if(window.reAnalyzeAnalysisType !== 'professional') this.style.borderColor='#e2e8f0';">
+                        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                            <input type="radio" name="reAnalyzeAnalysisType" value="professional" checked onchange="selectReAnalyzeType('professional')" 
+                                   style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #1e293b; font-size: 15px; margin-bottom: 4px;">Professional</div>
+                                <div style="font-size: 13px; color: #64748b;">For recruitment and hiring evaluation</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div style="flex: 1; padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
+                         onclick="selectReAnalyzeType('political')" 
+                         id="reAnalyzeTypePolitical"
+                         onmouseover="if(window.reAnalyzeAnalysisType !== 'political') this.style.borderColor='#9ca3af';" 
+                         onmouseout="if(window.reAnalyzeAnalysisType !== 'political') this.style.borderColor='#e2e8f0';">
+                        <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                            <input type="radio" name="reAnalyzeAnalysisType" value="political" onchange="selectReAnalyzeType('political')" 
+                                   style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #1e293b; font-size: 15px; margin-bottom: 4px;">Political</div>
+                                <div style="font-size: 13px; color: #64748b;">For political profile and campaign analysis</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Platform Selection -->
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 15px;">Select Platforms</label>
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+    `;
      
      // Add "Select All" option
      html += `
@@ -513,8 +607,10 @@
          } else if (platform.key === 'instagram') {
              platformIconSVG = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><defs><linearGradient id="instagram-gradient-reanalyze" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-reanalyze)"/></svg>';
          } else if (platform.key === 'tiktok') {
-             platformIconSVG = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>';
-         }
+            platformIconSVG = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>';
+        } else if (platform.key === 'twitter') {
+            platformIconSVG = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>';
+        }
          
          html += `
              <div style="padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
@@ -531,10 +627,11 @@
          `;
      });
      
-     html += `
-             </div>
-             
-             <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+    html += `
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
                  <button onclick="closeReAnalyzeModal()" 
                          style="padding: 12px 24px; background: transparent; color: #64748b; border: 2px solid #d1d5db; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease;"
                          onmouseover="this.style.borderColor='#9ca3af'; this.style.color='#374151';"
@@ -582,31 +679,61 @@
      }
  }
 
- function proceedWithReAnalyze() {
-     // Check if at least one platform is selected
-     const hasSelection = Object.values(window.reAnalyzeSelectedPlatforms || {}).some(selected => selected);
-     if (!hasSelection) {
-         alert('Please select at least one platform to analyze.');
-         return;
-     }
-     
-     // Get selected platforms
-     const selectedPlatforms = Object.keys(window.reAnalyzeSelectedPlatforms || {}).filter(
-         platform => window.reAnalyzeSelectedPlatforms[platform]
-     );
-     
-     // Start re-analysis with selected platforms
-     reAnalyze(selectedPlatforms);
- }
+function selectReAnalyzeType(type) {
+    window.reAnalyzeAnalysisType = type;
+    
+    // Update UI
+    const professionalDiv = document.getElementById('reAnalyzeTypeProfessional');
+    const politicalDiv = document.getElementById('reAnalyzeTypePolitical');
+    const professionalRadio = document.querySelector('input[name="reAnalyzeAnalysisType"][value="professional"]');
+    const politicalRadio = document.querySelector('input[name="reAnalyzeAnalysisType"][value="political"]');
+    
+    if (type === 'professional') {
+        professionalDiv.style.borderColor = '#667eea';
+        professionalDiv.style.background = '#f0f4ff';
+        politicalDiv.style.borderColor = '#e2e8f0';
+        politicalDiv.style.background = '#ffffff';
+        if (professionalRadio) professionalRadio.checked = true;
+        if (politicalRadio) politicalRadio.checked = false;
+    } else {
+        politicalDiv.style.borderColor = '#667eea';
+        politicalDiv.style.background = '#f0f4ff';
+        professionalDiv.style.borderColor = '#e2e8f0';
+        professionalDiv.style.background = '#ffffff';
+        if (politicalRadio) politicalRadio.checked = true;
+        if (professionalRadio) professionalRadio.checked = false;
+    }
+}
 
- function closeReAnalyzeModal() {
-     document.getElementById('reAnalyzeModal').style.display = 'none';
-     document.body.style.overflow = '';
-     currentReAnalyzeId = null;
-     window.reAnalyzeSelectedPlatforms = {};
- }
+function proceedWithReAnalyze() {
+    // Check if at least one platform is selected
+    const hasSelection = Object.values(window.reAnalyzeSelectedPlatforms || {}).some(selected => selected);
+    if (!hasSelection) {
+        alert('Please select at least one platform to analyze.');
+        return;
+    }
+    
+    // Get selected platforms
+    const selectedPlatforms = Object.keys(window.reAnalyzeSelectedPlatforms || {}).filter(
+        platform => window.reAnalyzeSelectedPlatforms[platform]
+    );
+    
+    // Get analysis type
+    const analysisType = window.reAnalyzeAnalysisType || 'professional';
+    
+    // Start re-analysis with selected platforms and analysis type
+    reAnalyze(selectedPlatforms, analysisType);
+}
 
-async function reAnalyze(selectedPlatforms = null) {
+function closeReAnalyzeModal() {
+    document.getElementById('reAnalyzeModal').style.display = 'none';
+    document.body.style.overflow = '';
+    currentReAnalyzeId = null;
+    window.reAnalyzeSelectedPlatforms = {};
+    window.reAnalyzeAnalysisType = 'professional';
+}
+
+async function reAnalyze(selectedPlatforms = null, analysisType = 'professional') {
     if (!currentReAnalyzeId) return;
     
     // Update modal content to show loading
@@ -630,7 +757,8 @@ async function reAnalyze(selectedPlatforms = null) {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]').value
             },
             body: JSON.stringify({
-                selected_platforms: selectedPlatforms || null
+                selected_platforms: selectedPlatforms || null,
+                analysis_type: analysisType || 'professional'
             })
         });
 
@@ -720,11 +848,12 @@ document.getElementById('platformModal').onclick = function(e) {
          return;
      }
      
-     const platformNames = {
-         'facebook': 'Facebook',
-         'instagram': 'Instagram',
-         'tiktok': 'TikTok'
-     };
+    const platformNames = {
+        'facebook': 'Facebook',
+        'instagram': 'Instagram',
+        'tiktok': 'TikTok',
+        'twitter': 'X (Twitter)'
+    };
      
      const platformName = platformNames[platform] || platform.charAt(0).toUpperCase() + platform.slice(1);
      
@@ -759,7 +888,8 @@ document.getElementById('platformModal').onclick = function(e) {
      const profileUrl = data.profile_url || data.link || (data.username ? 
          (platformType === 'facebook' ? `https://www.facebook.com/${data.username}` :
           platformType === 'instagram' ? `https://www.instagram.com/${data.username}/` :
-          platformType === 'tiktok' ? `https://www.tiktok.com/@${data.username}` : null) : null);
+          platformType === 'tiktok' ? `https://www.tiktok.com/@${data.username}` :
+         platformType === 'twitter' ? `https://twitter.com/${data.username}` : null) : null);
      
      if (profileUrl) {
          html += `<div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">`;
@@ -889,10 +1019,12 @@ document.getElementById('platformModal').onclick = function(e) {
      } else if (platformType === 'instagram') {
          return `<svg viewBox="0 0 24 24" style="width: 32px; height: 32px;"><defs><linearGradient id="instagram-gradient-modal" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-modal)"/></svg>`;
      } else if (platformType === 'tiktok') {
-         return `<svg viewBox="0 0 24 24" style="width: 32px; height: 32px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`;
-     }
-     return '';
- }
+        return `<svg viewBox="0 0 24 24" style="width: 32px; height: 32px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>`;
+    } else if (platformType === 'twitter') {
+        return `<svg viewBox="0 0 24 24" style="width: 32px; height: 32px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+    }
+    return '';
+}
 
  function formatNumber(num) {
      if (num >= 1000000) {
