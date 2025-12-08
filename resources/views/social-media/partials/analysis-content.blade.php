@@ -184,8 +184,8 @@
     @if(isset($analysis['confidence_level']) && is_string($analysis['confidence_level']))
         <div style="margin-bottom: 4px;"><strong>Confidence Level:</strong> {{ $analysis['confidence_level'] }}</div>
     @endif
-    @if(isset($analysis['analysis_date']) && is_string($analysis['analysis_date']))
-        <div style="margin-bottom: 4px;"><strong>Analysis Date:</strong> {{ $analysis['analysis_date'] }}</div>
+    @if(isset($socialMediaAnalysis) && $socialMediaAnalysis->created_at)
+        <div style="margin-bottom: 4px;"><strong>Analysis Date:</strong> {{ $socialMediaAnalysis->created_at->format('M d, Y \a\t g:i A') }}</div>
     @endif
     @if(isset($analysis['data_quality']) && is_string($analysis['data_quality']))
         <div style="margin-bottom: 4px;"><strong>Data Quality:</strong> {{ $analysis['data_quality'] }}</div>
