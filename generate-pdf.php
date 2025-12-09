@@ -169,3 +169,4 @@ echo "PDF generated successfully!\n";
 echo "Location: $pdfFile\n";
 echo "Size: " . number_format(filesize($pdfFile) / 1024, 2) . " KB\n";
 
+
