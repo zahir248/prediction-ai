@@ -75,18 +75,18 @@
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">Comprehensive Social Media Intelligence</h3>
                         <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
-                            Analyze profiles across Facebook, Instagram, and TikTok with AI-powered insights. Get professional assessments, risk analysis, and engagement metrics in one comprehensive report.
+                            Analyze profiles across Facebook, Instagram, TikTok, and X (Twitter) with AI-powered insights. Get professional assessments, risk analysis, and engagement metrics in one comprehensive report.
                         </p>
                     </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
-                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.8); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.5);">
-                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #1877F2;">
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.95); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.6); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.borderColor='rgba(186, 230, 253, 0.8)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'; this.style.borderColor='rgba(186, 230, 253, 0.6)';">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #1877F2;">
                                 <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                             </svg>
                             <span style="font-weight: 600;">Facebook</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.8); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.5);">
-                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.95); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.6); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.borderColor='rgba(186, 230, 253, 0.8)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'; this.style.borderColor='rgba(186, 230, 253, 0.6)';">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;">
                                 <defs>
                                     <linearGradient id="instagram-gradient-dash" x1="0%" y1="0%" x2="100%" y2="100%">
                                         <stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" />
@@ -98,27 +98,33 @@
                             </svg>
                             <span style="font-weight: 600;">Instagram</span>
                         </div>
-                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.8); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.5);">
-                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;">
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.95); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.6); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.borderColor='rgba(186, 230, 253, 0.8)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'; this.style.borderColor='rgba(186, 230, 253, 0.6)';">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #000000;">
                                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
                             </svg>
                             <span style="font-weight: 600;">TikTok</span>
                         </div>
+                        <div style="display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: rgba(255,255,255,0.95); border-radius: 8px; font-size: 13px; color: #374151; border: 1px solid rgba(186, 230, 253, 0.6); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'; this.style.borderColor='rgba(186, 230, 253, 0.8)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)'; this.style.borderColor='rgba(186, 230, 253, 0.6)';">
+                            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #000000;">
+                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                            </svg>
+                            <span style="font-weight: 600;">X (Twitter)</span>
+                        </div>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
-                        <div style="padding: 16px; background: rgba(255,255,255,0.8); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5);">
+                        <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                             <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">AI-Powered Insights</h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Professional risk assessment and behavioral analysis</p>
                         </div>
-                        <div style="padding: 16px; background: rgba(255,255,255,0.8); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5);">
+                        <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                             <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Engagement Metrics</h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Comprehensive engagement and performance analytics</p>
                         </div>
-                        <div style="padding: 16px; background: rgba(255,255,255,0.8); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5);">
+                        <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                             <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Multi-Platform</h4>
-                            <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Search across all platforms simultaneously</p>
+                            <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Search across Facebook, Instagram, TikTok, and X (Twitter)</p>
                         </div>
-                        <div style="padding: 16px; background: rgba(255,255,255,0.8); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5);">
+                        <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                             <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Export Reports</h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Download professional analysis reports</p>
                         </div>
