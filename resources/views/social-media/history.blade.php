@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
 <div class="social-history-page-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
     <div style="max-width: 900px; margin: 0 auto;">
         <!-- Main Card -->
@@ -13,7 +16,8 @@
                         <p style="color: #64748b; font-size: 14px; margin: 0;">Complete history of all your social media profile analyses</p>
                     </div>
                     <div>
-                        <a href="{{ route('social-media.index') }}" class="new-analysis-btn" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                        <a href="{{ route('social-media.index') }}" class="new-analysis-btn" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                            <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
                             New Analysis
                         </a>
                     </div>
@@ -136,30 +140,34 @@
                                         <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: nowrap; min-height: 36px; align-items: center; white-space: nowrap;">
                                             @if($analysis->platform_data)
                                                 <a href="{{ route('social-media.show', $analysis) }}" 
-                                                   style="padding: 8px 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); white-space: nowrap;">
-                                                    View
+                                                   title="View"
+                                                   style="padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                                                    <i class="bi bi-eye" style="font-size: 14px;"></i>
                                                 </a>
                                             @else
-                                                <span style="padding: 8px 12px; background: #e5e7eb; color: #9ca3af; border-radius: 6px; font-weight: 500; font-size: 12px; opacity: 0.5; white-space: nowrap;">
-                                                    View
+                                                <span title="View (unavailable)"
+                                                      style="padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #e5e7eb; color: #9ca3af; border-radius: 6px; opacity: 0.5;">
+                                                    <i class="bi bi-eye" style="font-size: 14px;"></i>
                                                 </span>
                                             @endif
                                             @if($analysis->status === 'completed')
                                                 <button onclick="confirmExport({{ $analysis->id }}, '{{ $analysis->username }}')" 
-                                                        style="padding: 8px 12px; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 12px; transition: all 0.3s ease; cursor: pointer; white-space: nowrap;">
-                                                    Export
+                                                        title="Export"
+                                                        style="padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; transition: all 0.3s ease; cursor: pointer;">
+                                                    <i class="bi bi-download" style="font-size: 14px;"></i>
                                                 </button>
                                             @else
-                                                <span style="padding: 8px 12px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 12px; opacity: 0.5; white-space: nowrap;">
-                                                    Export
+                                                <span title="Export (unavailable)"
+                                                      style="padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; opacity: 0.5;">
+                                                    <i class="bi bi-download" style="font-size: 14px;"></i>
                                                 </span>
                                             @endif
                                             <button onclick="confirmDelete({{ $analysis->id }}, '{{ $analysis->username }}')" 
-                                                    style="padding: 8px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 12px; cursor: pointer; transition: all 0.3s ease; white-space: nowrap;"
+                                                    title="Delete"
+                                                    style="padding: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #ef4444; color: white; border: none; border-radius: 6px; transition: all 0.3s ease; cursor: pointer;"
                                                     onmouseover="this.style.background='#dc2626';"
-                                                    onmouseout="this.style.background='#ef4444';"
-                                                    title="Delete Analysis">
-                                                Delete
+                                                    onmouseout="this.style.background='#ef4444';">
+                                                <i class="bi bi-trash" style="font-size: 14px;"></i>
                                             </button>
                                         </div>
                                     </td>
@@ -220,33 +228,39 @@
                                 <div class="social-mobile-actions" style="display: flex; gap: 8px;">
                                     <a href="{{ route('social-media.show', $analysis) }}" 
                                        class="social-mobile-action-btn"
-                                       style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; text-align: center; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
-                                        View
+                                       title="View"
+                                       style="flex: 1; min-width: 100px; display: flex; align-items: center; justify-content: center; padding: 10px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);">
+                                        <i class="bi bi-eye" style="font-size: 16px;"></i>
                                     </a>
                                     @if($analysis->status === 'completed')
                                         <button onclick="confirmExport({{ $analysis->id }}, '{{ $analysis->username }}')" 
                                                 class="social-mobile-action-btn"
-                                                style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
-                                            Export
+                                                title="Export"
+                                                style="flex: 1; min-width: 100px; display: flex; align-items: center; justify-content: center; padding: 10px 16px; background: transparent; color: #374151; border: 1px solid #d1d5db; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer;">
+                                            <i class="bi bi-download" style="font-size: 16px;"></i>
                                         </button>
                                     @else
-                                        <span class="social-mobile-action-btn" style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 13px; opacity: 0.5; text-align: center;">
-                                            Export
+                                        <span class="social-mobile-action-btn" 
+                                              title="Export (unavailable)"
+                                              style="flex: 1; min-width: 100px; display: flex; align-items: center; justify-content: center; padding: 10px 16px; background: transparent; color: #9ca3af; border: 1px solid #e5e7eb; border-radius: 6px; font-weight: 500; font-size: 13px; opacity: 0.5;">
+                                            <i class="bi bi-download" style="font-size: 16px;"></i>
                                         </span>
                                     @endif
                                     <button onclick="confirmDelete({{ $analysis->id }}, '{{ $analysis->username }}')" 
                                             class="social-mobile-action-btn"
-                                            style="flex: 1; min-width: 100px; display: inline-block; padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer; text-align: center;">
-                                        Delete
+                                            title="Delete"
+                                            style="flex: 1; min-width: 100px; display: flex; align-items: center; justify-content: center; padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 500; font-size: 13px; transition: all 0.3s ease; cursor: pointer;">
+                                        <i class="bi bi-trash" style="font-size: 16px;"></i>
                                     </button>
                                 </div>
                             @else
                                 <div>
                                     <button onclick="confirmDelete({{ $analysis->id }}, '{{ $analysis->username }}')" 
-                                            style="width: 100%; padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease;"
+                                            title="Delete"
+                                            style="width: 100%; padding: 10px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;"
                                             onmouseover="this.style.background='#dc2626';"
-                                            onmouseout="this.style.background='#ef4444';"
-                                            title="Delete Analysis">
+                                            onmouseout="this.style.background='#ef4444';">
+                                        <i class="bi bi-trash" style="font-size: 16px;"></i>
                                         Delete
                                     </button>
                                 </div>
@@ -314,7 +328,8 @@
                     <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto;">
                         Start analyzing social media profiles to see your history here.
                     </p>
-                    <a href="{{ route('social-media.index') }}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                    <a href="{{ route('social-media.index') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                        <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
                         Create New Analysis
                     </a>
                 </div>
