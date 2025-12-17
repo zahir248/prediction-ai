@@ -12,7 +12,7 @@
             <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
                     <div>
-                        <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">Prediction History</h1>
+                        <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">Prediction Analysis History</h1>
                         <p style="color: #64748b; font-size: 14px; margin: 0;">Complete history of all your AI prediction analyses</p>
                     </div>
                     <div>

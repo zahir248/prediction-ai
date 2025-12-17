@@ -12,7 +12,7 @@
                 
                 <!-- Form Header -->
                 <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
-                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">Create New AI Prediction</h1>
+                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">Predictions Analysis</h1>
                     <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Fill in the details below to generate your AI-powered prediction analysis</p>
                 </div>
                 
@@ -215,7 +215,7 @@
                         Cancel
                     </a>
                     <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
-                        Create Prediction
+                        Generate Prediction
                     </button>
                 </div>
                 
