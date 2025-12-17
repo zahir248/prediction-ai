@@ -1,5 +1,19 @@
 @extends('layouts.app')
 
+@php
+    // Helper function to convert markdown **text** to HTML <strong>text</strong>
+    function convertMarkdownBold($text) {
+        if (!is_string($text)) {
+            return $text;
+        }
+        // Escape HTML first for security
+        $escaped = e($text);
+        // Convert **text** to <strong>text</strong>
+        $converted = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $escaped);
+        return $converted;
+    }
+@endphp
+
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <div class="prediction-show-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
@@ -177,7 +191,7 @@
                     <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid #3b82f6;">
                         <p style="color: #374151; font-size: 14px; margin-bottom: 12px; font-weight: 600;">How Sources Influenced This Analysis</p>
                         <div style="color: #374151; font-size: 14px; line-height: 1.6;">
-                            {!! nl2br(e($prediction->prediction_result['source_analysis'])) !!}
+                            {!! nl2br(convertMarkdownBold($prediction->prediction_result['source_analysis'])) !!}
                         </div>
                         <p style="color: #64748b; font-size: 13px; margin-top: 16px; margin-bottom: 0;">
                             This analysis shows how each provided source contributed to specific predictions and conclusions, ensuring transparency and traceability of insights.
@@ -193,7 +207,7 @@
                     
                     @if(isset($prediction->prediction_result['note']) && is_string($prediction->prediction_result['note']))
                         <div style="background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #f59e0b;">
-                            <strong>Important Note:</strong> {{ $prediction->prediction_result['note'] }}
+                            <strong>Important Note:</strong> {!! convertMarkdownBold($prediction->prediction_result['note']) !!}
                         </div>
                     @endif
                     
@@ -219,24 +233,24 @@
                                     @if(is_array($report['executive_summary']))
                                         @foreach($report['executive_summary'] as $key => $value)
                                             @if(is_string($value))
-                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
+                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}</p>
                                             @elseif(is_array($value))
                                                 <div style="margin-bottom: 12px;">
                                                     <p style="font-weight: 600; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
                                                     <ul style="margin: 0; padding-left: 18px;">
                                                         @foreach($value as $item)
-                                                            <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                            <li style="margin-bottom: 3px;">{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                         @endforeach
                                                     </ul>
                                                 </div>
                                             @else
-                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}</p>
+                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}</p>
                                             @endif
                                         @endforeach
                                     @elseif(is_string($report['executive_summary']))
-                                        <p style="margin: 0;">{{ $report['executive_summary'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold($report['executive_summary']) !!}</p>
                                     @else
-                                        <p style="margin: 0;">{{ (string)$report['executive_summary'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold((string)$report['executive_summary']) !!}</p>
                                     @endif
                                 </div>
                             </div>
@@ -250,24 +264,24 @@
                                     @if(is_array($report['current_situation']))
                                         @foreach($report['current_situation'] as $key => $value)
                                             @if(is_string($value))
-                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
+                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}</p>
                                             @elseif(is_array($value))
                                                 <div style="margin-bottom: 12px;">
                                                     <p style="font-weight: 600; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
                                                     <ul style="margin: 0; padding-left: 18px;">
                                                         @foreach($value as $item)
-                                                            <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                            <li style="margin-bottom: 3px;">{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                         @endforeach
                                                     </ul>
                                                 </div>
                                             @else
-                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}</p>
+                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}</p>
                                             @endif
                                         @endforeach
                                     @elseif(is_string($report['current_situation']))
-                                        <p style="margin: 0;">{{ $report['current_situation'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold($report['current_situation']) !!}</p>
                                     @else
-                                        <p style="margin: 0;">{{ (string)$report['current_situation'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold((string)$report['current_situation']) !!}</p>
                                     @endif
                                 </div>
                             </div>
@@ -277,30 +291,40 @@
                             @if(isset($report['key_factors']) && is_array($report['key_factors']))
                             <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid #10b981;">
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Key Factors for Future Development</h4>
-                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
+                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px; list-style: none;">
                                     @foreach($report['key_factors'] as $factor)
-                                        <li style="margin-bottom: 8px;">
-                                            @if(is_array($factor))
+                                        <li style="margin-bottom: 16px; padding-left: 0;">
+                                            @if(is_array($factor) && isset($factor['point']))
+                                                <!-- New format with point and explanation -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($factor['point']) !!}</div>
+                                                @if(isset($factor['explanation']) && !empty($factor['explanation']))
+                                                    <div style="color: #64748b; font-size: 13px; line-height: 1.6; margin-left: 16px; padding-left: 12px; border-left: 2px solid #cbd5e1; margin-top: 4px;">
+                                                        {!! convertMarkdownBold($factor['explanation']) !!}
+                                                    </div>
+                                                @endif
+                                            @elseif(is_array($factor))
+                                                <!-- Legacy format handling -->
                                                 @foreach($factor as $key => $value)
                                                     @if(is_string($value))
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}
                                                     @elseif(is_array($value))
                                                         <div style="margin-top: 6px;">
                                                             <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                                                             <ul style="margin: 6px 0 0 18px;">
                                                                 @foreach($value as $item)
-                                                                    <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                                    <li>{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                                 @endforeach
                                                             </ul>
                                                         </div>
                                                     @else
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}
                                                     @endif
                                                 @endforeach
                                             @elseif(is_string($factor))
-                                                {{ $factor }}
+                                                <!-- Legacy string format -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($factor) !!}</div>
                                             @else
-                                                {{ (string)$factor }}
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold((string)$factor) !!}</div>
                                             @endif
                                         </li>
                                     @endforeach
@@ -312,30 +336,40 @@
                             @if(isset($report['future_predictions']) && is_array($report['future_predictions']))
                             <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid #8b5cf6;">
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Future Predictions</h4>
-                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
+                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px; list-style: none;">
                                     @foreach($report['future_predictions'] as $prediction_item)
-                                        <li style="margin-bottom: 8px;">
-                                            @if(is_array($prediction_item))
+                                        <li style="margin-bottom: 16px; padding-left: 0;">
+                                            @if(is_array($prediction_item) && isset($prediction_item['point']))
+                                                <!-- New format with point and explanation -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($prediction_item['point']) !!}</div>
+                                                @if(isset($prediction_item['explanation']) && !empty($prediction_item['explanation']))
+                                                    <div style="color: #64748b; font-size: 13px; line-height: 1.6; margin-left: 16px; padding-left: 12px; border-left: 2px solid #cbd5e1; margin-top: 4px;">
+                                                        {!! convertMarkdownBold($prediction_item['explanation']) !!}
+                                                    </div>
+                                                @endif
+                                            @elseif(is_array($prediction_item))
+                                                <!-- Legacy format handling -->
                                                 @foreach($prediction_item as $key => $value)
                                                     @if(is_string($value))
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}
                                                     @elseif(is_array($value))
                                                         <div style="margin-top: 6px;">
                                                             <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                                                             <ul style="margin: 6px 0 0 18px;">
                                                                 @foreach($value as $item)
-                                                                    <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                                    <li>{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                                 @endforeach
                                                             </ul>
                                                         </div>
                                                     @else
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}
                                                     @endif
                                                 @endforeach
                                             @elseif(is_string($prediction_item))
-                                                {{ $prediction_item }}
+                                                <!-- Legacy string format -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($prediction_item) !!}</div>
                                             @else
-                                                {{ (string)$prediction_item }}
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold((string)$prediction_item) !!}</div>
                                             @endif
                                         </li>
                                     @endforeach
@@ -345,30 +379,40 @@
                             <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid #8b5cf6;">
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Future Predictions</h4>
                                 @if(is_array($report['predictions']))
-                                    <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
+                                    <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px; list-style: none;">
                                         @foreach($report['predictions'] as $prediction_item)
-                                            <li style="margin-bottom: 8px;">
-                                                @if(is_array($prediction_item))
+                                            <li style="margin-bottom: 16px; padding-left: 0;">
+                                                @if(is_array($prediction_item) && isset($prediction_item['point']))
+                                                    <!-- New format with point and explanation -->
+                                                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($prediction_item['point']) !!}</div>
+                                                    @if(isset($prediction_item['explanation']) && !empty($prediction_item['explanation']))
+                                                        <div style="color: #64748b; font-size: 13px; line-height: 1.6; margin-left: 16px; padding-left: 12px; border-left: 2px solid #cbd5e1; margin-top: 4px;">
+                                                            {!! convertMarkdownBold($prediction_item['explanation']) !!}
+                                                        </div>
+                                                    @endif
+                                                @elseif(is_array($prediction_item))
+                                                    <!-- Legacy format handling -->
                                                     @foreach($prediction_item as $key => $value)
                                                         @if(is_string($value))
-                                                            <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                            <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}
                                                         @elseif(is_array($value))
                                                             <div style="margin-top: 6px;">
                                                                 <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                                                                 <ul style="margin: 6px 0 0 18px;">
                                                                     @foreach($value as $item)
-                                                                        <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                                        <li>{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                                     @endforeach
                                                                 </ul>
                                                             </div>
                                                         @else
-                                                            <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}
+                                                            <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}
                                                         @endif
                                                     @endforeach
                                                 @elseif(is_string($prediction_item))
-                                                    {{ $prediction_item }}
+                                                    <!-- Legacy string format -->
+                                                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($prediction_item) !!}</div>
                                                 @else
-                                                    {{ (string)$prediction_item }}
+                                                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold((string)$prediction_item) !!}</div>
                                                 @endif
                                             </li>
                                         @endforeach
@@ -411,10 +455,10 @@
                                                         @foreach($report['risk_assessment'] as $risk)
                                                             @if(is_array($risk))
                                                                 <tr style="background-color: {{ $loop->even ? '#f9fafb' : 'white' }};">
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word;">{{ isset($risk['risk']) ? (is_string($risk['risk']) ? $risk['risk'] : (string)$risk['risk']) : 'N/A' }}</td>
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word;">{{ isset($risk['level']) ? (is_string($risk['level']) ? $risk['level'] : (string)$risk['level']) : '-' }}</td>
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word;">{{ isset($risk['probability']) ? (is_string($risk['probability']) ? $risk['probability'] : (string)$risk['probability']) : '-' }}</td>
-                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word;">{{ isset($risk['mitigation']) ? (is_string($risk['mitigation']) ? $risk['mitigation'] : (string)$risk['mitigation']) : '-' }}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word;">{!! isset($risk['risk']) ? (is_string($risk['risk']) ? convertMarkdownBold($risk['risk']) : convertMarkdownBold((string)$risk['risk'])) : 'N/A' !!}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word;">{!! isset($risk['level']) ? (is_string($risk['level']) ? convertMarkdownBold($risk['level']) : convertMarkdownBold((string)$risk['level'])) : '-' !!}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word;">{!! isset($risk['probability']) ? (is_string($risk['probability']) ? convertMarkdownBold($risk['probability']) : convertMarkdownBold((string)$risk['probability'])) : '-' !!}</td>
+                                                                    <td style="padding: 10px; border: 1px solid #e5e7eb; vertical-align: top; word-wrap: break-word; overflow-wrap: break-word;">{!! isset($risk['mitigation']) ? (is_string($risk['mitigation']) ? convertMarkdownBold($risk['mitigation']) : convertMarkdownBold((string)$risk['mitigation'])) : '-' !!}</td>
                                                                 </tr>
                                                             @endif
                                                         @endforeach
@@ -425,25 +469,25 @@
                                             <!-- Display as key-value pairs if it's a simple associative array -->
                                             @foreach($report['risk_assessment'] as $key => $value)
                                                 @if(is_string($value))
-                                                    <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
+                                                    <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}</p>
                                                 @elseif(is_array($value))
                                                     <div style="margin-bottom: 12px;">
                                                         <p style="font-weight: 600; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
                                                         <ul style="margin: 0; padding-left: 18px;">
                                                             @foreach($value as $item)
-                                                                <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                                <li style="margin-bottom: 3px;">{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                             @endforeach
                                                         </ul>
                                                     </div>
                                                 @else
-                                                    <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}</p>
+                                                    <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}</p>
                                                 @endif
                                             @endforeach
                                         @endif
                                     @elseif(is_string($report['risk_assessment']))
-                                        <p style="margin: 0;">{{ $report['risk_assessment'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold($report['risk_assessment']) !!}</p>
                                     @else
-                                        <p style="margin: 0;">{{ (string)$report['risk_assessment'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold((string)$report['risk_assessment']) !!}</p>
                                     @endif
                                 </div>
                             </div>
@@ -457,24 +501,24 @@
                                     @if(is_array($report['policy_implications']))
                                         @foreach($report['policy_implications'] as $key => $value)
                                             @if(is_string($value))
-                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}</p>
+                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}</p>
                                             @elseif(is_array($value))
                                                 <div style="margin-bottom: 12px;">
                                                     <p style="font-weight: 600; margin-bottom: 6px;">{{ ucfirst(str_replace('_', ' ', $key)) }}:</p>
                                                     <ul style="margin: 0; padding-left: 18px;">
                                                         @foreach($value as $item)
-                                                            <li style="margin-bottom: 3px;">{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                            <li style="margin-bottom: 3px;">{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                         @endforeach
                                                     </ul>
                                                 </div>
                                             @else
-                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}</p>
+                                                <p style="margin-bottom: 10px;"><strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}</p>
                                             @endif
                                         @endforeach
                                     @elseif(is_string($report['policy_implications']))
-                                        <p style="margin: 0;">{{ $report['policy_implications'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold($report['policy_implications']) !!}</p>
                                     @else
-                                        <p style="margin: 0;">{{ (string)$report['policy_implications'] }}</p>
+                                        <p style="margin: 0;">{!! convertMarkdownBold((string)$report['policy_implications']) !!}</p>
                                     @endif
                                 </div>
                             </div>
@@ -484,30 +528,40 @@
                             @if(isset($report['recommendations']) && is_array($report['recommendations']))
                             <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid #0ea5e9;">
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Strategic Recommendations</h4>
-                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
+                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px; list-style: none;">
                                     @foreach($report['recommendations'] as $recommendation)
-                                        <li style="margin-bottom: 8px;">
-                                            @if(is_array($recommendation))
+                                        <li style="margin-bottom: 16px; padding-left: 0;">
+                                            @if(is_array($recommendation) && isset($recommendation['point']))
+                                                <!-- New format with point and explanation -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($recommendation['point']) !!}</div>
+                                                @if(isset($recommendation['explanation']) && !empty($recommendation['explanation']))
+                                                    <div style="color: #64748b; font-size: 13px; line-height: 1.6; margin-left: 16px; padding-left: 12px; border-left: 2px solid #cbd5e1; margin-top: 4px;">
+                                                        {!! convertMarkdownBold($recommendation['explanation']) !!}
+                                                    </div>
+                                                @endif
+                                            @elseif(is_array($recommendation))
+                                                <!-- Legacy format handling -->
                                                 @foreach($recommendation as $key => $value)
                                                     @if(is_string($value))
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}
                                                     @elseif(is_array($value))
                                                         <div style="margin-top: 6px;">
                                                             <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                                                             <ul style="margin: 6px 0 0 18px;">
                                                                 @foreach($value as $item)
-                                                                    <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                                    <li>{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                                 @endforeach
                                                             </ul>
                                                         </div>
                                                     @else
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}
                                                     @endif
                                                 @endforeach
                                             @elseif(is_string($recommendation))
-                                                {{ $recommendation }}
+                                                <!-- Legacy string format -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($recommendation) !!}</div>
                                             @else
-                                                {{ (string)$recommendation }}
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold((string)$recommendation) !!}</div>
                                             @endif
                                         </li>
                                     @endforeach
@@ -524,7 +578,7 @@
                                 </div>
                                 @if(isset($report['methodology']) && is_string($report['methodology']))
                                     <p style="margin-top: 12px; color: #64748b; font-size: 13px; margin: 0;">
-                                        <strong>Methodology:</strong> {{ $report['methodology'] }}
+                                        <strong>Methodology:</strong> {!! convertMarkdownBold($report['methodology']) !!}
                                     </p>
                                 @endif
                             </div>
@@ -534,30 +588,40 @@
                             @if(isset($report['strategic_implications']) && is_array($report['strategic_implications']))
                             <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 3px solid #fbbf24;">
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Strategic Implications</h4>
-                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
+                                <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px; list-style: none;">
                                     @foreach($report['strategic_implications'] as $implication)
-                                        <li style="margin-bottom: 8px;">
-                                            @if(is_array($implication))
+                                        <li style="margin-bottom: 16px; padding-left: 0;">
+                                            @if(is_array($implication) && isset($implication['point']))
+                                                <!-- New format with point and explanation -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($implication['point']) !!}</div>
+                                                @if(isset($implication['explanation']) && !empty($implication['explanation']))
+                                                    <div style="color: #64748b; font-size: 13px; line-height: 1.6; margin-left: 16px; padding-left: 12px; border-left: 2px solid #cbd5e1; margin-top: 4px;">
+                                                        {!! convertMarkdownBold($implication['explanation']) !!}
+                                                    </div>
+                                                @endif
+                                            @elseif(is_array($implication))
+                                                <!-- Legacy format handling -->
                                                 @foreach($implication as $key => $value)
                                                     @if(is_string($value))
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ $value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold($value) !!}
                                                     @elseif(is_array($value))
                                                         <div style="margin-top: 6px;">
                                                             <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong>
                                                             <ul style="margin: 6px 0 0 18px;">
                                                                 @foreach($value as $item)
-                                                                    <li>{{ is_string($item) ? $item : (is_array($item) ? json_encode($item) : (string)$item) }}</li>
+                                                                    <li>{!! is_string($item) ? convertMarkdownBold($item) : (is_array($item) ? e(json_encode($item)) : convertMarkdownBold((string)$item)) !!}</li>
                                                                 @endforeach
                                                             </ul>
                                                         </div>
                                                     @else
-                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {{ (string)$value }}
+                                                        <strong>{{ ucfirst(str_replace('_', ' ', $key)) }}:</strong> {!! convertMarkdownBold((string)$value) !!}
                                                     @endif
                                                 @endforeach
                                             @elseif(is_string($implication))
-                                                {{ $implication }}
+                                                <!-- Legacy string format -->
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold($implication) !!}</div>
                                             @else
-                                                {{ (string)$implication }}
+                                                <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px;">{!! convertMarkdownBold((string)$implication) !!}</div>
                                             @endif
                                         </li>
                                     @endforeach
@@ -571,12 +635,12 @@
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Data Sources & Methodology</h4>
                                 <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
                                     @foreach($report['data_sources'] as $source)
-                                        <li style="margin-bottom: 6px;">{{ is_string($source) ? $source : (string)$source }}</li>
+                                        <li style="margin-bottom: 6px;">{!! is_string($source) ? convertMarkdownBold($source) : convertMarkdownBold((string)$source) !!}</li>
                                     @endforeach
                                 </ul>
                                 @if(isset($report['methodology']) && is_string($report['methodology']))
                                     <p style="margin-top: 12px; font-style: italic; color: #64748b; font-size: 13px; margin: 0;">
-                                        <strong>Methodology:</strong> {{ $report['methodology'] }}
+                                        <strong>Methodology:</strong> {!! convertMarkdownBold($report['methodology']) !!}
                                     </p>
                                 @endif
                             </div>
@@ -588,7 +652,7 @@
                                 <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">Key Assumptions</h4>
                                 <ul style="margin: 0; padding-left: 18px; color: #374151; line-height: 1.6; font-size: 14px;">
                                     @foreach($report['assumptions'] as $assumption)
-                                        <li style="margin-bottom: 6px;">{{ is_string($assumption) ? $assumption : (string)$assumption }}</li>
+                                        <li style="margin-bottom: 6px;">{!! is_string($assumption) ? convertMarkdownBold($assumption) : convertMarkdownBold((string)$assumption) !!}</li>
                                     @endforeach
                                 </ul>
                             </div>

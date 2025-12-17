@@ -219,18 +219,59 @@
                     </button>
                 </div>
                 
-                <!-- Loading Indicator -->
-                <div id="loadingIndicator" style="display: none; margin-top: 20px; padding: 20px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 12px; border: 1px solid #0ea5e9; text-align: center;">
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                        <div style="width: 24px; height: 24px; border: 3px solid #0ea5e9; border-top: 3px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                        <span style="color: #0ea5e9; font-weight: 600; font-size: 16px;">AI Analysis in Progress...</span>
-                    </div>
-                    <p style="color: #0369a1; font-size: 14px; margin: 12px 0 0 0; opacity: 0.8;">
-                        This may take 2-5 minutes. The AI is reading your source URLs and generating a comprehensive analysis.
-                    </p>
-                </div>
             </form>
         </div>
+    </div>
+</div>
+
+<!-- AI Analysis Progress Modal -->
+<div id="analysisProgressModal" class="analysis-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+    <div class="analysis-modal-content" style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; animation: modalFadeIn 0.3s ease-out;">
+        <!-- Close button (optional, but disabled during processing) -->
+        <button id="closeModalBtn" onclick="closeAnalysisModal()" style="display: none; position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: #64748b; font-size: 24px; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; transition: all 0.3s ease; padding: 0;">
+            ×
+        </button>
+        
+        <!-- Icon/Animation -->
+        <div style="margin-bottom: 24px;">
+            <div class="analysis-spinner" style="width: 64px; height: 64px; border: 4px solid #e0f2fe; border-top: 4px solid #0ea5e9; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+        </div>
+        
+        <!-- Title -->
+        <h2 style="color: #1e293b; margin-bottom: 12px; font-size: 24px; font-weight: 700;">AI Analysis in Progress</h2>
+        
+        <!-- Description -->
+        <p style="color: #64748b; margin-bottom: 32px; font-size: 15px; line-height: 1.6;">
+            The AI is reading your source URLs and generating a comprehensive analysis. This may take 2-5 minutes.
+        </p>
+        
+        <!-- Progress Bar Container -->
+        <div style="margin-bottom: 24px;">
+            <div style="background: #e2e8f0; border-radius: 10px; height: 12px; overflow: hidden; position: relative;">
+                <div id="progressBar" class="progress-bar-fill" style="background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); height: 100%; border-radius: 10px; width: 0%; transition: width 0.3s ease; position: relative; overflow: hidden;">
+                    <div class="progress-bar-shine" style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); animation: shine 2s infinite;"></div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                <span id="progressText" style="color: #64748b; font-size: 13px; font-weight: 500;">0%</span>
+                <span id="progressStatus" style="color: #0ea5e9; font-size: 13px; font-weight: 600;">Initializing...</span>
+            </div>
+        </div>
+        
+        <!-- Status Messages -->
+        <div id="statusMessages" style="min-height: 60px; margin-top: 24px;">
+            <div class="status-message active" style="padding: 12px 16px; background: #f0f9ff; border-radius: 8px; border-left: 3px solid #0ea5e9; margin-bottom: 8px; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="status-dot" style="width: 8px; height: 8px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                    <span style="color: #0369a1; font-size: 14px; font-weight: 500;">Processing your request...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Note -->
+        <p style="color: #94a3b8; margin-top: 24px; font-size: 12px; line-height: 1.5;">
+            Please do not close this window. You will be redirected automatically when the analysis is complete.
+        </p>
     </div>
 </div>
 
@@ -238,6 +279,145 @@
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    @keyframes shine {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(1.2);
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .analysis-modal-overlay {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    .progress-bar-fill {
+        box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+    }
+    
+    .status-message {
+        transition: all 0.3s ease;
+    }
+    
+    .status-message.active {
+        animation: slideIn 0.3s ease-out;
+    }
+    
+    /* Modal Responsive Styles */
+    @media (max-width: 768px) {
+        .analysis-modal-content {
+            padding: 32px 24px !important;
+            max-width: 90% !important;
+            border-radius: 16px !important;
+        }
+        
+        .analysis-modal-content h2 {
+            font-size: 20px !important;
+        }
+        
+        .analysis-modal-content p {
+            font-size: 14px !important;
+        }
+        
+        .analysis-spinner {
+            width: 48px !important;
+            height: 48px !important;
+            border-width: 3px !important;
+        }
+        
+        #statusMessages {
+            min-height: 50px !important;
+        }
+        
+        .status-message {
+            padding: 10px 12px !important;
+            font-size: 13px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .analysis-modal-content {
+            padding: 24px 20px !important;
+            max-width: 95% !important;
+            border-radius: 12px !important;
+        }
+        
+        .analysis-modal-content h2 {
+            font-size: 18px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .analysis-modal-content p {
+            font-size: 13px !important;
+            margin-bottom: 24px !important;
+        }
+        
+        .analysis-spinner {
+            width: 40px !important;
+            height: 40px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        #statusMessages {
+            min-height: 40px !important;
+            margin-top: 16px !important;
+        }
+        
+        .status-message {
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+            margin-bottom: 6px !important;
+        }
+        
+        .status-dot {
+            width: 6px !important;
+            height: 6px !important;
+        }
     }
     
     .source-url-field {
@@ -896,24 +1076,147 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set up initial remove button visibility
         updateRemoveButtonVisibility();
 
-    // Show loading indicator when form is submitted
+    // Show analysis progress modal when form is submitted
     const form = document.querySelector('form');
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    const analysisModal = document.getElementById('analysisProgressModal');
     
-    if (form && loadingIndicator) {
-    form.addEventListener('submit', function() {
-        loadingIndicator.style.display = 'block';
-        
-        // Disable the submit button
-        const submitButton = form.querySelector('button[type="submit"]');
+    if (form && analysisModal) {
+        form.addEventListener('submit', function() {
+            showAnalysisModal();
+            
+            // Disable the submit button
+            const submitButton = form.querySelector('button[type="submit"]');
             if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.textContent = '🔄 Processing...';
-        submitButton.style.opacity = '0.7';
-        submitButton.style.cursor = 'not-allowed';
+                submitButton.disabled = true;
+                submitButton.textContent = '🔄 Processing...';
+                submitButton.style.opacity = '0.7';
+                submitButton.style.cursor = 'not-allowed';
             }
-    });
+        });
     }
+    
+    // Progress bar animation
+    function showAnalysisModal() {
+        const modal = document.getElementById('analysisProgressModal');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressStatus = document.getElementById('progressStatus');
+        const statusMessages = document.getElementById('statusMessages');
+        
+        if (!modal) return;
+        
+        modal.style.display = 'flex';
+        
+        // Status messages sequence
+        const statusSequence = [
+            { text: 'Processing your request...', progress: 10 },
+            { text: 'Reading source URLs...', progress: 25 },
+            { text: 'Extracting content from sources...', progress: 40 },
+            { text: 'Analyzing data with AI...', progress: 60 },
+            { text: 'Generating predictions...', progress: 75 },
+            { text: 'Finalizing analysis...', progress: 90 },
+            { text: 'Almost done...', progress: 95 }
+        ];
+        
+        let currentStatusIndex = 0;
+        let currentProgress = 0;
+        
+        // Simulate progress (since we don't have real-time updates)
+        // Start with initial progress
+        let progressUpdateInterval = setInterval(() => {
+            if (currentProgress < 95) {
+                currentProgress += 0.3;
+                progressBar.style.width = currentProgress + '%';
+                progressText.textContent = Math.round(currentProgress) + '%';
+            }
+        }, 500); // Smooth progress bar updates every 500ms
+        
+        // Update status messages
+        const statusInterval = setInterval(() => {
+            if (currentStatusIndex < statusSequence.length) {
+                const status = statusSequence[currentStatusIndex];
+                currentProgress = status.progress;
+                
+                // Update progress bar to match status
+                progressBar.style.width = currentProgress + '%';
+                progressText.textContent = currentProgress + '%';
+                progressStatus.textContent = status.text;
+                
+                // Add new status message
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'status-message active';
+                messageDiv.style.cssText = 'padding: 12px 16px; background: #f0f9ff; border-radius: 8px; border-left: 3px solid #0ea5e9; margin-bottom: 8px; text-align: left; animation: slideIn 0.3s ease-out;';
+                messageDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="status-dot" style="width: 8px; height: 8px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <span style="color: #0369a1; font-size: 14px; font-weight: 500;">${status.text}</span>
+                    </div>
+                `;
+                
+                // Remove old messages (keep only last 3)
+                const existingMessages = statusMessages.querySelectorAll('.status-message');
+                if (existingMessages.length >= 3) {
+                    existingMessages[0].remove();
+                }
+                
+                statusMessages.appendChild(messageDiv);
+                
+                // Mark previous messages as completed
+                existingMessages.forEach((msg, index) => {
+                    if (index < existingMessages.length - 1) {
+                        msg.style.background = '#f1f5f9';
+                        msg.style.borderLeftColor = '#cbd5e1';
+                        const dot = msg.querySelector('.status-dot');
+                        if (dot) {
+                            dot.style.background = '#94a3b8';
+                            dot.style.animation = 'none';
+                        }
+                        const span = msg.querySelector('span');
+                        if (span) {
+                            span.style.color = '#64748b';
+                        }
+                    }
+                });
+                
+                currentStatusIndex++;
+            } else {
+                // Slow down near completion
+                if (currentProgress < 98) {
+                    currentProgress += 0.2;
+                    progressBar.style.width = currentProgress + '%';
+                    progressText.textContent = Math.round(currentProgress) + '%';
+                }
+            }
+        }, 20000); // Update status every 20 seconds (adjust based on expected processing time)
+        
+        // Store interval IDs for cleanup if needed
+        modal.dataset.progressInterval = progressUpdateInterval;
+        modal.dataset.statusInterval = statusInterval;
+    }
+    
+    function closeAnalysisModal() {
+        const modal = document.getElementById('analysisProgressModal');
+        if (modal) {
+            const progressIntervalId = modal.dataset.progressInterval;
+            const statusIntervalId = modal.dataset.statusInterval;
+            if (progressIntervalId) {
+                clearInterval(parseInt(progressIntervalId));
+            }
+            if (statusIntervalId) {
+                clearInterval(parseInt(statusIntervalId));
+            }
+            modal.style.display = 'none';
+        }
+    }
+    
+    // Prevent closing modal during processing (optional)
+    document.getElementById('analysisProgressModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            // Allow closing only if processing is complete (you can add a flag)
+            // For now, we'll prevent closing during processing
+            // closeAnalysisModal();
+        }
+    });
     
     console.log('Initialization complete');
 });
