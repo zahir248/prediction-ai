@@ -81,14 +81,15 @@
     $radius = 60;
     $circumference = 2 * M_PI * $radius;
     $offset = $circumference - ($percentage / 100) * $circumference;
+    $isPdfExport = isset($GLOBALS['isPdfExport']) && $GLOBALS['isPdfExport'] === true;
 @endphp
 
-<div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+<div class="professional-footprint-container" style="margin-bottom: 32px; padding: 32px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
     <!-- Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin: 0;">Professional Footprint Analysis</h3>
+    <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Professional Footprint Analysis</h3>
         @if($confidence)
-            <span style="background: #f1f5f9; color: #374151; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+            <span style="background: #f1f5f9; color: #64748b; padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                 Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
@@ -96,11 +97,11 @@
 
     <!-- Overview Text -->
     @if($overview)
-        <div style="margin-bottom: 24px; color: #374151; line-height: 1.8; font-size: 14px;">
+        <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 15px; max-width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             {!! nl2br(e($overview)) !!}
         </div>
     @else
-        <div style="margin-bottom: 24px; color: #374151; line-height: 1.8; font-size: 14px;">
+        <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @php
                 $username = $socialMediaAnalysis->username ?? 'This profile';
                 $postsText = $totalPosts ? "based on analysis of {$totalPosts} posts" : '';
@@ -113,61 +114,58 @@
 
     <!-- Circular Gauge and Score Display -->
     @php
-        $isPdfExport = isset($GLOBALS['isPdfExport']) && $GLOBALS['isPdfExport'] === true;
+        // Use larger radius for better visibility
+        $gaugeRadius = 80;
+        $gaugeCircumference = 2 * M_PI * $gaugeRadius;
+        $gaugeOffset = $gaugeCircumference - ($percentage / 100) * $gaugeCircumference;
+        $gaugeSize = 200; // Overall size of the gauge container
+        $centerX = $gaugeSize / 2;
+        $centerY = $gaugeSize / 2;
         
-        if ($isPdfExport) {
-            // For PDF: Generate SVG as base64 data URI
-            $gaugeSvg = '<?xml version="1.0" encoding="UTF-8"?>';
-            $gaugeSvg .= '<svg xmlns="http://www.w3.org/2000/svg" width="140" height="140" style="transform: rotate(-90deg);">';
-            $gaugeSvg .= sprintf(
-                '<circle cx="70" cy="70" r="%s" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"/>',
-                $radius
-            );
-            $gaugeSvg .= sprintf(
-                '<circle cx="70" cy="70" r="%s" fill="none" stroke="%s" stroke-width="12" stroke-linecap="round" stroke-dasharray="%s" stroke-dashoffset="%s"/>',
-                $radius, htmlspecialchars($scoreColor), $circumference, $offset
-            );
-            $gaugeSvg .= '</svg>';
-            $gaugeDataUri = 'data:image/svg+xml;base64,' . base64_encode($gaugeSvg);
-        }
+        // Calculate position for indicator dot at the end of the progress arc
+        // The SVG is rotated -90deg, so 0% starts at top (12 o'clock)
+        // Progress percentage determines the angle: 0% = -90°, 100% = 270°
+        // We need to calculate in the rotated coordinate system
+        $progressAngle = ($percentage / 100) * 360 - 90; // -90 to 270 degrees
+        $dotAngleRad = deg2rad($progressAngle);
+        // Calculate position in unrotated coordinates (SVG rotation is visual only)
+        $dotX = $centerX + $gaugeRadius * cos($dotAngleRad);
+        $dotY = $centerY + $gaugeRadius * sin($dotAngleRad);
     @endphp
     
     @if(true)
-        <div style="display: flex; justify-content: center; align-items: center; margin: 32px 0; text-align: center;">
-            <div style="position: relative; width: 140px; height: 140px; margin: 0 auto;">
-                @if($isPdfExport)
-                    <!-- For PDF: Use img tag with base64 SVG -->
-                    <img src="{{ $gaugeDataUri }}" alt="Professionalism Score Gauge" style="width: 140px; height: 140px; margin: 0 auto; display: block;" />
-                    <!-- Score Text in Center -->
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                        <div style="font-size: 36px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1;">{{ $score }}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">out of {{ $maxScore }}</div>
-                    </div>
-                @else
-                    <!-- For Web: Use inline SVG -->
-                    <svg width="140" height="140" style="transform: rotate(-90deg);">
-                        <!-- Background circle -->
-                        <circle cx="70" cy="70" r="{{ $radius }}" 
-                                fill="none" 
-                                stroke="#e5e7eb" 
-                                stroke-width="12" 
-                                stroke-linecap="round"/>
-                        <!-- Progress circle -->
-                        <circle cx="70" cy="70" r="{{ $radius }}" 
-                                fill="none" 
-                                stroke="{{ $scoreColor }}" 
-                                stroke-width="12" 
-                                stroke-linecap="round"
-                                stroke-dasharray="{{ $circumference }}"
-                                stroke-dashoffset="{{ $offset }}"
-                                style="transition: stroke-dashoffset 0.5s ease;"/>
-                    </svg>
-                    <!-- Score Text in Center -->
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                        <div style="font-size: 36px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1;">{{ $score }}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 4px;">out of {{ $maxScore }}</div>
-                    </div>
-                @endif
+        <div style="display: flex; justify-content: center; align-items: center; margin: 40px 0; text-align: center;">
+            <div style="position: relative; width: {{ $gaugeSize }}px; height: {{ $gaugeSize }}px; margin: 0 auto;">
+                <!-- Use inline SVG for both web and PDF to ensure consistency -->
+                <svg width="{{ $gaugeSize }}" height="{{ $gaugeSize }}" style="transform: rotate(-90deg);" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Background circle -->
+                    <circle cx="{{ $centerX }}" cy="{{ $centerY }}" r="{{ $gaugeRadius }}" 
+                            fill="none" 
+                            stroke="#e5e7eb" 
+                            stroke-width="16" 
+                            stroke-linecap="round"/>
+                    <!-- Progress circle -->
+                    <circle cx="{{ $centerX }}" cy="{{ $centerY }}" r="{{ $gaugeRadius }}" 
+                            fill="none" 
+                            stroke="{{ $scoreColor }}" 
+                            stroke-width="16" 
+                            stroke-linecap="round"
+                            stroke-dasharray="{{ $gaugeCircumference }}"
+                            stroke-dashoffset="{{ $gaugeOffset }}"
+                            style="transition: stroke-dashoffset 0.5s ease;"/>
+                    <!-- Indicator dot at the end of progress -->
+                    @if($percentage > 0)
+                    <circle cx="{{ $dotX }}" cy="{{ $dotY }}" r="6" 
+                            fill="#f1f5f9" 
+                            stroke="{{ $scoreColor }}" 
+                            stroke-width="2"/>
+                    @endif
+                </svg>
+                <!-- Score Text in Center -->
+                <div class="professional-footprint-score" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: 100%;">
+                    <div style="font-size: 56px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1; margin-bottom: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $score }}</div>
+                    <div style="font-size: 14px; color: #64748b; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">out of {{ $maxScore }}</div>
+                </div>
             </div>
         </div>
     @endif

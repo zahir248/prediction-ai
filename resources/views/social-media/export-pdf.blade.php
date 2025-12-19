@@ -234,6 +234,29 @@
             height: auto;
         }
         
+        /* Professional Footprint Analysis Styles */
+        .professional-footprint-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        .professional-footprint-container h3 {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        .professional-footprint-container svg {
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .professional-footprint-gauge {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .professional-footprint-score {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
         .radar-chart-container,
         .radar-chart-wrapper {
             page-break-inside: avoid;
