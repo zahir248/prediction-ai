@@ -1070,8 +1070,11 @@
         <main>
             @if(session('success'))
                 <div class="container mt-4">
-                    <div class="alert alert-success">
-                        {{ session('success') }}
+                    <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; position: relative;">
+                        <span style="flex: 1; padding-right: 30px;">{{ session('success') }}</span>
+                        <button type="button" class="btn-close" onclick="this.closest('.alert').parentElement.style.display='none';" aria-label="Close" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #166534; opacity: 0.6; padding: 0; line-height: 1; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); transition: opacity 0.2s ease;" onmouseover="this.style.opacity='1';" onmouseout="this.style.opacity='0.6';">
+                            <span aria-hidden="true" style="line-height: 1;">&times;</span>
+                        </button>
                     </div>
                 </div>
             @endif

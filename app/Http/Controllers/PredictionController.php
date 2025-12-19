@@ -794,6 +794,12 @@ class PredictionController extends Controller
                 ]);
             }
             
+            // Check if the request came from history page, otherwise redirect to index
+            $referer = request()->header('referer');
+            if ($referer && str_contains($referer, '/predictions/history')) {
+                return redirect()->route('predictions.history')->with('success', 'Prediction deleted successfully');
+            }
+            
             return redirect()->route('predictions.index')
                 ->with('success', 'Prediction deleted successfully');
                 
