@@ -29,11 +29,33 @@ class SocialMediaController extends Controller
     /**
      * Show history of social media analyses
      */
-    public function history()
+    public function history(Request $request)
     {
-        $analyses = Auth::user()->socialMediaAnalyses()->latest()->paginate(10);
+        $query = Auth::user()->socialMediaAnalyses();
         
-        // Get total counts for stats
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where('username', 'like', '%' . $search . '%');
+        }
+        
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+        
+        // Date filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->get('date_to'));
+        }
+        
+        // Preserve filters in pagination
+        $analyses = $query->latest()->paginate(10)->appends($request->query());
+        
+        // Get total counts for stats (not just current page)
         $allAnalyses = Auth::user()->socialMediaAnalyses();
         $stats = [
             'total' => $allAnalyses->count(),

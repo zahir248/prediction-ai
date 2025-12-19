@@ -322,9 +322,34 @@ class PredictionController extends Controller
         return view('predictions.show', compact('prediction'));
     }
 
-    public function history()
+    public function history(Request $request)
     {
-        $predictions = Auth::user()->predictions()->latest()->paginate(5);
+        $query = Auth::user()->predictions();
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('topic', 'like', '%' . $search . '%')
+                  ->orWhere('target', 'like', '%' . $search . '%');
+            });
+        }
+        
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+        
+        // Date filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->get('date_to'));
+        }
+        
+        // Preserve filters in pagination
+        $predictions = $query->latest()->paginate(5)->appends($request->query());
         
         // Get total counts for stats (not just current page)
         $allPredictions = Auth::user()->predictions();

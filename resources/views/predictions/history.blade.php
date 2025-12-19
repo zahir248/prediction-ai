@@ -25,32 +25,123 @@
             </div>
 
             <!-- History Stats Overview -->
-            @if($predictions->total() > 0)
+            @if($stats['total'] > 0)
                 <div style="margin-bottom: 32px;" class="stats-container">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">History Overview</h2>
-                    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? $predictions->total() }}</div>
-                            <div class="stat-label" style="font-size: 13px; color: #64748b;">Total</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; cursor: pointer;" onclick="toggleSection('statsContent', 'statsToggle')">
+                        <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0;">History Overview</h2>
+                        <i id="statsToggle" class="bi bi-chevron-down" style="font-size: 18px; color: #64748b; transition: transform 0.3s ease;"></i>
+                    </div>
+                    <div id="statsContent" class="collapsible-content" style="overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease;">
+                        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? 0 }}</div>
+                                <div class="stat-label" style="font-size: 13px; color: #64748b;">Total</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
+                                <div class="stat-label" style="font-size: 13px; color: #64748b;">Completed</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
+                                <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
+                                <div class="stat-label" style="font-size: 13px; color: #64748b;">Processing</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                                <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
+                                <div class="stat-label" style="font-size: 13px; color: #64748b;">Failed</div>
+                            </div>
                         </div>
-                        <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
-                            <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
-                            <div class="stat-label" style="font-size: 13px; color: #64748b;">Completed</div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Search and Filter Section -->
+                <div style="margin-bottom: 24px;">
+                    <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; border-bottom: 1px solid #e2e8f0;" onclick="toggleSection('filterContent', 'filterToggle')">
+                            <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0;">Search & Filter</h2>
+                            <i id="filterToggle" class="bi bi-chevron-down" style="font-size: 18px; color: #64748b; transition: transform 0.3s ease;"></i>
                         </div>
-                        <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
-                            <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
-                            <div class="stat-label" style="font-size: 13px; color: #64748b;">Processing</div>
+                        <div id="filterContent" class="collapsible-content" style="overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease;">
+                            <form method="GET" action="{{ route('predictions.history') }}" id="filterForm" style="padding: 20px;">
+                                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;" id="filterGrid">
+                            <!-- Search Input -->
+                            <div>
+                                <label for="search" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">Search</label>
+                                <div style="position: relative;">
+                                    <input type="text" 
+                                           id="search" 
+                                           name="search" 
+                                           value="{{ request('search') }}"
+                                           placeholder="Search by topic or target..."
+                                           style="width: 100%; padding: 10px 16px 10px 40px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
+                                    <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 16px;"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Filter -->
+                            <div>
+                                <label for="status" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">Status</label>
+                                <select id="status" 
+                                        name="status" 
+                                        style="width: 100%; padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white; cursor: pointer;">
+                                    <option value="">All Status</option>
+                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                    <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                                    <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                    <option value="completed_with_warnings" {{ request('status') == 'completed_with_warnings' ? 'selected' : '' }}>Completed with Warnings</option>
+                                    <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                                    <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Date From -->
+                            <div>
+                                <label for="date_from" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">From Date</label>
+                                <input type="date" 
+                                       id="date_from" 
+                                       name="date_from" 
+                                       value="{{ request('date_from') }}"
+                                       style="width: 100%; padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
+                            </div>
+                            
+                            <!-- Date To -->
+                            <div>
+                                <label for="date_to" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">To Date</label>
+                                <input type="date" 
+                                       id="date_to" 
+                                       name="date_to" 
+                                       value="{{ request('date_to') }}"
+                                       style="width: 100%; padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div style="display: flex; gap: 8px; flex-direction: row; align-items: center;">
+                                <a href="{{ route('predictions.history') }}" 
+                                   title="Clear Filters"
+                                   onclick="sessionStorage.setItem('predictionsHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);"
+                                   style="padding: 10px; width: 40px; height: 40px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
                         </div>
-                        <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
-                            <div class="stat-number" style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
-                            <div class="stat-label" style="font-size: 13px; color: #64748b;">Failed</div>
+                            </form>
                         </div>
                     </div>
                 </div>
 
                 <!-- Predictions List Section -->
                 <div style="margin-bottom: 32px;">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">All Predictions</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; gap: 12px;">
+                        <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0;">All Predictions</h2>
+                        @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="color: #64748b; font-size: 13px;">Showing {{ $predictions->total() }} result(s)</span>
+                                <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                                    <i class="bi bi-funnel-fill" style="margin-right: 4px;"></i>Filtered
+                                </span>
+                            </div>
+                        @endif
+                    </div>
                     
                     <!-- Desktop Table View -->
                     <div class="hidden-mobile" style="overflow-x: auto;">
@@ -75,15 +166,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($predictions as $prediction)
+                                @forelse($predictions as $prediction)
                                 <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.3s ease;">
                                     <td style="padding: 16px;">
                                         <div>
                                             <div style="font-weight: 600; color: #1e293b; margin-bottom: 6px; font-size: 15px;">{{ Str::limit($prediction->topic, 60) }}</div>
                                             <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                                <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;">
-                                                    #{{ $prediction->id }}
-                                                </span>
                                                 <span style="color: #64748b; font-size: 12px;">
                                                     {{ $prediction->created_at->diffForHumans() }}
                                                 </span>
@@ -159,22 +247,41 @@
                                         </div>
                                     </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="5" style="padding: 60px 24px; text-align: center;">
+                                        <div style="color: #64748b; margin-bottom: 12px; font-size: 18px;">
+                                            <i class="bi bi-search" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px; display: block;"></i>
+                                        </div>
+                                        <h4 style="color: #64748b; margin-bottom: 12px; font-size: 18px; font-weight: 600;">No predictions found</h4>
+                                        <p style="color: #9ca3af; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">
+                                            @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                                Try adjusting your search or filter criteria.
+                                            @else
+                                                Create your first analysis to start building your prediction history!
+                                            @endif
+                                        </p>
+                                        @if(!request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                        <a href="{{ route('predictions.create') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                                            <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
+                                            Create First Analysis
+                                        </a>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Mobile Card View -->
                     <div class="mobile-only" style="display: none; flex-direction: column; gap: 16px;">
-                        @foreach($predictions as $prediction)
+                        @forelse($predictions as $prediction)
                         <div style="background: #f8fafc; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0;">
                             <!-- Card Header -->
                             <div style="margin-bottom: 16px;">
                                 <div style="font-weight: 600; color: #1e293b; margin-bottom: 8px; font-size: 15px; line-height: 1.4;">{{ Str::limit($prediction->topic, 80) }}</div>
                                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                    <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;">
-                                        #{{ $prediction->id }}
-                                    </span>
                                     <span style="color: #64748b; font-size: 12px;">
                                         {{ $prediction->created_at->diffForHumans() }}
                                     </span>
@@ -264,18 +371,28 @@
                                 </button>
                             </div>
                         </div>
-                        @endforeach
+                        @empty
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 40px 24px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="color: #64748b; margin-bottom: 16px;">
+                                <i class="bi bi-search" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px; display: block;"></i>
+                            </div>
+                            <h4 style="color: #64748b; margin-bottom: 12px; font-size: 18px; font-weight: 600;">No predictions found</h4>
+                            <p style="color: #9ca3af; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">
+                                @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                    Try adjusting your search or filter criteria.
+                                @else
+                                    Create your first analysis to start building your prediction history!
+                                @endif
+                            </p>
+                            @if(!request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                            <a href="{{ route('predictions.create') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                                <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
+                                Create First Analysis
+                            </a>
+                            @endif
+                        </div>
+                        @endforelse
                     </div>
-                @else
-                    <div style="text-align: center; padding: 60px 24px;">
-                        <h4 style="color: #64748b; margin-bottom: 12px; font-size: 18px;">No prediction history yet</h4>
-                        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">Create your first analysis to start building your prediction history!</p>
-                        <a href="{{ route('predictions.create') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
-                            <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
-                            Create First Analysis
-                        </a>
-                    </div>
-                @endif
             </div>
             
             @if($predictions->count() > 0)
@@ -384,6 +501,160 @@
 
 <script>
 let currentDeleteId = null;
+let searchTimeout = null;
+
+// Collapsible section functionality
+function toggleSection(contentId, toggleId) {
+    const content = document.getElementById(contentId);
+    const toggle = document.getElementById(toggleId);
+    
+    if (!content || !toggle) return;
+    
+    // Check if currently expanded by checking computed style or class
+    const isExpanded = content.style.maxHeight && content.style.maxHeight !== '0px' && content.style.maxHeight !== '';
+    const contentHeight = content.scrollHeight;
+    
+    if (isExpanded) {
+        // Collapse
+        content.style.maxHeight = '0px';
+        content.style.opacity = '0';
+        toggle.style.transform = 'rotate(0deg)';
+        toggle.classList.remove('bi-chevron-up');
+        toggle.classList.add('bi-chevron-down');
+        localStorage.setItem(contentId + '_expanded', 'false');
+    } else {
+        // Expand
+        content.style.maxHeight = contentHeight + 'px';
+        content.style.opacity = '1';
+        toggle.style.transform = 'rotate(180deg)';
+        toggle.classList.remove('bi-chevron-down');
+        toggle.classList.add('bi-chevron-up');
+        localStorage.setItem(contentId + '_expanded', 'true');
+    }
+}
+
+// Initialize collapsible sections on page load
+function initializeCollapsibleSections() {
+    const sections = [
+        { contentId: 'statsContent', toggleId: 'statsToggle', defaultExpanded: true },
+        { contentId: 'filterContent', toggleId: 'filterToggle', defaultExpanded: true }
+    ];
+    
+    sections.forEach(function(section) {
+        const content = document.getElementById(section.contentId);
+        const toggle = document.getElementById(section.toggleId);
+        
+        if (!content || !toggle) return;
+        
+        // Check localStorage for saved state
+        const savedState = localStorage.getItem(section.contentId + '_expanded');
+        const isExpanded = savedState !== null ? savedState === 'true' : section.defaultExpanded;
+        
+        // Set initial state
+        if (isExpanded) {
+            // Expanded state
+            const height = content.scrollHeight;
+            content.style.maxHeight = height + 'px';
+            content.style.opacity = '1';
+            toggle.style.transform = 'rotate(180deg)';
+            toggle.classList.remove('bi-chevron-down');
+            toggle.classList.add('bi-chevron-up');
+        } else {
+            // Collapsed state
+            content.style.maxHeight = '0px';
+            content.style.opacity = '0';
+            toggle.style.transform = 'rotate(0deg)';
+            toggle.classList.remove('bi-chevron-up');
+            toggle.classList.add('bi-chevron-down');
+        }
+        
+        // Force a reflow to ensure styles are applied
+        void content.offsetHeight;
+    });
+}
+
+// Real-time filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize collapsible sections
+    initializeCollapsibleSections();
+    
+    // Recalculate heights on window resize
+    window.addEventListener('resize', function() {
+        const sections = ['statsContent', 'filterContent'];
+        sections.forEach(function(contentId) {
+            const content = document.getElementById(contentId);
+            if (content && content.style.maxHeight && content.style.maxHeight !== '0px') {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        });
+    });
+    const filterForm = document.getElementById('filterForm');
+    const searchInput = document.getElementById('search');
+    const statusSelect = document.getElementById('status');
+    const dateFromInput = document.getElementById('date_from');
+    const dateToInput = document.getElementById('date_to');
+    
+    // Restore scroll position if it was saved
+    const savedScrollPosition = sessionStorage.getItem('predictionsHistoryScrollPosition');
+    if (savedScrollPosition) {
+        // Small delay to ensure page is fully rendered
+        setTimeout(function() {
+            window.scrollTo(0, parseInt(savedScrollPosition));
+            sessionStorage.removeItem('predictionsHistoryScrollPosition');
+        }, 100);
+    }
+    
+    // Function to save scroll position before form submission
+    function saveScrollPosition() {
+        sessionStorage.setItem('predictionsHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+    }
+    
+    // Add loading state on form submit
+    filterForm.addEventListener('submit', function(e) {
+        // Save scroll position before submitting
+        saveScrollPosition();
+        
+        // Add a subtle loading indicator
+        const filterGrid = document.getElementById('filterGrid');
+        if (filterGrid) {
+            filterGrid.style.opacity = '0.7';
+            filterGrid.style.pointerEvents = 'none';
+        }
+    });
+    
+    // Debounced search function (wait 500ms after user stops typing)
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                saveScrollPosition();
+                filterForm.submit();
+            }, 500);
+        });
+    }
+    
+    // Immediate filter for status and date changes
+    if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+            saveScrollPosition();
+            filterForm.submit();
+        });
+    }
+    
+    if (dateFromInput) {
+        dateFromInput.addEventListener('change', function() {
+            saveScrollPosition();
+            filterForm.submit();
+        });
+    }
+    
+    if (dateToInput) {
+        dateToInput.addEventListener('change', function() {
+            saveScrollPosition();
+            filterForm.submit();
+        });
+    }
+});
 
 function confirmDelete(predictionId, topic) {
     currentDeleteId = predictionId;
@@ -479,6 +750,17 @@ document.getElementById('exportModal').onclick = function(e) {
         display: none;
     }
     
+    /* Collapsible content styles */
+    .collapsible-content {
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .collapsible-content[style*="max-height"] {
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+    
     /* Responsive Stats Grid */
     .stats-grid {
         display: grid;
@@ -572,6 +854,35 @@ document.getElementById('exportModal').onclick = function(e) {
         }
     }
     
+    /* Filter Form Responsive Styles */
+    #filterForm {
+        display: block;
+    }
+    
+    #filterForm > div {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+    
+    @media (max-width: 1024px) {
+        #filterForm > div {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        
+        #filterForm > div > div:first-child {
+            grid-column: span 3;
+        }
+        
+        #filterForm > div > div:last-child {
+            grid-column: span 3;
+            flex-direction: row !important;
+            justify-content: flex-end;
+        }
+    }
+    
     @media (max-width: 768px) {
         /* Page container padding */
         .history-page-container {
@@ -582,6 +893,43 @@ document.getElementById('exportModal').onclick = function(e) {
         .main-card {
             padding: 20px 16px !important;
             border-radius: 12px !important;
+        }
+        
+        /* Filter Form Mobile */
+        #filterForm {
+            padding: 16px !important;
+        }
+        
+        #filterForm > div {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+        
+        #filterForm > div > div:first-child {
+            grid-column: span 1 !important;
+        }
+        
+        #filterForm > div > div:last-child {
+            grid-column: span 1 !important;
+            flex-direction: row !important;
+            justify-content: flex-end;
+        }
+        
+        #filterForm label {
+            font-size: 12px !important;
+        }
+        
+        #filterForm input,
+        #filterForm select {
+            font-size: 16px !important; /* Prevent zoom on iOS */
+            padding: 12px 16px !important;
+        }
+        
+        #filterForm a {
+            width: 44px !important;
+            height: 44px !important;
+            padding: 10px !important;
+            min-height: 44px !important;
         }
         
         /* Header section */
@@ -756,6 +1104,28 @@ document.getElementById('exportModal').onclick = function(e) {
         .main-card {
             padding: 16px 12px !important;
             border-radius: 10px !important;
+        }
+        
+        /* Filter Form Very Small Screens */
+        #filterForm {
+            padding: 12px !important;
+        }
+        
+        #filterForm > div {
+            gap: 10px !important;
+        }
+        
+        #filterForm input,
+        #filterForm select {
+            padding: 10px 14px !important;
+            font-size: 16px !important;
+        }
+        
+        #filterForm a {
+            width: 42px !important;
+            height: 42px !important;
+            padding: 10px !important;
+            font-size: 14px !important;
         }
         
         /* Header section */

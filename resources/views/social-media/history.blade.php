@@ -25,32 +25,121 @@
             </div>
 
             <!-- History Stats Overview -->
-            @if($analyses->total() > 0)
-                <div style="margin-bottom: 32px;">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">History Overview</h2>
-                    <div class="social-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
-                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? $analyses->total() }}</div>
-                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Total</div>
-                        </div>
-                        <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
-                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
-                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Completed</div>
-                        </div>
-                        <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
-                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
-                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Processing</div>
-                        </div>
-                        <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
-                            <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
-                            <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Failed</div>
+            @if($stats['total'] > 0)
+                <div style="margin-bottom: 32px;" class="social-stats-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; cursor: pointer;" onclick="toggleSection('socialStatsContent', 'socialStatsToggle')">
+                        <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0;">History Overview</h2>
+                        <i id="socialStatsToggle" class="bi bi-chevron-down" style="font-size: 18px; color: #64748b; transition: transform 0.3s ease;"></i>
+                    </div>
+                    <div id="socialStatsContent" class="collapsible-content" style="overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease;">
+                        <div class="social-stats-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                            <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 4px;">{{ $stats['total'] ?? 0 }}</div>
+                                <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Total</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 4px;">{{ $stats['completed'] ?? 0 }}</div>
+                                <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Completed</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
+                                <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #92400e; margin-bottom: 4px;">{{ $stats['processing'] ?? 0 }}</div>
+                                <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Processing</div>
+                            </div>
+                            <div style="text-align: center; padding: 16px; background: #fef2f2; border-radius: 8px; border: 1px solid #fecaca;">
+                                <div class="social-stat-number" style="font-size: 28px; font-weight: 700; color: #991b1b; margin-bottom: 4px;">{{ $stats['failed'] ?? 0 }}</div>
+                                <div class="social-stat-label" style="font-size: 13px; color: #64748b;">Failed</div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            @endif
+
+            <!-- Search and Filter Section -->
+            <div style="margin-bottom: 24px;">
+                <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; cursor: pointer; border-bottom: 1px solid #e2e8f0;" onclick="toggleSection('socialFilterContent', 'socialFilterToggle')">
+                        <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0;">Search & Filter</h2>
+                        <i id="socialFilterToggle" class="bi bi-chevron-down" style="font-size: 18px; color: #64748b; transition: transform 0.3s ease;"></i>
+                    </div>
+                    <div id="socialFilterContent" class="collapsible-content" style="overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease;">
+                        <form method="GET" action="{{ route('social-media.history') }}" id="socialFilterForm" style="padding: 20px;">
+                            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 12px; align-items: end;" id="socialFilterGrid">
+                                <!-- Search Input -->
+                                <div>
+                                    <label for="search" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">Search</label>
+                                    <div style="position: relative;">
+                                        <input type="text" 
+                                               id="search" 
+                                               name="search" 
+                                               value="{{ request('search') }}"
+                                               placeholder="Search by username..."
+                                               style="width: 100%; padding: 10px 16px 10px 40px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
+                                        <i class="bi bi-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 16px;"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Status Filter -->
+                                <div>
+                                    <label for="status" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">Status</label>
+                                    <select id="status" 
+                                            name="status" 
+                                            style="width: 100%; padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white; cursor: pointer;">
+                                        <option value="">All Status</option>
+                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                                        <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                                        <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- Date From -->
+                                <div>
+                                    <label for="date_from" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">From Date</label>
+                                    <input type="date" 
+                                           id="date_from" 
+                                           name="date_from" 
+                                           value="{{ request('date_from') }}"
+                                           style="width: 100%; padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
+                                </div>
+                                
+                                <!-- Date To -->
+                                <div>
+                                    <label for="date_to" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 13px;">To Date</label>
+                                    <input type="date" 
+                                           id="date_to" 
+                                           name="date_to" 
+                                           value="{{ request('date_to') }}"
+                                           style="width: 100%; padding: 10px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.3s ease; background: white;">
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div style="display: flex; gap: 8px; flex-direction: row; align-items: center;">
+                                    <a href="{{ route('social-media.history') }}" 
+                                       title="Clear Filters"
+                                       onclick="sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);"
+                                       style="padding: 10px; width: 40px; height: 40px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
 
                 <!-- Analyses List Section -->
                 <div style="margin-bottom: 32px;">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">All Analyses</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap; gap: 12px;">
+                        <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin: 0;">All Analyses</h2>
+                        @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span style="color: #64748b; font-size: 13px;">Showing {{ $analyses->total() }} result(s)</span>
+                                <span style="background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500;">
+                                    <i class="bi bi-funnel-fill" style="margin-right: 4px;"></i>Filtered
+                                </span>
+                            </div>
+                        @endif
+                    </div>
                     
                     <!-- Desktop Table View -->
                     <div class="hidden-mobile" style="overflow-x: auto;">
@@ -75,15 +164,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($analyses as $analysis)
+                                @forelse($analyses as $analysis)
                                 <tr style="border-bottom: 1px solid #e2e8f0; transition: all 0.3s ease;" data-analysis-id="{{ $analysis->id }}">
                                     <td style="padding: 16px;">
                                         <div>
                                             <div style="font-weight: 600; color: #1e293b; font-size: 15px; margin-bottom: 6px;">{{ $analysis->username }}</div>
                                             <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                                <span style="background: #f1f5f9; color: #374151; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 500;">
-                                                    #{{ $analysis->id }}
-                                                </span>
                                                 @php
                                                     $analysisType = $analysis->ai_analysis['analysis_type'] ?? 'professional';
                                                 @endphp
@@ -172,20 +258,41 @@
                                         </div>
                                     </td>
                                 </tr>
-                                @endforeach
+                                @empty
+                                <tr>
+                                    <td colspan="5" style="padding: 60px 24px; text-align: center;">
+                                        <div style="color: #64748b; margin-bottom: 12px; font-size: 18px;">
+                                            <i class="bi bi-search" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px; display: block;"></i>
+                                        </div>
+                                        <h4 style="color: #64748b; margin-bottom: 12px; font-size: 18px; font-weight: 600;">No analyses found</h4>
+                                        <p style="color: #9ca3af; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">
+                                            @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                                Try adjusting your search or filter criteria.
+                                            @else
+                                                Start analyzing social media profiles to see your history here.
+                                            @endif
+                                        </p>
+                                        @if(!request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                        <a href="{{ route('social-media.index') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                                            <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
+                                            Create New Analysis
+                                        </a>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Mobile Card View -->
                     <div class="mobile-only" style="display: none;">
-                        @foreach($analyses as $analysis)
+                        @forelse($analyses as $analysis)
                         <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px;" data-analysis-id="{{ $analysis->id }}">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
                                 <div style="flex: 1;">
                                     <div style="font-weight: 600; color: #1e293b; font-size: 16px; margin-bottom: 4px;">{{ $analysis->username }}</div>
                                     <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
-                                        <span style="color: #64748b; font-size: 12px;">#{{ $analysis->id }}</span>
                                         @php
                                             $analysisType = $analysis->ai_analysis['analysis_type'] ?? 'professional';
                                         @endphp
@@ -266,7 +373,27 @@
                                 </div>
                             @endif
                         </div>
-                        @endforeach
+                        @empty
+                        <div style="background: #f8fafc; border-radius: 12px; padding: 40px 24px; border: 1px solid #e2e8f0; text-align: center;">
+                            <div style="color: #64748b; margin-bottom: 16px;">
+                                <i class="bi bi-search" style="font-size: 48px; color: #cbd5e1; margin-bottom: 16px; display: block;"></i>
+                            </div>
+                            <h4 style="color: #64748b; margin-bottom: 12px; font-size: 18px; font-weight: 600;">No analyses found</h4>
+                            <p style="color: #9ca3af; margin-bottom: 24px; line-height: 1.6; font-size: 14px;">
+                                @if(request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                                    Try adjusting your search or filter criteria.
+                                @else
+                                    Start analyzing social media profiles to see your history here.
+                                @endif
+                            </p>
+                            @if(!request()->hasAny(['search', 'status', 'date_from', 'date_to']))
+                            <a href="{{ route('social-media.index') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                                <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
+                                Create New Analysis
+                            </a>
+                            @endif
+                        </div>
+                        @endforelse
                     </div>
 
                     <!-- Pagination -->
@@ -320,20 +447,6 @@
                         </div>
                     @endif
                 </div>
-            @else
-                <!-- Empty State -->
-                <div style="text-align: center; padding: 60px 20px;">
-                    <div style="font-size: 64px; margin-bottom: 24px;">📊</div>
-                    <h2 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">No Analyses Yet</h2>
-                    <p style="color: #64748b; font-size: 14px; margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto;">
-                        Start analyzing social media profiles to see your history here.
-                    </p>
-                    <a href="{{ route('social-media.index') }}" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
-                        <i class="bi bi-plus-lg" style="font-size: 16px;"></i>
-                        Create New Analysis
-                    </a>
-                </div>
-            @endif
         </div>
     </div>
 </div>
@@ -388,6 +501,163 @@
 
 <script>
 let currentDeleteId = null;
+let socialSearchTimeout = null;
+
+// Collapsible section functionality
+function toggleSection(contentId, toggleId) {
+    const content = document.getElementById(contentId);
+    const toggle = document.getElementById(toggleId);
+    
+    if (!content || !toggle) return;
+    
+    // Check if currently expanded by checking computed style or class
+    const isExpanded = content.style.maxHeight && content.style.maxHeight !== '0px' && content.style.maxHeight !== '';
+    const contentHeight = content.scrollHeight;
+    
+    if (isExpanded) {
+        // Collapse
+        content.style.maxHeight = '0px';
+        content.style.opacity = '0';
+        toggle.style.transform = 'rotate(0deg)';
+        toggle.classList.remove('bi-chevron-up');
+        toggle.classList.add('bi-chevron-down');
+        localStorage.setItem(contentId + '_expanded', 'false');
+    } else {
+        // Expand
+        content.style.maxHeight = contentHeight + 'px';
+        content.style.opacity = '1';
+        toggle.style.transform = 'rotate(180deg)';
+        toggle.classList.remove('bi-chevron-down');
+        toggle.classList.add('bi-chevron-up');
+        localStorage.setItem(contentId + '_expanded', 'true');
+    }
+}
+
+// Initialize collapsible sections on page load
+function initializeCollapsibleSections() {
+    const sections = [
+        { contentId: 'socialStatsContent', toggleId: 'socialStatsToggle', defaultExpanded: true },
+        { contentId: 'socialFilterContent', toggleId: 'socialFilterToggle', defaultExpanded: true }
+    ];
+    
+    sections.forEach(function(section) {
+        const content = document.getElementById(section.contentId);
+        const toggle = document.getElementById(section.toggleId);
+        
+        if (!content || !toggle) return;
+        
+        // Check localStorage for saved state
+        const savedState = localStorage.getItem(section.contentId + '_expanded');
+        const isExpanded = savedState !== null ? savedState === 'true' : section.defaultExpanded;
+        
+        // Set initial state
+        if (isExpanded) {
+            // Expanded state
+            const height = content.scrollHeight;
+            content.style.maxHeight = height + 'px';
+            content.style.opacity = '1';
+            toggle.style.transform = 'rotate(180deg)';
+            toggle.classList.remove('bi-chevron-down');
+            toggle.classList.add('bi-chevron-up');
+        } else {
+            // Collapsed state
+            content.style.maxHeight = '0px';
+            content.style.opacity = '0';
+            toggle.style.transform = 'rotate(0deg)';
+            toggle.classList.remove('bi-chevron-up');
+            toggle.classList.add('bi-chevron-down');
+        }
+        
+        // Force a reflow to ensure styles are applied
+        void content.offsetHeight;
+    });
+}
+
+// Real-time filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize collapsible sections
+    initializeCollapsibleSections();
+    
+    // Recalculate heights on window resize
+    window.addEventListener('resize', function() {
+        const sections = ['socialStatsContent', 'socialFilterContent'];
+        sections.forEach(function(contentId) {
+            const content = document.getElementById(contentId);
+            if (content && content.style.maxHeight && content.style.maxHeight !== '0px') {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            }
+        });
+    });
+    
+    // Restore scroll position if it was saved
+    const savedScrollPosition = sessionStorage.getItem('socialMediaHistoryScrollPosition');
+    if (savedScrollPosition) {
+        // Small delay to ensure page is fully rendered
+        setTimeout(function() {
+            window.scrollTo(0, parseInt(savedScrollPosition));
+            sessionStorage.removeItem('socialMediaHistoryScrollPosition');
+        }, 100);
+    }
+    
+    const filterForm = document.getElementById('socialFilterForm');
+    const searchInput = document.getElementById('search');
+    const statusSelect = document.getElementById('status');
+    const dateFromInput = document.getElementById('date_from');
+    const dateToInput = document.getElementById('date_to');
+    
+    // Function to save scroll position before form submission
+    function saveScrollPosition() {
+        sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);
+    }
+    
+    // Add loading state on form submit
+    if (filterForm) {
+        filterForm.addEventListener('submit', function(e) {
+            // Save scroll position before submitting
+            saveScrollPosition();
+            
+            // Add a subtle loading indicator
+            const filterGrid = document.getElementById('socialFilterGrid');
+            if (filterGrid) {
+                filterGrid.style.opacity = '0.7';
+                filterGrid.style.pointerEvents = 'none';
+            }
+        });
+        
+        // Debounced search function (wait 500ms after user stops typing)
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(socialSearchTimeout);
+                socialSearchTimeout = setTimeout(function() {
+                    saveScrollPosition();
+                    filterForm.submit();
+                }, 500);
+            });
+        }
+        
+        // Immediate filter for status and date changes
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                saveScrollPosition();
+                filterForm.submit();
+            });
+        }
+        
+        if (dateFromInput) {
+            dateFromInput.addEventListener('change', function() {
+                saveScrollPosition();
+                filterForm.submit();
+            });
+        }
+        
+        if (dateToInput) {
+            dateToInput.addEventListener('change', function() {
+                saveScrollPosition();
+                filterForm.submit();
+            });
+        }
+    }
+});
 
 function confirmDelete(analysisId, username) {
     currentDeleteId = analysisId;
@@ -546,6 +816,46 @@ document.getElementById('exportModal').onclick = function(e) {
         gap: 16px;
     }
     
+    /* Collapsible content styles */
+    .collapsible-content {
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .collapsible-content[style*="max-height"] {
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+    }
+    
+    /* Filter Form Responsive Styles */
+    #socialFilterForm {
+        display: block;
+    }
+    
+    #socialFilterForm > div {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr auto;
+        gap: 12px;
+        align-items: end;
+    }
+    
+    @media (max-width: 1024px) {
+        #socialFilterForm > div {
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        
+        #socialFilterForm > div > div:first-child {
+            grid-column: span 3;
+        }
+        
+        #socialFilterForm > div > div:last-child {
+            grid-column: span 3;
+            flex-direction: row !important;
+            justify-content: flex-end;
+        }
+    }
+    
     @media (max-width: 768px) {
         /* Container and card padding */
         .social-history-page-container {
@@ -578,6 +888,43 @@ document.getElementById('exportModal').onclick = function(e) {
         .social-stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 12px !important;
+        }
+        
+        /* Filter Form Mobile */
+        #socialFilterForm {
+            padding: 16px !important;
+        }
+        
+        #socialFilterForm > div {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+        
+        #socialFilterForm > div > div:first-child {
+            grid-column: span 1 !important;
+        }
+        
+        #socialFilterForm > div > div:last-child {
+            grid-column: span 1 !important;
+            flex-direction: row !important;
+            justify-content: flex-end;
+        }
+        
+        #socialFilterForm label {
+            font-size: 12px !important;
+        }
+        
+        #socialFilterForm input,
+        #socialFilterForm select {
+            font-size: 16px !important; /* Prevent zoom on iOS */
+            padding: 12px 16px !important;
+        }
+        
+        #socialFilterForm a {
+            width: 44px !important;
+            height: 44px !important;
+            padding: 10px !important;
+            min-height: 44px !important;
         }
         
         .social-stat-number {
