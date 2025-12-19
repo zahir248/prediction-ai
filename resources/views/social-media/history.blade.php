@@ -406,11 +406,11 @@
                                 @if ($analyses->onFirstPage())
                                     <span style="color: #9ca3af; margin-right: 12px;">« Previous</span>
                                 @else
-                                    <a href="{{ $analyses->previousPageUrl() }}" class="pagination-link" style="color: #64748b; text-decoration: none; margin-right: 12px; transition: color 0.3s ease;">« Previous</a>
+                                    <a href="{{ $analyses->previousPageUrl() }}" class="pagination-link" onclick="sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);" style="color: #64748b; text-decoration: none; margin-right: 12px; transition: color 0.3s ease;">« Previous</a>
                                 @endif
 
                                 @if ($analyses->hasMorePages())
-                                    <a href="{{ $analyses->nextPageUrl() }}" class="pagination-link" style="color: #64748b; text-decoration: none; transition: color 0.3s ease;">Next »</a>
+                                    <a href="{{ $analyses->nextPageUrl() }}" class="pagination-link" onclick="sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);" style="color: #64748b; text-decoration: none; transition: color 0.3s ease;">Next »</a>
                                 @else
                                     <span style="color: #9ca3af;">Next »</span>
                                 @endif
@@ -423,7 +423,7 @@
                                 
                                 <div class="pagination-numbers" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                     @if (!$analyses->onFirstPage())
-                                        <a href="{{ $analyses->previousPageUrl() }}" class="pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
+                                        <a href="{{ $analyses->previousPageUrl() }}" class="pagination-arrow" onclick="sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
                                             <span style="font-size: 16px;">‹</span>
                                         </a>
                                     @endif
@@ -433,13 +433,13 @@
                                             @if ($page == $analyses->currentPage())
                                                 <span class="pagination-current" style="background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</span>
                                             @else
-                                                <a href="{{ $url }}" class="pagination-page" style="color: #64748b; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</a>
+                                                <a href="{{ $url }}" class="pagination-page" onclick="sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);" style="color: #64748b; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</a>
                                             @endif
                                         @endforeach
                                     </div>
                                     
                                     @if ($analyses->hasMorePages())
-                                        <a href="{{ $analyses->nextPageUrl() }}" class="pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
+                                        <a href="{{ $analyses->nextPageUrl() }}" class="pagination-arrow" onclick="sessionStorage.setItem('socialMediaHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
                                             <span style="font-size: 16px;">›</span>
                                         </a>
                                     @endif
