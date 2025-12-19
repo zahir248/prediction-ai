@@ -53,7 +53,7 @@ class SocialMediaController extends Controller
         }
         
         // Preserve filters in pagination
-        $analyses = $query->latest()->paginate(10)->appends($request->query());
+        $analyses = $query->latest()->paginate(5)->appends($request->query());
         
         // Get total counts for stats (not just current page)
         $allAnalyses = Auth::user()->socialMediaAnalyses();

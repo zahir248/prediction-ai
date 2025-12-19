@@ -395,58 +395,60 @@
                         </div>
                         @endforelse
                     </div>
-
-                    <!-- Pagination -->
+                </div>
+            
+            @if($analyses->count() > 0)
+                <div style="padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
+                    <!-- Clean Pagination -->
                     @if($analyses->hasPages())
-                        <div class="social-pagination-container" style="padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px;">
-                                <div class="social-pagination-nav" style="display: flex; align-items: center;">
-                                    @if ($analyses->onFirstPage())
-                                        <span style="color: #9ca3af; margin-right: 12px;">« Previous</span>
-                                    @else
-                                        <a href="{{ $analyses->previousPageUrl() }}" class="social-pagination-link" style="color: #64748b; text-decoration: none; margin-right: 12px; transition: color 0.3s ease;">« Previous</a>
-                                    @endif
+                        <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px;">
+                            <div class="pagination-nav" style="display: flex; align-items: center;">
+                                @if ($analyses->onFirstPage())
+                                    <span style="color: #9ca3af; margin-right: 12px;">« Previous</span>
+                                @else
+                                    <a href="{{ $analyses->previousPageUrl() }}" class="pagination-link" style="color: #64748b; text-decoration: none; margin-right: 12px; transition: color 0.3s ease;">« Previous</a>
+                                @endif
 
-                                    @if ($analyses->hasMorePages())
-                                        <a href="{{ $analyses->nextPageUrl() }}" class="social-pagination-link" style="color: #64748b; text-decoration: none; transition: color 0.3s ease;">Next »</a>
-                                    @else
-                                        <span style="color: #9ca3af;">Next »</span>
-                                    @endif
+                                @if ($analyses->hasMorePages())
+                                    <a href="{{ $analyses->nextPageUrl() }}" class="pagination-link" style="color: #64748b; text-decoration: none; transition: color 0.3s ease;">Next »</a>
+                                @else
+                                    <span style="color: #9ca3af;">Next »</span>
+                                @endif
+                            </div>
+                            
+                            <div class="pagination-info" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                                <div class="pagination-text" style="color: #64748b; font-size: 14px;">
+                                    Showing {{ $analyses->firstItem() }} to {{ $analyses->lastItem() }} of {{ $analyses->total() }} results
                                 </div>
                                 
-                                <div class="social-pagination-info" style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
-                                    <div class="social-pagination-text" style="color: #64748b; font-size: 14px;">
-                                        Showing {{ $analyses->firstItem() }} to {{ $analyses->lastItem() }} of {{ $analyses->total() }} results
+                                <div class="pagination-numbers" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    @if (!$analyses->onFirstPage())
+                                        <a href="{{ $analyses->previousPageUrl() }}" class="pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
+                                            <span style="font-size: 16px;">‹</span>
+                                        </a>
+                                    @endif
+                                    
+                                    <div class="pagination-pages" style="display: flex; gap: 4px; flex-wrap: wrap;">
+                                        @foreach ($analyses->getUrlRange(1, $analyses->lastPage()) as $page => $url)
+                                            @if ($page == $analyses->currentPage())
+                                                <span class="pagination-current" style="background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</span>
+                                            @else
+                                                <a href="{{ $url }}" class="pagination-page" style="color: #64748b; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</a>
+                                            @endif
+                                        @endforeach
                                     </div>
                                     
-                                    <div class="social-pagination-numbers" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                        @if (!$analyses->onFirstPage())
-                                            <a href="{{ $analyses->previousPageUrl() }}" class="social-pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
-                                                <span style="font-size: 16px;">‹</span>
-                                            </a>
-                                        @endif
-                                        
-                                        <div class="social-pagination-pages" style="display: flex; gap: 4px; flex-wrap: wrap;">
-                                            @foreach ($analyses->getUrlRange(1, $analyses->lastPage()) as $page => $url)
-                                                @if ($page == $analyses->currentPage())
-                                                    <span class="social-pagination-current" style="background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 14px; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</span>
-                                                @else
-                                                    <a href="{{ $url }}" class="social-pagination-page" style="color: #64748b; text-decoration: none; padding: 8px 12px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">{{ $page }}</a>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                        
-                                        @if ($analyses->hasMorePages())
-                                            <a href="{{ $analyses->nextPageUrl() }}" class="social-pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
-                                                <span style="font-size: 16px;">›</span>
-                                            </a>
-                                        @endif
-                                    </div>
+                                    @if ($analyses->hasMorePages())
+                                        <a href="{{ $analyses->nextPageUrl() }}" class="pagination-arrow" style="color: #64748b; text-decoration: none; padding: 8px; border-radius: 6px; transition: all 0.3s ease; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center;">
+                                            <span style="font-size: 16px;">›</span>
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     @endif
                 </div>
+            @endif
         </div>
     </div>
 </div>
@@ -957,33 +959,30 @@ document.getElementById('exportModal').onclick = function(e) {
         }
         
         /* Pagination improvements */
-        .social-pagination-container {
-            padding-top: 20px !important;
-        }
-        
-        .social-pagination-container > div {
+        .pagination-container {
             flex-direction: column !important;
             align-items: stretch !important;
             gap: 16px !important;
+            padding-top: 20px !important;
         }
         
-        .social-pagination-info {
+        .pagination-info {
             flex-direction: column !important;
             align-items: stretch !important;
             gap: 12px !important;
         }
         
-        .social-pagination-text {
+        .pagination-text {
             text-align: center !important;
             font-size: 12px !important;
         }
         
-        .social-pagination-numbers {
+        .pagination-numbers {
             justify-content: center !important;
             flex-wrap: wrap !important;
         }
         
-        .social-pagination-pages {
+        .pagination-pages {
             flex-wrap: wrap !important;
             justify-content: center !important;
         }
@@ -1061,13 +1060,13 @@ document.getElementById('exportModal').onclick = function(e) {
         }
         
         /* Pagination improvements */
-        .social-pagination-text {
+        .pagination-text {
             font-size: 11px !important;
         }
         
-        .social-pagination-arrow,
-        .social-pagination-page,
-        .social-pagination-current {
+        .pagination-arrow,
+        .pagination-page,
+        .pagination-current {
             min-width: 32px !important;
             min-height: 32px !important;
             padding: 6px 8px !important;
@@ -1108,18 +1107,18 @@ document.getElementById('exportModal').onclick = function(e) {
         }
         
         /* Pagination link hover states */
-        .social-pagination-link:hover,
-        .social-pagination-arrow:hover,
-        .social-pagination-page:hover {
+        .pagination-link:hover,
+        .pagination-arrow:hover,
+        .pagination-page:hover {
             background: #f1f5f9 !important;
         }
     }
     
     @media (max-width: 480px) {
         /* Even smaller touch targets for very small screens */
-        .social-pagination-arrow,
-        .social-pagination-page,
-        .social-pagination-current {
+        .pagination-arrow,
+        .pagination-page,
+        .pagination-current {
             min-height: 36px !important;
             min-width: 36px !important;
         }
