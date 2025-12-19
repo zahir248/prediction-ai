@@ -257,6 +257,42 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
         }
         
+        /* Cultural Fit Indicators Styles */
+        .cultural-fit-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        .cultural-fit-container h3,
+        .cultural-fit-container h4,
+        .cultural-fit-container p {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        .cultural-fit-container img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Professional Growth Signals Styles */
+        .professional-growth-container {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        .professional-growth-container h3,
+        .professional-growth-container h4,
+        .professional-growth-container p {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+        
+        .professional-growth-container img {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+            height: auto;
+        }
+        
         .radar-chart-container,
         .radar-chart-wrapper {
             page-break-inside: avoid;
