@@ -110,12 +110,12 @@
                 <div style="background: white; border-radius: 20px; padding: 32px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
                     <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px;">📋 Extracted Content from Files</h2>
                     <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 24px; border-radius: 16px; border: 1px solid #f59e0b;">
-                        <p style="color: #92400e; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📊 AI-Processed File Content</p>
+                        <p style="color: #92400e; font-size: 16px; margin-bottom: 16px; font-weight: 600;">📊 NUJUM-Processed File Content</p>
                         <div class="extracted-text-container" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #f59e0b; max-height: 400px; overflow-y: auto; overflow-x: hidden;">
                             <pre class="extracted-text" style="color: #92400e; line-height: 1.6; margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; overflow-x: hidden;">{{ $prediction->extracted_text }}</pre>
                         </div>
                         <p style="color: #92400e; font-size: 14px; margin-top: 16px; margin-bottom: 0; opacity: 0.8;">
-                            This content was automatically extracted from your uploaded files and analyzed by the AI system to enhance the prediction accuracy.
+                            This content was automatically extracted from your uploaded files and analyzed by the NUJUM system to enhance the prediction accuracy.
                         </p>
                     </div>
                 </div>
@@ -168,7 +168,7 @@
                                     @if(isset($source['error']) && $source['error'])
                                     <div style="margin: 8px 0 0 0; padding: 8px; background: #eff6ff; border-radius: 6px; border-left: 3px solid #3b82f6;">
                                         <p style="margin: 0; font-size: 12px; color: #1e40af;">
-                                            <strong>AI Note:</strong> This source was inaccessible, so the AI used its general knowledge and training data to provide relevant insights for the analysis.
+                                            <strong>NUJUM Note:</strong> This source was inaccessible, so NUJUM used its general knowledge and training data to provide relevant insights for the analysis.
                                         </p>
                                     </div>
                                     @endif
@@ -200,10 +200,10 @@
                 </div>
                 @endif
 
-                <!-- AI Results -->
+                <!-- NUJUM Results -->
                 @if(($prediction->status === 'completed' || $prediction->status === 'completed_with_warnings') && $prediction->prediction_result)
                 <div style="margin-bottom: 32px;">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">AI Analysis Results</h2>
+                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">NUJUM Analysis Results</h2>
                     
                     @if(isset($prediction->prediction_result['note']) && is_string($prediction->prediction_result['note']))
                         <div style="background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 16px; border-radius: 8px; margin-bottom: 24px; border-left: 4px solid #f59e0b;">
@@ -704,11 +704,11 @@
                             <div style="margin-bottom: 12px;">
                                 <strong style="font-size: 14px;">Partial Analysis Results</strong>
                             </div>
-                            <p style="margin-bottom: 16px; font-size: 13px;">The AI analysis was completed but the response may be incomplete. Below is the raw output from the AI:</p>
+                            <p style="margin-bottom: 16px; font-size: 13px;">The NUJUM analysis was completed but the response may be incomplete. Below is the raw output from NUJUM:</p>
                         </div>
                         
                         <div style="padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">AI Analysis Output</h4>
+                            <h4 style="font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 16px;">NUJUM Analysis Output</h4>
                             <div style="background: white; padding: 16px; border-radius: 6px; border: 1px solid #d1d5db; max-height: 600px; overflow-y: auto;">
                                 <pre style="white-space: pre-wrap; color: #374151; line-height: 1.6; margin: 0; font-family: 'Courier New', monospace; font-size: 13px;">{{ $prediction->prediction_result['raw_response'] }}</pre>
                             </div>
@@ -726,12 +726,12 @@
                 @elseif($prediction->status === 'failed')
                 <div style="margin-bottom: 32px; text-align: center; padding: 40px 20px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5;">
                     <h3 style="font-size: 18px; font-weight: 600; color: #991b1b; margin-bottom: 12px;">Analysis Failed</h3>
-                    <p style="color: #64748b; line-height: 1.6; margin: 0; font-size: 14px;">The AI prediction analysis could not be completed. Please try again or contact support.</p>
+                    <p style="color: #64748b; line-height: 1.6; margin: 0; font-size: 14px;">The NUJUM prediction analysis could not be completed. Please try again or contact support.</p>
                 </div>
                 @elseif($prediction->status === 'processing')
                 <div style="margin-bottom: 32px; text-align: center; padding: 40px 20px; background: #fef3c7; border-radius: 8px; border: 1px solid #fde68a;">
                     <h3 style="font-size: 18px; font-weight: 600; color: #92400e; margin-bottom: 12px;">Processing...</h3>
-                    <p style="color: #64748b; line-height: 1.6; margin: 0; font-size: 14px;">Your prediction analysis is being processed by AI. This may take a few moments.</p>
+                    <p style="color: #64748b; line-height: 1.6; margin: 0; font-size: 14px;">Your prediction analysis is being processed by NUJUM. This may take a few moments.</p>
                 </div>
                 @endif
             </div>
@@ -1060,7 +1060,7 @@
         <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Export PDF Report</h3>
         <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you ready to export this prediction analysis as a PDF report?</p>
         <p id="exportTopic" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
-        <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and AI insights.</p>
+        <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and NUJUM insights.</p>
         
         <div style="display: flex; gap: 16px; justify-content: center;">
             <button onclick="closeExportModal()" 
