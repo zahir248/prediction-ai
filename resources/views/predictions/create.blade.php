@@ -13,7 +13,7 @@
                 <!-- Form Header -->
                 <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                     <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">Predictions Analysis</h1>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Fill in the details below to generate your AI-powered prediction analysis</p>
+                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Fill in the details below to generate your NUJUM-powered prediction analysis</p>
                 </div>
                 
                 <!-- Basic Information Section -->
@@ -46,7 +46,7 @@
                         <div>
                             <label for="prediction_horizon" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
                                 Prediction Period <span style="color: #dc2626;">*</span>
-                                <span class="info-tooltip" data-tooltip="The time horizon for your prediction analysis. This determines how far into the future the AI will forecast. Shorter periods (days/weeks) focus on immediate trends, while longer periods (months/years) analyze broader patterns and strategic implications.">
+                                <span class="info-tooltip" data-tooltip="The time horizon for your prediction analysis. This determines how far into the future NUJUM will forecast. Shorter periods (days/weeks) focus on immediate trends, while longer periods (months/years) analyze broader patterns and strategic implications.">
                                     <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
                                 </span>
                             </label>
@@ -71,8 +71,8 @@
                         <!-- Target Field -->
                         <div>
                             <label for="target" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
-                                Target <span style="color: #64748b; font-weight: 400; font-size: 12px;">(Optional)</span>
-                                <span class="info-tooltip" data-tooltip="The specific entity, group, industry, or demographic that your prediction focuses on. This helps the AI tailor the analysis to the relevant context. Examples: specific companies, market sectors, demographic groups, or geographic regions.">
+                                Target Audience/Subject <span style="color: #64748b; font-weight: 400; font-size: 12px;">(Optional)</span>
+                                <span class="info-tooltip" data-tooltip="The specific entity, group, industry, or demographic that your prediction focuses on. This helps NUJUM tailor the analysis to the relevant context. Examples: specific companies, market sectors, demographic groups, or geographic regions.">
                                     <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
                                 </span>
                             </label>
@@ -95,7 +95,7 @@
                     <div>
                         <label for="input_data" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
                             Describe the issue or topic <span style="color: #dc2626;">*</span>
-                            <span class="info-tooltip" data-tooltip="Provide detailed information about the issue, situation, or topic you want to analyze. Include relevant data, statistics, current trends, challenges, and context. The more detailed information you provide, the more accurate and comprehensive the AI prediction will be. This is the core input that drives the entire analysis.">
+                            <span class="info-tooltip" data-tooltip="Provide detailed information about the issue, situation, or topic you want to analyze. Include relevant data, statistics, current trends, challenges, and context. The more detailed information you provide, the more accurate and comprehensive the NUJUM prediction will be. This is the core input that drives the entire analysis.">
                                 <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
                             </span>
                         </label>
@@ -129,7 +129,7 @@
                             <div>
                                 <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 14px;">
                                     Source URLs
-                                    <span class="info-tooltip" data-tooltip="Add URLs to articles, reports, or web pages that provide additional context for your analysis. The AI will automatically fetch and read the content from these URLs, then cite specific facts, numbers, and insights from the source material in the analysis. This enhances the accuracy and credibility of predictions.">
+                                    <span class="info-tooltip" data-tooltip="Add URLs to articles, reports, or web pages that provide additional context for your analysis. NUJUM will automatically fetch and read the content from these URLs, then cite specific facts, numbers, and insights from the source material in the analysis. This enhances the accuracy and credibility of predictions.">
                                         <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
                                     </span>
                                 </label>
@@ -181,7 +181,7 @@
                             <div>
                                 <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 14px;">
                                     Upload Files
-                                    <span class="info-tooltip" data-tooltip="Upload supporting documents such as PDF reports, Excel spreadsheets, CSV data files, or text documents. The AI will extract and analyze data from these files, including numerical data, trends, patterns, and structured information. This data is integrated with your text input to provide more comprehensive predictions.">
+                                    <span class="info-tooltip" data-tooltip="Upload supporting documents such as PDF reports, Excel spreadsheets, CSV data files, or text documents. NUJUM will extract and analyze data from these files, including numerical data, trends, patterns, and structured information. This data is integrated with your text input to provide more comprehensive predictions.">
                                         <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
                                     </span>
                                 </label>
@@ -224,7 +224,7 @@
     </div>
 </div>
 
-<!-- AI Analysis Progress Modal -->
+<!-- NUJUM Analysis Progress Modal -->
 <div id="analysisProgressModal" class="analysis-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
     <div class="analysis-modal-content" style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; animation: modalFadeIn 0.3s ease-out;">
         <!-- Close button (optional, but disabled during processing) -->
@@ -238,11 +238,11 @@
         </div>
         
         <!-- Title -->
-        <h2 style="color: #1e293b; margin-bottom: 12px; font-size: 24px; font-weight: 700;">AI Analysis in Progress</h2>
+        <h2 style="color: #1e293b; margin-bottom: 12px; font-size: 24px; font-weight: 700;">NUJUM Analysis in Progress</h2>
         
         <!-- Description -->
         <p style="color: #64748b; margin-bottom: 32px; font-size: 15px; line-height: 1.6;">
-            The AI is reading your source URLs and generating a comprehensive analysis. This may take 2-5 minutes.
+            NUJUM is reading your source URLs and generating a comprehensive analysis. This may take 2-5 minutes.
         </p>
         
         <!-- Progress Bar Container -->
@@ -1004,14 +1004,14 @@ function displayValidationResults(data) {
                      </div>
                  `).join('')}
                  
-                 <!-- AI General Knowledge Notice -->
+                 <!-- NUJUM General Knowledge Notice -->
                  <div style="margin-top: 12px; padding: 12px; background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 8px; color: #0369a1; font-size: 13px;">
                      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                          <span style="font-size: 16px;">🤖</span>
-                         <strong>AI Analysis Note:</strong>
+                         <strong>NUJUM Analysis Note:</strong>
                      </div>
                      <p style="margin: 0; line-height: 1.4;">
-                         For inaccessible URLs, the AI will use its general knowledge and training data to provide relevant insights. 
+                         For inaccessible URLs, NUJUM will use its general knowledge and training data to provide relevant insights. 
                          While this may not include the most recent specific details from these sources, it will still deliver comprehensive 
                          analysis based on available information.
                      </p>
@@ -1112,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { text: 'Processing your request...', progress: 10 },
             { text: 'Reading source URLs...', progress: 25 },
             { text: 'Extracting content from sources...', progress: 40 },
-            { text: 'Analyzing data with AI...', progress: 60 },
+            { text: 'Analyzing data with NUJUM...', progress: 60 },
             { text: 'Generating predictions...', progress: 75 },
             { text: 'Finalizing analysis...', progress: 90 },
             { text: 'Almost done...', progress: 95 }
