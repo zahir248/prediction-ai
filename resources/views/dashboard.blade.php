@@ -5,58 +5,80 @@
     <div style="max-width: 900px; margin: 0 auto;">
         <!-- Main Card -->
         <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-            <!-- Header Section -->
-            <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">AI Intelligence Platform</h1>
-                <p style="color: #64748b; font-size: 14px; margin: 0;">
-                    Professional-grade AI-powered analysis tools. Transform your data into actionable insights with prediction analysis and social media intelligence.
-                </p>
-            </div>
-
             <!-- Prediction Analysis Section -->
             <div style="margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid #e2e8f0;">
                 <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Prediction Analysis</h2>
                 <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 12px; padding: 24px; border: 1px solid #86efac; margin-bottom: 20px;">
                     <div style="margin-bottom: 20px;">
-                        <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">AI-Powered Prediction Analysis</h3>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">NUJUM-Powered Prediction Analysis</h3>
                         <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
-                            Transform your data into actionable insights with advanced AI prediction analysis. Get professional-grade reports with executive summaries, risk assessments, and strategic recommendations.
+                            Transform your data into actionable insights with advanced NUJUM prediction analysis. Get professional-grade reports with executive summaries, risk assessments, and strategic recommendations.
                         </p>
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px;">
                         <!-- Executive Summary -->
                         <div style="padding: 16px; border-radius: 8px; border: 1px solid rgba(134, 239, 172, 0.5); background: rgba(255,255,255,0.8);">
-                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Executive Summary</h4>
+                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea; flex-shrink: 0;">
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                </svg>
+                                Executive Summary
+                            </h4>
                             <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Professional-grade executive summaries with key insights and strategic overviews</p>
                         </div>
 
                         <!-- Predictive Analytics -->
                         <div style="padding: 16px; border-radius: 8px; border: 1px solid rgba(134, 239, 172, 0.5); background: rgba(255,255,255,0.8);">
-                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Predictive Analytics</h4>
+                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea; flex-shrink: 0;">
+                                    <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
+                                </svg>
+                                Predictive Analytics
+                            </h4>
                             <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Advanced forecasting with timeline-based predictions and scenario analysis</p>
                         </div>
 
                         <!-- Strategic Insights -->
                         <div style="padding: 16px; border-radius: 8px; border: 1px solid rgba(134, 239, 172, 0.5); background: rgba(255,255,255,0.8);">
-                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Strategic Insights</h4>
+                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea; flex-shrink: 0;">
+                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,19.93C7.05,19.5 4,16.17 4,12C4,11.38 4.08,10.79 4.21,10.21L9,15V16C9,17.1 9.9,18 11,18M17,16C17,14.9 16.1,14 15,14H13.5C13.33,14 13.17,14 13,14.05V10.5C13,9.67 12.33,9 11.5,9H6.5C5.67,9 5,9.67 5,10.5V11.93C3.86,13.21 3.14,14.78 3,16.5C3.17,18.89 5.11,20.83 7.5,21H15.07C16.5,21 17.8,20.35 18.69,19.38L16.5,17.2C16.5,17.2 15.5,16 15,16H13.5V14H15C16.1,14 17,14.9 17,16Z"/>
+                                </svg>
+                                Strategic Insights
+                            </h4>
                             <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Policy implications and strategic recommendations for decision-making</p>
                         </div>
 
                         <!-- Risk Assessment -->
                         <div style="padding: 16px; border-radius: 8px; border: 1px solid rgba(134, 239, 172, 0.5); background: rgba(255,255,255,0.8);">
-                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Risk Assessment</h4>
+                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea; flex-shrink: 0;">
+                                    <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.1 16,12.7V16.2C16,16.8 15.4,17.3 14.8,17.3H9.2C8.6,17.3 8,16.8 8,16.2V12.8C8,12.2 8.6,11.6 9.2,11.6V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11.5H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z"/>
+                                </svg>
+                                Risk Assessment
+                            </h4>
                             <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Comprehensive risk analysis with probability assessment and mitigation strategies</p>
                         </div>
 
                         <!-- Actionable Intelligence -->
                         <div style="padding: 16px; border-radius: 8px; border: 1px solid rgba(134, 239, 172, 0.5); background: rgba(255,255,255,0.8);">
-                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Actionable Intelligence</h4>
+                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea; flex-shrink: 0;">
+                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+                                </svg>
+                                Actionable Intelligence
+                            </h4>
                             <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">Strategic recommendations and implementation guidance for immediate action</p>
                         </div>
 
                         <!-- Enterprise Performance -->
                         <div style="padding: 16px; border-radius: 8px; border: 1px solid rgba(134, 239, 172, 0.5); background: rgba(255,255,255,0.8);">
-                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Enterprise Performance</h4>
+                            <h4 style="font-size: 15px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea; flex-shrink: 0;">
+                                    <path d="M13,3V9H21V3M13,21H21V11H13M3,21H11V15H3M3,13H11V3H3V13Z"/>
+                                </svg>
+                                Enterprise Performance
+                            </h4>
                             <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0;">High-speed processing with enterprise-grade reliability and scalability</p>
                         </div>
                     </div>
@@ -75,7 +97,7 @@
                     <div style="margin-bottom: 20px;">
                         <h3 style="font-size: 18px; font-weight: 700; color: #1e293b; margin: 0 0 12px 0;">Comprehensive Social Media Intelligence</h3>
                         <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0 0 20px 0;">
-                            Analyze profiles across Facebook, Instagram, TikTok, and X (Twitter) with AI-powered insights. Get professional assessments, risk analysis, and engagement metrics in one comprehensive report.
+                            Analyze profiles across Facebook, Instagram, TikTok, and X (Twitter) with NUJUM-powered insights. Get professional assessments, risk analysis, and engagement metrics in one comprehensive report.
                         </p>
                     </div>
                     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-bottom: 20px;">
@@ -113,19 +135,39 @@
                     </div>
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
                         <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
-                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">AI-Powered Insights</h4>
+                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #0ea5e9; flex-shrink: 0;">
+                                    <path d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M10.5,22V16H7.5L10.09,8.41C10.34,7.59 11.1,7 12,7C12.9,7 13.66,7.59 13.91,8.41L16.5,16H13.5V22H10.5Z"/>
+                                </svg>
+                                NUJUM-Powered Insights
+                            </h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Professional risk assessment and behavioral analysis</p>
                         </div>
                         <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
-                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Engagement Metrics</h4>
+                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #0ea5e9; flex-shrink: 0;">
+                                    <path d="M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z"/>
+                                </svg>
+                                Engagement Metrics
+                            </h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Comprehensive engagement and performance analytics</p>
                         </div>
                         <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
-                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Multi-Platform</h4>
+                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #0ea5e9; flex-shrink: 0;">
+                                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,13.5 19.5,14.9 18.7,16L7,16C6.2,14.9 5.7,13.5 5.7,12C5.7,7.59 9.3,4 13.7,4M7,18L17,18C18.1,18 19.1,17.5 19.8,16.7L4.2,16.7C4.9,17.5 5.9,18 7,18M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>
+                                </svg>
+                                Multi-Platform
+                            </h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Search across Facebook, Instagram, TikTok, and X (Twitter)</p>
                         </div>
                         <div style="padding: 16px; background: rgba(255,255,255,0.9); border-radius: 8px; border: 1px solid rgba(186, 230, 253, 0.5); box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
-                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px;">Export Reports</h4>
+                            <h4 style="font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; fill: #0ea5e9; flex-shrink: 0;">
+                                    <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+                                </svg>
+                                Export Reports
+                            </h4>
                             <p style="color: #64748b; font-size: 12px; line-height: 1.5; margin: 0;">Download professional analysis reports</p>
                         </div>
                     </div>
