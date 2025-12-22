@@ -148,7 +148,7 @@
             @endif
 
             @if($socialMediaAnalysis->status === 'completed' && $socialMediaAnalysis->ai_analysis)
-                <!-- AI Analysis Results -->
+                <!-- NUJUM Analysis Results -->
                 @php
                     $analysis = $socialMediaAnalysis->ai_analysis;
                 @endphp
@@ -363,7 +363,7 @@
                     <p style="color: #64748b; font-size: 14px;">This analysis could not be completed. You can still view the platform data above or try re-analyzing.</p>
                 </div>
             @else
-                <!-- No AI Analysis Yet - Show message but allow viewing platform data -->
+                <!-- No NUJUM Analysis Yet - Show message but allow viewing platform data -->
                 @if($socialMediaAnalysis->platform_data)
                     <div style="margin-bottom: 32px; padding: 24px; background: #fef3c7; border-radius: 12px; border: 1px solid #fde68a;">
                         <div style="display: flex; align-items: start; gap: 16px;">
@@ -371,7 +371,7 @@
                             <div style="flex: 1;">
                                 <h3 style="font-size: 18px; font-weight: 600; color: #92400e; margin-bottom: 8px;">Platform Data Available</h3>
                                 <p style="color: #78350f; font-size: 14px; margin-bottom: 16px; line-height: 1.6;">
-                                    Platform search has been completed, but AI analysis has not been performed yet. You can view the platform data above or start an analysis using the "Re-analyze" button.
+                                    Platform search has been completed, but NUJUM analysis has not been performed yet. You can view the platform data above or start an analysis using the "Re-analyze" button.
                                 </p>
                                 @if($socialMediaAnalysis->platform_data)
                                     <button onclick="confirmReAnalyze({{ $socialMediaAnalysis->id }}, {{ json_encode($socialMediaAnalysis->username) }})" 
@@ -405,7 +405,7 @@
          <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Export PDF Report</h3>
          <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you ready to export this social media analysis as a PDF report?</p>
          <p id="exportUsername" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
-         <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and AI insights.</p>
+         <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and NUJUM insights.</p>
          
          <div style="display: flex; gap: 16px; justify-content: center;">
              <button onclick="closeExportModal()" 

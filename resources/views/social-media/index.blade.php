@@ -1664,7 +1664,7 @@ function showPlatformSelection() {
     let html = `
         <div style="padding: 32px 24px;">
             <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center;">Select Platforms for Analysis</h3>
-            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Choose which platforms to include in the AI analysis</p>
+            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Choose which platforms to include in the NUJUM analysis</p>
             
             <!-- Analysis Type Selection -->
             <div style="margin-bottom: 32px;">
@@ -1821,13 +1821,13 @@ function selectAnalysisType(type) {
             professionalDiv.style.background = '#f0f4ff';
             politicalDiv.style.borderColor = '#e2e8f0';
             politicalDiv.style.background = '#ffffff';
-            if (modalTitle) modalTitle.textContent = 'AI Professional Analysis';
+            if (modalTitle) modalTitle.textContent = 'NUJUM Professional Analysis';
         } else {
             politicalDiv.style.borderColor = '#667eea';
             politicalDiv.style.background = '#f0f4ff';
             professionalDiv.style.borderColor = '#e2e8f0';
             professionalDiv.style.background = '#ffffff';
-            if (modalTitle) modalTitle.textContent = 'AI Political Analysis';
+            if (modalTitle) modalTitle.textContent = 'NUJUM Political Analysis';
         }
     }
 }
@@ -1864,7 +1864,7 @@ function proceedWithAnalysis() {
         modalContent.innerHTML = `
             <div style="text-align: center; padding: 40px 20px;">
                 <div style="font-size: 48px; margin-bottom: 16px;">🤖</div>
-                <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">AI ${analysisTypeLabel} Analysis</h3>
+                <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">NUJUM ${analysisTypeLabel} Analysis</h3>
                 <p style="color: #64748b; margin-bottom: 24px;">Analyzing social media profiles...</p>
                 <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
             </div>
@@ -2292,7 +2292,7 @@ function displayAnalysisError(error) {
 <div id="analysisModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: white; border-radius: 16px; max-width: 900px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
         <div style="padding: 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
-            <h2 id="analysisModalTitle" style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">AI Analysis</h2>
+            <h2 id="analysisModalTitle" style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">NUJUM Analysis</h2>
             <button onclick="closeAnalysisModal()" style="background: none; border: none; font-size: 24px; color: #64748b; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.2s;" onmouseover="this.style.background='#f1f5f9'; this.style.color='#1e293b';" onmouseout="this.style.background='none'; this.style.color='#64748b';">&times;</button>
         </div>
         <div id="analysisModalContent" style="flex: 1; overflow-y: auto; padding: 24px;">
