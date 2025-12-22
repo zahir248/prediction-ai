@@ -8,7 +8,7 @@
             <!-- Header Section -->
             <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
                 <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">My Analytics Dashboard</h1>
-                <p style="color: #64748b; font-size: 14px; margin: 0;">Track your AI analysis usage, costs, and performance metrics</p>
+                <p style="color: #64748b; font-size: 14px; margin: 0;">Track your NUJUM analysis usage, costs, and performance metrics</p>
             </div>
 
             <!-- Date Range Selector Section -->
@@ -61,7 +61,7 @@
                     <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
                         <div style="font-size: 28px; font-weight: 700; color: #166534; margin-bottom: 8px;">{{ number_format($analytics['total_tokens']) }}</div>
                         <div style="font-size: 13px; color: #64748b; font-weight: 600; margin-bottom: 4px;">Total Tokens</div>
-                        <div style="font-size: 12px; color: #9ca3af;">AI processing units</div>
+                        <div style="font-size: 12px; color: #9ca3af;">NUJUM processing units</div>
                     </div>
 
                     <!-- Total Cost -->
