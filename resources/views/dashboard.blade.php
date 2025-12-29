@@ -42,7 +42,7 @@
     <section style="max-width: 1200px; margin: 0 auto;">
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
             <!-- Predictions Analysis Module -->
-            <div class="animate-card-left" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 16px; padding: 32px; border: 1px solid #86efac; transition: all 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateX(-30px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+            <div class="animate-card-left" style="background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); border-radius: 16px; padding: 32px; border: 1px solid #dbeafe; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateX(-30px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                 <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 10px; text-align: center;">
                     Predictions Analysis
                 </h2>
@@ -83,7 +83,7 @@
             </div>
 
             <!-- Social Media Analysis Module -->
-            <div class="animate-card-right" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 16px; padding: 32px; border: 1px solid #bae6fd; transition: all 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateX(30px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+            <div class="animate-card-right" style="background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); border-radius: 16px; padding: 32px; border: 1px solid #dbeafe; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateX(30px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                 <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 10px; text-align: center;">
                     Social Media Analysis
                 </h2>
