@@ -53,10 +53,13 @@ class SocialMediaController extends Controller
         }
         
         // Preserve filters in pagination
-        $analyses = $query->latest()->paginate(5)->appends($request->query());
+        // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
+        // This prevents "Out of sort memory" errors when sorting by created_at with large JSON columns
+        $analyses = $query->orderBy('id', 'desc')->paginate(5)->appends($request->query());
         
         // Get total counts for stats (not just current page)
-        $allAnalyses = Auth::user()->socialMediaAnalyses();
+        // Use select() to avoid loading large JSON fields when counting
+        $allAnalyses = Auth::user()->socialMediaAnalyses()->select('id', 'status');
         $stats = [
             'total' => $allAnalyses->count(),
             'completed' => $allAnalyses->where('status', SocialMediaAnalysis::STATUS_COMPLETED)->count(),
@@ -264,8 +267,19 @@ class SocialMediaController extends Controller
             $results = $this->socialMediaService->searchAllPlatforms($username, $selectedPlatforms);
 
             // Save platform data immediately after search (if we have results)
+            // Wrap in try-catch to ensure save failures don't affect the search response
             if (isset($results['platforms']) && $results['total_found'] > 0) {
-                $this->savePlatformData($username, $results['platforms']);
+                try {
+                    $this->savePlatformData($username, $results['platforms']);
+                } catch (\Exception $saveException) {
+                    // Log but don't fail the request - search was successful
+                    Log::error('Failed to save platform data after search', [
+                        'username' => $username,
+                        'user_id' => Auth::id(),
+                        'error' => $saveException->getMessage(),
+                        'trace' => $saveException->getTraceAsString()
+                    ]);
+                }
             }
 
             return response()->json($results);
@@ -292,6 +306,8 @@ class SocialMediaController extends Controller
         try {
             // Check if we already have platform data for this username
             // Prefer records without AI analysis, but also check completed ones to update with fresh data
+            // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
+            // This prevents "Out of sort memory" errors
             $existing = SocialMediaAnalysis::where('username', $username)
                 ->where('user_id', Auth::id())
                 ->where(function($query) {
@@ -299,7 +315,7 @@ class SocialMediaController extends Controller
                           ->orWhere('status', SocialMediaAnalysis::STATUS_FAILED);
                 })
                 ->where('status', '!=', SocialMediaAnalysis::STATUS_PROCESSING) // Don't update processing ones
-                ->latest()
+                ->orderBy('id', 'desc')
                 ->first();
 
             if ($existing) {
@@ -510,10 +526,11 @@ class SocialMediaController extends Controller
             $username = trim($request->input('username'));
 
             // Find most recent analysis with platform data for this username
+            // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
             $analysis = SocialMediaAnalysis::where('username', $username)
                 ->where('user_id', Auth::id())
                 ->whereNotNull('platform_data')
-                ->latest()
+                ->orderBy('id', 'desc')
                 ->first();
 
             if ($analysis && $analysis->platform_data) {
@@ -572,10 +589,11 @@ class SocialMediaController extends Controller
         try {
             // If use_existing is true, try to get existing platform data
             if ($useExisting) {
+                // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
                 $existing = SocialMediaAnalysis::where('username', $username)
                     ->where('user_id', Auth::id())
                     ->whereNotNull('platform_data')
-                    ->latest()
+                    ->orderBy('id', 'desc')
                     ->first();
 
                 if ($existing && $existing->platform_data) {
@@ -595,10 +613,11 @@ class SocialMediaController extends Controller
             } else {
                 // Use provided platform data or get from existing record
                 if (!$platformData) {
+                    // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
                     $existing = SocialMediaAnalysis::where('username', $username)
                         ->where('user_id', Auth::id())
                         ->whereNotNull('platform_data')
-                        ->latest()
+                        ->orderBy('id', 'desc')
                         ->first();
 
                     if ($existing && $existing->platform_data) {
@@ -616,11 +635,12 @@ class SocialMediaController extends Controller
                     }
                 } else {
                     // Create or update analysis record with provided platform data
+                    // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
                     $existing = SocialMediaAnalysis::where('username', $username)
                         ->where('user_id', Auth::id())
                         ->whereNull('ai_analysis')
                         ->where('status', '!=', SocialMediaAnalysis::STATUS_PROCESSING)
-                        ->latest()
+                        ->orderBy('id', 'desc')
                         ->first();
 
                     if ($existing) {

@@ -73,8 +73,15 @@ class SocialMediaService
     {
         // Increase execution time limit for Apify operations
         // Longer timeout for fetching all posts (up to 10,000 posts)
-        $timeout = strpos($actorId, 'facebook') !== false && ($input['maxPosts'] ?? 0) > 1000 ? 600 : 300;
-        set_time_limit($timeout); // 10 minutes for large Facebook requests, 5 minutes for others
+        // Instagram scraping can be slower, so give it more time
+        if (strpos($actorId, 'facebook') !== false && ($input['maxPosts'] ?? 0) > 1000) {
+            $timeout = 600; // 10 minutes for large Facebook requests
+        } elseif (strpos($actorId, 'instagram') !== false) {
+            $timeout = 450; // 7.5 minutes for Instagram (can be slow due to rate limiting)
+        } else {
+            $timeout = 300; // 5 minutes for others
+        }
+        set_time_limit($timeout);
         
         try {
             $token = $this->getApiToken();
@@ -182,8 +189,12 @@ class SocialMediaService
             ]);
 
             // Wait for the run to finish
+            // Use the calculated timeout (matches execution time limit) or config timeout, whichever is higher
+            // Add a small buffer (30 seconds) to account for status check delays
+            $waitTimeout = max($timeout, $this->timeout) + 30;
+            
             if ($waitForFinish) {
-                $result = $this->waitForRunCompletion($runId, $token, 180, $actorId);
+                $result = $this->waitForRunCompletion($runId, $token, $waitTimeout, $actorId);
                 return $result;
             }
             
@@ -215,10 +226,43 @@ class SocialMediaService
         $checkInterval = 5; // Check every 5 seconds
 
         while (true) {
-            if (time() - $startTime > $maxWaitTime) {
-            return [
-                'success' => false,
-                    'error' => 'Apify actor run timed out after ' . $maxWaitTime . ' seconds'
+            $elapsedTime = time() - $startTime;
+            
+            if ($elapsedTime > $maxWaitTime) {
+                // Check final status before timing out to provide better error message
+                $statusResponse = Http::timeout(60)
+                    ->withOptions([
+                    'verify' => $this->sslVerify,
+                    'curl' => [
+                        CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                        CURLOPT_SSL_VERIFYHOST => $this->sslVerify ? 2 : 0,
+                    ]
+                    ])
+                    ->withHeaders([
+                        'Authorization' => 'Bearer ' . $token,
+                    ])
+                    ->get("{$this->apifyBaseUrl}/actor-runs/{$runId}");
+
+                $finalStatus = 'UNKNOWN';
+                if ($statusResponse->successful()) {
+                    $statusData = $statusResponse->json();
+                    $finalStatus = $statusData['data']['status'] ?? 'UNKNOWN';
+                }
+
+                Log::warning('Apify actor run timeout', [
+                    'run_id' => $runId,
+                    'actor_id' => $actorId,
+                    'max_wait_time' => $maxWaitTime,
+                    'elapsed_time' => $elapsedTime,
+                    'final_status' => $finalStatus,
+                    'suggestion' => $finalStatus === 'RUNNING' ? 'Run is still in progress. Consider increasing timeout or checking run status later via Apify console.' : 'Run may have failed or is taking longer than expected.'
+                ]);
+
+                return [
+                    'success' => false,
+                    'error' => 'Apify actor run timed out after ' . $maxWaitTime . ' seconds',
+                    'final_status' => $finalStatus,
+                    'run_id' => $runId
                 ];
             }
 
@@ -237,6 +281,12 @@ class SocialMediaService
                 ->get("{$this->apifyBaseUrl}/actor-runs/{$runId}");
 
             if (!$statusResponse->successful()) {
+                Log::error('Failed to check Apify run status', [
+                    'run_id' => $runId,
+                    'actor_id' => $actorId,
+                    'status_code' => $statusResponse->status(),
+                    'response' => $statusResponse->body()
+                ]);
                 return [
                     'success' => false,
                     'error' => 'Failed to check run status'
@@ -291,11 +341,30 @@ class SocialMediaService
             ];
                 }
             } elseif ($status === 'FAILED' || $status === 'ABORTED') {
-            return [
-                'success' => false,
+                Log::error('Apify actor run failed or aborted', [
+                    'run_id' => $runId,
+                    'actor_id' => $actorId,
+                    'status' => $status,
+                    'elapsed_time' => time() - $startTime
+                ]);
+                return [
+                    'success' => false,
                     'error' => 'Apify actor run ' . strtolower($status),
                     'status' => $status
-            ];
+                ];
+            }
+
+            // Log progress every 30 seconds for long-running runs
+            $elapsedTime = time() - $startTime;
+            if ($elapsedTime > 0 && $elapsedTime % 30 < $checkInterval) {
+                Log::info('Apify actor run in progress', [
+                    'run_id' => $runId,
+                    'actor_id' => $actorId,
+                    'status' => $status,
+                    'elapsed_time' => $elapsedTime,
+                    'max_wait_time' => $maxWaitTime,
+                    'remaining_time' => $maxWaitTime - $elapsedTime
+                ]);
             }
 
             // Wait before next check
