@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
-<!-- Wrapper for all sections with animated background -->
-<div class="animated-ai-background" style="position: relative; overflow: hidden;">
+<!-- Analysis Platform Section -->
+<div class="animated-ai-background" style="position: relative; min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center; overflow: hidden;">
     <!-- Animated Background Elements -->
     <div class="ai-particle ai-particle-1"></div>
     <div class="ai-particle ai-particle-2"></div>
@@ -27,8 +27,7 @@
     <div class="ai-connection ai-connection-5"></div>
     <div class="ai-connection ai-connection-6"></div>
     
-    <!-- Analysis Platform Section -->
-    <div style="position: relative; z-index: 10; background: transparent; min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
+    <div style="position: relative; z-index: 10; background: transparent;">
     <!-- Hero Section -->
     <section style="max-width: 1200px; margin: 0 auto 30px; text-align: center;">
         <h1 id="typing-text" style="font-size: 38px; font-weight: 700; color: #111827; line-height: 1.1; margin-bottom: 10px; letter-spacing: -0.02em; min-height: 50px;">
@@ -54,33 +53,33 @@
                     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">
                         <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
                             <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #667eea;">
-                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
-                            </svg>
+                                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                                </svg>
                             <span style="font-size: 13px; font-weight: 600; color: #374151;">Executive Summary</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
                             <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #ef4444;">
                                 <path d="M12,1L3,5V11C3,16.55 6.16,21.74 12,23C17.84,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.4 16,13V16C16,17.1 15.1,18 14,18H10C8.9,18 8,17.1 8,16V13C8,12.4 8.6,11.5 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11.5H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z"/>
-                            </svg>
+                                </svg>
                             <span style="font-size: 13px; font-weight: 600; color: #374151;">Risk Assessment</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
                             <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #10b981;">
                                 <path d="M16,6L18.29,8.29L13.41,13.17L9.41,9.17L2,16.59L3.41,18L9.41,12L13.41,16L19.71,9.71L22,12V6H16Z"/>
-                            </svg>
+                                </svg>
                             <span style="font-size: 13px; font-weight: 600; color: #374151;">Future Predictions</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
                             <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #f59e0b;">
                                 <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
-                            </svg>
+                                </svg>
                             <span style="font-size: 13px; font-weight: 600; color: #374151;">Strategic Insights</span>
                         </div>
-                    </div>
-                </div>
+                        </div>
+                        </div>
                 <a href="{{ route('predictions.create') }}" style="display: block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); margin-top: auto;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
-                    Start Prediction Analysis
-                </a>
+                            Start Prediction Analysis
+                        </a>
             </div>
 
             <!-- Social Media Analysis Module -->
@@ -133,9 +132,10 @@
         </div>
     </section>
     </div>
+                        </div>
 
-    <!-- Problem → Solution Section -->
-    <div style="position: relative; z-index: 10; background: rgba(249, 250, 251, 0.8); backdrop-filter: blur(10px); min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
+<!-- Problem → Solution Section -->
+<div style="background: #f9fafb; min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
     <section style="max-width: 1200px; margin: 0 auto; width: 100%;">
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;">
             <div>
@@ -190,10 +190,10 @@
             </div>
         </div>
     </section>
-    </div>
+</div>
 
-    <!-- Feature Overview -->
-    <div style="position: relative; z-index: 10; background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
+<!-- Feature Overview -->
+<div style="background: #ffffff; min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
     <section style="max-width: 1200px; margin: 0 auto; width: 100%;">
         <div style="text-align: center; margin-bottom: 40px;">
             <h2 style="font-size: 38px; font-weight: 700; color: #111827; line-height: 1.2; margin-bottom: 10px; letter-spacing: -0.01em;">
@@ -209,8 +209,8 @@
                 <div style="width: 48px; height: 48px; background: #f0f9ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #667eea;">
                         <path d="M12,2A2,2 0 0,1 14,4C14,4.74 13.6,5.39 13,5.73V7H14A7,7 0 0,1 21,14H22A1,1 0 0,1 23,15V18A1,1 0 0,1 22,19H21A7,7 0 0,1 14,26H10A7,7 0 0,1 3,19H2A1,1 0 0,1 1,18V15A1,1 0 0,1 2,14H3A7,7 0 0,1 10,7H11V5.73C10.4,5.39 10,4.74 10,4A2,2 0 0,1 12,2M7.5,13A2.5,2.5 0 0,0 5,15.5A2.5,2.5 0 0,0 7.5,18A2.5,2.5 0 0,0 10,15.5A2.5,2.5 0 0,0 7.5,13M16.5,13A2.5,2.5 0 0,0 14,15.5A2.5,2.5 0 0,0 16.5,18A2.5,2.5 0 0,0 19,15.5A2.5,2.5 0 0,0 16.5,13Z"/>
-                    </svg>
-                </div>
+                                </svg>
+                        </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                     Advanced Analysis
                 </h3>
@@ -223,8 +223,8 @@
                 <div style="width: 48px; height: 48px; background: #f0fdf4; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #10b981;">
                         <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
-                    </svg>
-                </div>
+                                </svg>
+                        </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                     Multi-Format Support
                 </h3>
@@ -237,50 +237,50 @@
                 <div style="width: 48px; height: 48px; background: #fef2f2; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #ef4444;">
                         <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
-                    </svg>
-                </div>
+                                </svg>
+                        </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                     Risk Assessment
                 </h3>
                 <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
                     Comprehensive risk analysis with probability assessment and mitigation strategies.
                 </p>
-            </div>
+                    </div>
             <!-- Feature 4 -->
             <div class="animate-fade-up" style="text-align: center; padding: 24px 20px; opacity: 0; transform: translateY(30px); transition: all 0.6s ease;">
                 <div style="width: 48px; height: 48px; background: #faf5ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #8b5cf6;">
                         <path d="M22,21H2V3H4V19H6V17H10V19H12V16H16V19H18V17H22V21Z"/>
                     </svg>
-                </div>
+                    </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                     Predictive Analytics
                 </h3>
                 <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
                     Timeline-based predictions from short-term to long-term horizons.
                 </p>
-            </div>
+                </div>
             <!-- Feature 5 -->
             <div class="animate-fade-up" style="text-align: center; padding: 24px 20px; opacity: 0; transform: translateY(30px); transition: all 0.6s ease;">
                 <div style="width: 48px; height: 48px; background: #eff6ff; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #3b82f6;">
                         <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
                     </svg>
-                </div>
+            </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                     Executive Reports
                 </h3>
                 <p style="font-size: 14px; color: #6b7280; line-height: 1.5;">
                     Professional-grade reports with executive summaries and strategic recommendations.
                 </p>
-            </div>
+        </div>
             <!-- Feature 6 -->
             <div class="animate-fade-up" style="text-align: center; padding: 24px 20px; opacity: 0; transform: translateY(30px); transition: all 0.6s ease;">
                 <div style="width: 48px; height: 48px; background: #fdf2f8; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
                     <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #ec4899;">
                         <path d="M18,16.08C17.24,16.08 16.56,16.38 16.04,16.85L8.91,12.7C8.96,12.47 9,12.24 9,12C9,11.76 8.96,11.53 8.91,11.3L15.96,7.19C16.5,7.69 17.21,8 18,8A3,3 0 0,0 21,5A3,3 0 0,0 18,2A3,3 0 0,0 15,5C15,5.24 15.04,5.47 15.09,5.7L8.04,9.81C7.5,9.31 6.79,9 6,9A3,3 0 0,0 3,12A3,3 0 0,0 6,15C6.79,15 7.5,14.69 8.04,14.19L15.16,18.34C15.11,18.55 15.08,18.77 15.08,19C15.08,20.61 16.39,21.91 18,21.91C19.61,21.91 20.92,20.61 20.92,19A2.92,2.92 0 0,0 18,16.08Z"/>
                     </svg>
-                </div>
+    </div>
                 <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 8px;">
                     Social Media Analysis
                 </h3>
@@ -290,10 +290,10 @@
             </div>
         </div>
     </section>
-    </div>
+</div>
 
-    <!-- How It Works (3 Steps) -->
-    <div style="position: relative; z-index: 10; background: rgba(249, 250, 251, 0.8); backdrop-filter: blur(10px); min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
+<!-- How It Works (3 Steps) -->
+<div style="background: #f9fafb; min-height: calc(100vh - 72px); padding: 30px 24px; display: flex; flex-direction: column; justify-content: center;">
     <section style="max-width: 1200px; margin: 0 auto; width: 100%;">
         <div style="text-align: center; margin-bottom: 40px;">
             <h2 style="font-size: 38px; font-weight: 700; color: #111827; line-height: 1.2; margin-bottom: 10px; letter-spacing: -0.01em;">
@@ -344,40 +344,767 @@
     </section>
     </div>
 </div>
-</div>
 
 
 <style>
-    @media (max-width: 1024px) {
+    /* Tablet and iPad Responsive Design */
+    /* iPad Pro 12.9" and large tablets (1024px - 1366px) */
+    @media (min-width: 1024px) and (max-width: 1366px) {
+        /* Analysis Platform Section */
+        .animated-ai-background {
+            padding: 24px 24px !important;
+            min-height: calc(100vh - 72px) !important;
+        }
+        
+        #typing-text {
+            font-size: 36px !important;
+            min-height: 44px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        #cursor {
+            height: 36px !important;
+        }
+        
+        section p {
+            font-size: 17px !important;
+            margin-bottom: 20px !important;
+        }
+        
+        /* Module cards - keep side by side */
+        section > div[style*="grid-template-columns: repeat(2, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px !important;
+        }
+        
+        .animate-card-left,
+        .animate-card-right {
+            padding: 20px !important;
+        }
+        
+        .animate-card-left h2,
+        .animate-card-right h2 {
+            font-size: 22px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .animate-card-left p,
+        .animate-card-right p {
+            font-size: 15px !important;
+            min-height: 50px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        /* Feature Overview - 3 columns */
         section > div[style*="grid-template-columns: repeat(3, 1fr)"] {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        /* Problem → Solution - keep side by side */
+        section > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 24px !important;
+        }
+        
+        div[style*="background: #f9fafb"] {
+            padding: 24px 20px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h3 {
+            font-size: 26px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h2 {
+            margin-bottom: 10px !important;
+        }
+        
+        div[style*="background: #f9fafb"] p,
+        div[style*="background: #f9fafb"] li {
+            font-size: 15px !important;
+        }
+        
+        div[style*="background: #f9fafb"] li {
+            padding: 8px 0 !important;
+        }
+        
+        /* Feature Overview and How It Works sections */
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"],
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] {
+            padding: 24px 20px !important;
+        }
+        
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] h2,
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] h2 {
+            font-size: 36px !important;
+            margin-bottom: 20px !important;
+        }
+        
+        /* White boxes in modules */
+        .animate-card-left > div[style*="background: white"],
+        .animate-card-right > div[style*="background: white"] {
+            padding: 14px !important;
+            min-height: 100px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        /* Feature cards */
+        .animate-fade-up {
+            padding: 16px 12px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 48px"] {
+            width: 44px !important;
+            height: 44px !important;
+        }
+        
+        .animate-fade-up h3 {
+            font-size: 17px !important;
+        }
+        
+        .animate-fade-up p {
+            font-size: 14px !important;
+        }
+        
+        /* How It Works step badges */
+        .animate-fade-up > div[style*="width: 64px"] {
+            width: 60px !important;
+            height: 60px !important;
+            font-size: 26px !important;
+        }
+    }
+    
+    /* iPad Pro 11" and medium tablets (834px - 1024px) */
+    @media (min-width: 834px) and (max-width: 1023px) {
+        /* Analysis Platform Section */
+        .animated-ai-background {
+            padding: 20px 20px !important;
+            min-height: calc(100vh - 72px) !important;
+        }
+        
+        #typing-text {
+            font-size: 34px !important;
+            min-height: 42px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        #cursor {
+            height: 34px !important;
+        }
+        
+        section p {
+            font-size: 16px !important;
+            margin-bottom: 18px !important;
+        }
+        
+        /* Module cards - keep side by side */
+        section > div[style*="grid-template-columns: repeat(2, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 14px !important;
+        }
+        
+        .animate-card-left,
+        .animate-card-right {
+            padding: 18px !important;
+        }
+        
+        .animate-card-left h2,
+        .animate-card-right h2 {
+            font-size: 21px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .animate-card-left p,
+        .animate-card-right p {
+            font-size: 14.5px !important;
+            min-height: 48px !important;
+            margin-bottom: 14px !important;
+        }
+        
+        /* Feature Overview - 3 columns */
+        section > div[style*="grid-template-columns: repeat(3, 1fr)"] {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        /* Problem → Solution - keep side by side */
+        section > div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 20px !important;
+        }
+        
+        div[style*="background: #f9fafb"] {
+            padding: 20px 18px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h3 {
+            font-size: 25px !important;
+            margin-bottom: 14px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h2 {
+            margin-bottom: 8px !important;
+        }
+        
+        div[style*="background: #f9fafb"] p,
+        div[style*="background: #f9fafb"] li {
+            font-size: 14.5px !important;
+        }
+        
+        div[style*="background: #f9fafb"] li {
+            padding: 7px 0 !important;
+        }
+        
+        /* Feature Overview and How It Works sections */
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"],
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] {
+            padding: 20px 18px !important;
+        }
+        
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] h2,
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] h2 {
+            font-size: 34px !important;
+            margin-bottom: 18px !important;
+        }
+        
+        /* White boxes in modules */
+        .animate-card-left > div[style*="background: white"],
+        .animate-card-right > div[style*="background: white"] {
+            padding: 12px !important;
+            min-height: 95px !important;
+            margin-bottom: 14px !important;
+        }
+        
+        /* Feature cards */
+        .animate-fade-up {
+            padding: 14px 10px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 48px"] {
+            width: 42px !important;
+            height: 42px !important;
+        }
+        
+        .animate-fade-up h3 {
+            font-size: 16px !important;
+        }
+        
+        .animate-fade-up p {
+            font-size: 13.5px !important;
+        }
+        
+        /* How It Works step badges */
+        .animate-fade-up > div[style*="width: 64px"] {
+            width: 58px !important;
+            height: 58px !important;
+            font-size: 25px !important;
+        }
+    }
+    
+    /* iPad Air and small tablets (768px - 833px) */
+    @media (min-width: 768px) and (max-width: 833px) {
+        /* Analysis Platform Section */
+        .animated-ai-background {
+            padding: 18px 18px !important;
+            min-height: calc(100vh - 72px) !important;
+        }
+        
+        #typing-text {
+            font-size: 32px !important;
+            min-height: 40px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        #cursor {
+            height: 32px !important;
+        }
+        
+        section p {
+            font-size: 15px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        /* Module cards - keep side by side but with adjusted spacing */
+        section > div[style*="grid-template-columns: repeat(2, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        .animate-card-left,
+        .animate-card-right {
+            padding: 16px !important;
+        }
+        
+        .animate-card-left h2,
+        .animate-card-right h2 {
+            font-size: 20px !important;
+            margin-bottom: 6px !important;
+        }
+        
+        .animate-card-left p,
+        .animate-card-right p {
+            font-size: 14px !important;
+            min-height: 45px !important;
+            margin-bottom: 12px !important;
+        }
+        
+        /* Feature Overview - 2 columns for better fit */
+        section > div[style*="grid-template-columns: repeat(3, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+        }
+        
+        /* Problem → Solution - stack on smaller tablets */
+        section > div[style*="grid-template-columns: 1fr 1fr"] {
             grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+        
+        div[style*="background: #f9fafb"] {
+            padding: 18px 16px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h3 {
+            font-size: 24px !important;
+            margin-bottom: 12px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h2 {
+            margin-bottom: 8px !important;
+        }
+        
+        div[style*="background: #f9fafb"] p,
+        div[style*="background: #f9fafb"] li {
+            font-size: 14px !important;
+        }
+        
+        div[style*="background: #f9fafb"] li {
+            padding: 6px 0 !important;
+        }
+        
+        /* Feature Overview and How It Works sections */
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"],
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] {
+            padding: 18px 16px !important;
+        }
+        
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] h2,
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] h2 {
+            font-size: 32px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        /* White boxes in modules */
+        .animate-card-left > div[style*="background: white"],
+        .animate-card-right > div[style*="background: white"] {
+            padding: 10px !important;
+            min-height: 90px !important;
+            margin-bottom: 12px !important;
+        }
+        
+        /* Feature cards */
+        .animate-fade-up {
+            padding: 12px 8px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 48px"] {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        
+        .animate-fade-up h3 {
+            font-size: 15px !important;
+        }
+        
+        .animate-fade-up p {
+            font-size: 13px !important;
+        }
+        
+        /* How It Works step badges */
+        .animate-fade-up > div[style*="width: 64px"] {
+            width: 56px !important;
+            height: 56px !important;
+            font-size: 24px !important;
+        }
+    }
+    
+    /* Tablet Landscape Orientation Optimizations */
+    @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+        /* Slightly reduce padding in landscape for better space utilization */
+        .animated-ai-background {
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
+        }
+        
+        div[style*="background: #f9fafb"],
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"],
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] {
+            padding-top: 16px !important;
+            padding-bottom: 16px !important;
+            min-height: auto !important;
+        }
+        
+        /* Reduce section spacing in landscape */
+        section {
+            margin-bottom: 12px !important;
+        }
+    }
+    
+    /* Reduce gaps between sections on all tablets */
+    @media (min-width: 768px) and (max-width: 1366px) {
+        section {
+            margin-bottom: 0 !important;
+        }
+        
+        /* Reduce spacing in feature overview header */
+        div[style*="text-align: center; margin-bottom: 40px"] {
+            margin-bottom: 24px !important;
+        }
+        
+        /* Reduce spacing in how it works header */
+        div[style*="text-align: center; margin-bottom: 40px"] {
+            margin-bottom: 24px !important;
+        }
+    }
+    
+    /* Responsive Design for Smaller Screens (below 768px - phones) */
+    @media (max-width: 767px) {
+        /* Analysis Platform Section */
+        .animated-ai-background {
+            padding: 24px 16px !important;
+            min-height: auto !important;
+        }
+        
+        #typing-text {
+            font-size: 32px !important;
+            min-height: 40px !important;
+        }
+        
+        #cursor {
+            height: 32px !important;
+        }
+        
+        section > div[style*="grid-template-columns: repeat(3, 1fr)"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 16px !important;
         }
         
         section > div[style*="grid-template-columns: repeat(2, 1fr)"] {
             grid-template-columns: 1fr !important;
+            gap: 20px !important;
         }
         
         section > div[style*="grid-template-columns: 1fr 1fr"] {
             grid-template-columns: 1fr !important;
+            gap: 30px !important;
+        }
+        
+        /* Module cards */
+        .animate-card-left,
+        .animate-card-right {
+            padding: 24px !important;
+        }
+        
+        .animate-card-left h2,
+        .animate-card-right h2 {
+            font-size: 20px !important;
+        }
+        
+        .animate-card-left p,
+        .animate-card-right p {
+            font-size: 14px !important;
+            min-height: auto !important;
+        }
+        
+        /* White boxes in modules */
+        .animate-card-left > div[style*="background: white"],
+        .animate-card-right > div[style*="background: white"] {
+            padding: 16px !important;
+            min-height: auto !important;
+        }
+        
+        /* Problem → Solution Section */
+        div[style*="background: #f9fafb"] h3 {
+            font-size: 24px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h2 {
+            font-size: 11px !important;
+        }
+        
+        div[style*="background: #f9fafb"] p,
+        div[style*="background: #f9fafb"] li {
+            font-size: 14px !important;
         }
     }
     
     @media (max-width: 768px) {
-        section h1[style*="font-size: 48px"] {
-            font-size: 32px !important;
+        /* Analysis Platform Section */
+        .animated-ai-background {
+            padding: 20px 16px !important;
         }
         
-        section h2[style*="font-size: 36px"],
-        section h3[style*="font-size: 32px"] {
+        #typing-text {
+            font-size: 28px !important;
+            min-height: 36px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        #cursor {
+            height: 28px !important;
+        }
+        
+        section p {
+            font-size: 14px !important;
+        }
+        
+        /* Module cards */
+        .animate-card-left,
+        .animate-card-right {
+            padding: 20px !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+        
+        .animate-card-left h2,
+        .animate-card-right h2 {
+            font-size: 18px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .animate-card-left p,
+        .animate-card-right p {
+            font-size: 13px !important;
+            margin-bottom: 16px !important;
+            min-height: auto !important;
+        }
+        
+        .animate-card-left > div[style*="background: white"],
+        .animate-card-right > div[style*="background: white"] {
+            padding: 12px !important;
+            margin-bottom: 16px !important;
+            min-height: auto !important;
+        }
+        
+        .animate-card-left > div[style*="background: white"] > div[style*="grid-template-columns: repeat(2, 1fr)"] {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+        }
+        
+        .animate-card-left a,
+        .animate-card-right a {
+            padding: 10px 20px !important;
+            font-size: 14px !important;
+        }
+        
+        /* Problem → Solution Section */
+        div[style*="background: #f9fafb"] {
+            padding: 24px 16px !important;
+            min-height: auto !important;
+        }
+        
+        div[style*="background: #f9fafb"] h3 {
+            font-size: 22px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h2 {
+            font-size: 10px !important;
+            margin-bottom: 10px !important;
+        }
+        
+        div[style*="background: #f9fafb"] p {
+            font-size: 13px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        div[style*="background: #f9fafb"] li {
+            font-size: 13px !important;
+            padding: 8px 0 !important;
+        }
+        
+        /* Feature Overview Section */
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] {
+            padding: 24px 16px !important;
+            min-height: auto !important;
+        }
+        
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] h2 {
+            font-size: 28px !important;
+            margin-bottom: 24px !important;
+        }
+        
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] p {
+            font-size: 13px !important;
+        }
+        
+        .animate-fade-up {
+            padding: 20px 16px !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 48px"] {
+            width: 40px !important;
+            height: 40px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 48px"] svg {
+            width: 20px !important;
+            height: 20px !important;
+        }
+        
+        .animate-fade-up h3 {
+            font-size: 16px !important;
+            margin-bottom: 6px !important;
+        }
+        
+        .animate-fade-up p {
+            font-size: 12px !important;
+        }
+        
+        /* How It Works Section */
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] {
+            padding: 24px 16px !important;
+            min-height: auto !important;
+        }
+        
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] h2 {
+            font-size: 28px !important;
+            margin-bottom: 24px !important;
+        }
+        
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] p {
+            font-size: 13px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 64px"] {
+            width: 56px !important;
+            height: 56px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 64px"] {
             font-size: 24px !important;
         }
         
-        section {
-            padding: 40px 16px !important;
+        .animate-fade-up h3[style*="font-size: 20px"] {
+            font-size: 18px !important;
+            margin-bottom: 6px !important;
         }
         
-        section > div[style*="gap: 60px"] {
-            gap: 30px !important;
+        .animate-fade-up p[style*="font-size: 14px"] {
+            font-size: 12px !important;
+        }
+        
+        /* General section adjustments */
+        section {
+            padding: 20px 16px !important;
+        }
+        
+        section > div[style*="gap: 60px"],
+        section > div[style*="gap: 50px"],
+        section > div[style*="gap: 24px"] {
+            gap: 20px !important;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        /* Extra small screens */
+        .animated-ai-background {
+            padding: 16px 12px !important;
+        }
+        
+        #typing-text {
+            font-size: 24px !important;
+            min-height: 32px !important;
+        }
+        
+        #cursor {
+            height: 24px !important;
+        }
+        
+        .animate-card-left,
+        .animate-card-right {
+            padding: 16px !important;
+        }
+        
+        .animate-card-left h2,
+        .animate-card-right h2 {
+            font-size: 16px !important;
+        }
+        
+        .animate-card-left p,
+        .animate-card-right p {
+            font-size: 12px !important;
+        }
+        
+        .animate-card-left > div[style*="background: white"],
+        .animate-card-right > div[style*="background: white"] {
+            padding: 10px !important;
+        }
+        
+        .animate-card-left > div[style*="background: white"] > div[style*="grid-template-columns: repeat(2, 1fr)"] > div {
+            padding: 6px 8px !important;
+        }
+        
+        .animate-card-left > div[style*="background: white"] > div[style*="grid-template-columns: repeat(2, 1fr)"] > div span {
+            font-size: 11px !important;
+        }
+        
+        .animate-card-left > div[style*="background: white"] > div[style*="grid-template-columns: repeat(2, 1fr)"] > div svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        
+        .animate-card-left a,
+        .animate-card-right a {
+            padding: 10px 16px !important;
+            font-size: 13px !important;
+        }
+        
+        div[style*="background: #f9fafb"] h3,
+        div[style*="background: #ffffff"][style*="min-height: calc(100vh - 72px)"] h2,
+        div[style*="background: #f9fafb"][style*="min-height: calc(100vh - 72px)"] h2 {
+            font-size: 20px !important;
+        }
+        
+        .animate-fade-up {
+            padding: 16px 12px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 48px"],
+        .animate-fade-up > div[style*="width: 64px"] {
+            width: 36px !important;
+            height: 36px !important;
+        }
+        
+        .animate-fade-up > div[style*="width: 64px"] {
+            font-size: 20px !important;
+        }
+        
+        .animate-fade-up h3 {
+            font-size: 14px !important;
+        }
+        
+        .animate-fade-up p {
+            font-size: 11px !important;
+        }
+        
+        /* Social media badges */
+        .animate-card-right > div[style*="background: white"] > div[style*="display: flex"] > div {
+            padding: 6px 10px !important;
+        }
+        
+        .animate-card-right > div[style*="background: white"] > div[style*="display: flex"] > div span {
+            font-size: 11px !important;
+        }
+        
+        .animate-card-right > div[style*="background: white"] > div[style*="display: flex"] > div svg {
+            width: 16px !important;
+            height: 16px !important;
         }
     }
     
@@ -390,7 +1117,6 @@
     .animated-ai-background {
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
         position: relative;
-        min-height: 100vh;
     }
     
     /* Floating Particles (Neural Network Nodes) */

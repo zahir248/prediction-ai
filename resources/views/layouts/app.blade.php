@@ -51,21 +51,116 @@
         
         .nav {
             background: white;
-            border-bottom: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 0 0 #e2e8f0;
             position: sticky;
             top: 0;
             z-index: 1000;
-            transition: transform 0.3s ease-in-out;
+            transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        border-radius 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        margin 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        width 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                        padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0;
+            margin: 0;
+            overflow: visible;
+            width: 100%;
+            will-change: width, margin, border-radius, background, box-shadow;
+        }
+        
+        @media (max-width: 768px) {
+            .nav {
+                overflow: visible;
+            }
         }
         
         .nav.nav-hidden {
             transform: translateY(-100%);
         }
         
+        /* Rounded navbar style on scroll (large screens only) */
+        @media (min-width: 769px) {
+            .nav {
+                min-height: 56px;
+                height: auto;
+            }
+            
+            .nav.nav-scrolled {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border: none;
+                border-radius: 16px;
+                margin: 12px auto;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                padding: 0;
+                width: fit-content;
+                max-width: none;
+                overflow: visible;
+                min-height: 56px;
+                height: auto;
+            }
+            
+            /* Ensure smooth transition back to full width without border artifacts */
+            .nav:not(.nav-scrolled) {
+                border: none;
+                width: 100%;
+                margin: 0;
+                border-radius: 0;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 0 0 #e2e8f0;
+                min-height: 56px;
+                height: auto;
+            }
+            
+            /* Smooth content transition */
+            .nav-content {
+                transition: padding 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                            grid-template-columns 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                            display 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                height: 56px;
+            }
+            
+            .nav.nav-scrolled .nav-content {
+                margin: 0;
+                padding: 0 24px;
+                width: auto;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 56px;
+            }
+            
+            /* Hide logo and user menu when scrolled */
+            .nav.nav-scrolled .nav-brand {
+                display: none;
+            }
+            
+            .nav.nav-scrolled .nav-user {
+                display: none;
+            }
+            
+            .nav.nav-scrolled .mobile-menu-toggle {
+                display: none;
+            }
+            
+            /* On mobile, always show the toggle button */
+            @media (max-width: 768px) {
+                .nav.nav-scrolled .mobile-menu-toggle {
+                    display: block !important;
+                }
+            }
+            
+            /* Center the menu items when scrolled */
+            .nav.nav-scrolled .nav-links {
+                margin: 0;
+                width: auto;
+            }
+        }
+        
         .nav-content {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
             height: 56px;
             max-width: 1200px;
@@ -81,13 +176,18 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            justify-self: start;
         }
         
         .nav-links {
             display: flex;
             align-items: center;
             gap: 20px;
-            margin-left: 32px;
+            justify-self: center;
+        }
+        
+        .nav-user {
+            justify-self: end;
         }
         
         .nav-link {
@@ -291,6 +391,25 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            justify-self: end;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-content {
+                grid-template-columns: auto 1fr auto;
+                position: relative;
+            }
+            
+            .mobile-menu-toggle {
+                justify-self: end;
+                display: block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            
+            .nav {
+                position: relative;
+            }
         }
         
         /* Mobile navigation */
@@ -304,19 +423,34 @@
             margin-left: auto;
             border-radius: 6px;
             transition: background-color 0.2s;
+            z-index: 1001;
+            position: relative;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         
         .mobile-menu-toggle:hover {
             background-color: #f1f5f9;
         }
         
+        .mobile-menu-toggle:active {
+            background-color: #e2e8f0;
+        }
+        
+        .mobile-menu-toggle:focus {
+            outline: 2px solid #667eea;
+            outline-offset: 2px;
+        }
+        
         .mobile-menu-toggle svg {
             width: 24px;
             height: 24px;
+            pointer-events: none;
+            display: block;
         }
         
         .mobile-nav {
-            display: none;
+            display: none !important;
             position: absolute;
             top: 100%;
             left: 0;
@@ -325,10 +459,21 @@
             border-top: 1px solid #e2e8f0;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 16px;
+            z-index: 999;
+            max-height: calc(100vh - 56px);
+            overflow-y: auto;
+            width: 100%;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
         }
         
         .mobile-nav.active {
-            display: block;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
         }
         
         .mobile-nav-links {
@@ -812,8 +957,10 @@
             }
             
             .mobile-menu-toggle {
-                display: block;
+                display: block !important;
                 margin-left: auto;
+                z-index: 1001;
+                position: relative;
             }
             
             .nav-content {
@@ -831,6 +978,11 @@
             
             .nav-user {
                 gap: 12px;
+            }
+            
+            /* Ensure mobile menu toggle is always visible on mobile */
+            .nav.nav-scrolled .mobile-menu-toggle {
+                display: block !important;
             }
             
             .grid-cols-2,
@@ -948,73 +1100,74 @@
         <!-- Navigation -->
         <nav class="nav">
             <div class="nav-content">
-                <div style="display: flex; align-items: center;">
-                    <div class="nav-brand">
-                        <a href="{{ route('dashboard') }}" class="nav-brand" style="display: flex; align-items: center;">
-                            <img src="{{ asset('image/logo2.png') }}" alt="NUJUM Logo" style="width: 40px; height: 40px; object-fit: contain;">
+                <div class="nav-brand">
+                    <a href="{{ route('dashboard') }}" class="nav-brand" style="display: flex; align-items: center;">
+                        <img src="{{ asset('image/logo2.png') }}" alt="NUJUM Logo" style="width: 40px; height: 40px; object-fit: contain;">
+                    </a>
+                </div>
+                
+                <div class="nav-links hidden-mobile">
+                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                        Home
+                    </a>
+                    <div class="nav-dropdown {{ request()->routeIs('predictions.*') ? 'has-active-child' : '' }}" id="predictionsDropdown">
+                        <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('predictionsDropdown');">
+                            Predictions Analysis
                         </a>
-                    </div>
-                    <div class="nav-links hidden-mobile">
-                        <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            Home
-                        </a>
-                        <div class="nav-dropdown {{ request()->routeIs('predictions.*') ? 'has-active-child' : '' }}" id="predictionsDropdown">
-                            <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('predictionsDropdown');">
-                                Predictions Analysis
+                        <div class="nav-dropdown-menu">
+                            <a href="{{ route('predictions.create') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
+                                Analyze Prediction
                             </a>
-                            <div class="nav-dropdown-menu">
-                                <a href="{{ route('predictions.create') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
-                                    Analyze Prediction
-                                </a>
-                                <a href="{{ route('predictions.history') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
-                                    History
-                                </a>
-                                <a href="{{ route('predictions.analytics') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
-                                    Analytics
-                                </a>
-                            </div>
+                            <a href="{{ route('predictions.history') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                            <a href="{{ route('predictions.analytics') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
+                                Analytics
+                            </a>
                         </div>
-                        <div class="nav-dropdown {{ request()->routeIs('social-media.*') ? 'has-active-child' : '' }}" id="socialMediaDropdown">
-                            <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('socialMediaDropdown');">
-                            Social Media Analysis
-                        </a>
-                            <div class="nav-dropdown-menu">
-                                <a href="{{ route('social-media.index') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.index') ? 'active' : '' }}">
-                                    Analyze Profile
-                                </a>
-                                <a href="{{ route('social-media.history') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
-                                    History
-                                </a>
-                            </div>
+                    </div>
+                    <div class="nav-dropdown {{ request()->routeIs('social-media.*') ? 'has-active-child' : '' }}" id="socialMediaDropdown">
+                        <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('socialMediaDropdown');">
+                        Social Media Analysis
+                    </a>
+                        <div class="nav-dropdown-menu">
+                            <a href="{{ route('social-media.index') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.index') ? 'active' : '' }}">
+                                Analyze Profile
+                            </a>
+                            <a href="{{ route('social-media.history') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
+                                History
+                            </a>
                         </div>
                     </div>
                 </div>
                 
-                <div class="nav-user hidden-mobile">
-                    @auth
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                                Profile
+                <div style="display: flex; align-items: center; gap: 12px; justify-self: end;">
+                    <div class="nav-user hidden-mobile">
+                        @auth
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                                    Profile
+                                </a>
+                                <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
+                                    Logout
+                                </button>
+                            </div>
+                        @else
+                            <a href="{{ route('login') }}" style="padding: 6px 12px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; transition: background-color 0.2s ease;">
+                                Login
                             </a>
-                            <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
-                                Logout
-                            </button>
-                        </div>
-                    @else
-                        <a href="{{ route('login') }}" style="padding: 6px 12px; background: #667eea; color: white; text-decoration: none; border-radius: 6px; font-size: 13px; transition: background-color 0.2s ease;">
-                            Login
-                        </a>
-                    @endauth
+                        @endauth
+                    </div>
+                    
+                    <!-- Mobile menu toggle -->
+                    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle mobile menu" type="button">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
                 </div>
-                
-                <!-- Mobile menu toggle -->
-                <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle mobile menu">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="3" y1="6" x2="21" y2="6"></line>
-                        <line x1="3" y1="12" x2="21" y2="12"></line>
-                        <line x1="3" y1="18" x2="21" y2="18"></line>
-                    </svg>
-                </button>
             </div>
             
             <!-- Mobile navigation menu -->
@@ -1115,10 +1268,98 @@
     </div>
     
     <script>
+        // Mobile menu toggle function
         function toggleMobileMenu() {
             const mobileNav = document.getElementById('mobileNav');
-            mobileNav.classList.toggle('active');
+            if (mobileNav) {
+                const isActive = mobileNav.classList.contains('active');
+                if (isActive) {
+                    mobileNav.classList.remove('active');
+                    console.log('Mobile menu closed');
+                } else {
+                    mobileNav.classList.add('active');
+                    console.log('Mobile menu opened');
+                }
+                
+                // Force reflow to ensure styles are applied
+                mobileNav.offsetHeight;
+                
+                // Log computed styles for debugging
+                const styles = window.getComputedStyle(mobileNav);
+                console.log('Mobile nav display:', styles.display);
+                console.log('Mobile nav visibility:', styles.visibility);
+                console.log('Mobile nav opacity:', styles.opacity);
+                console.log('Mobile nav has active class:', mobileNav.classList.contains('active'));
+            } else {
+                console.error('Mobile nav element not found');
+            }
         }
+        
+        // Ensure function is available globally
+        window.toggleMobileMenu = toggleMobileMenu;
+        
+        // Add event listener when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const mobileNav = document.getElementById('mobileNav');
+            
+            console.log('DOM loaded, looking for mobile menu toggle...');
+            console.log('Mobile menu toggle element:', mobileMenuToggle);
+            console.log('Mobile nav element:', mobileNav);
+            
+            if (mobileMenuToggle) {
+                // Add click event listener
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Mobile menu button clicked via event listener');
+                    toggleMobileMenu();
+                }, true); // Use capture phase
+                
+                // Also add touch event for mobile devices
+                mobileMenuToggle.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Mobile menu button touched');
+                    toggleMobileMenu();
+                }, true);
+                
+                // Also handle clicks on the button using onclick as fallback
+                mobileMenuToggle.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Mobile menu button clicked via onclick');
+                    toggleMobileMenu();
+                    return false;
+                };
+                
+                console.log('Mobile menu toggle button found and all listeners attached');
+            } else {
+                console.error('Mobile menu toggle button not found!');
+            }
+            
+            // Test if button is visible
+            if (mobileMenuToggle) {
+                const styles = window.getComputedStyle(mobileMenuToggle);
+                console.log('Button display:', styles.display);
+                console.log('Button visibility:', styles.visibility);
+                console.log('Button opacity:', styles.opacity);
+                console.log('Button z-index:', styles.zIndex);
+            }
+        });
+        
+        // Also try immediately (in case DOMContentLoaded already fired)
+        (function() {
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Mobile menu button clicked (immediate listener)');
+                    toggleMobileMenu();
+                }, true);
+            }
+        })();
         
         function toggleDropdown(dropdownId) {
             const dropdown = document.getElementById(dropdownId);
@@ -1185,8 +1426,10 @@
             const mobileNav = document.getElementById('mobileNav');
             const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
             
-            if (!mobileNav.contains(event.target) && !mobileMenuToggle.contains(event.target)) {
-                mobileNav.classList.remove('active');
+            if (mobileNav && mobileMenuToggle) {
+                if (!mobileNav.contains(event.target) && !mobileMenuToggle.contains(event.target)) {
+                    mobileNav.classList.remove('active');
+                }
             }
         });
         
@@ -1220,42 +1463,108 @@
             }
         });
         
-        // Navbar hide on scroll down functionality
+        // Navbar hide on scroll down functionality - DISABLED (navbar always visible)
+        // (function() {
+        //     const nav = document.querySelector('.nav');
+        //     let lastScrollTop = 0;
+        //     let scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
+        //     let ticking = false;
+        //     
+        //     if (!nav) return;
+        //     
+        //     function updateNavbar() {
+        //         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        //         
+        //         // Always show navbar at the top of the page
+        //         if (scrollTop <= scrollThreshold) {
+        //             nav.classList.remove('nav-hidden');
+        //         } else {
+        //             // Hide when scrolling down, show when scrolling up
+        //             if (scrollTop > lastScrollTop) {
+        //                 // Scrolling down - hide navbar
+        //                 nav.classList.add('nav-hidden');
+        //             } else {
+        //                 // Scrolling up - show navbar
+        //                 nav.classList.remove('nav-hidden');
+        //             }
+        //         }
+        //         
+        //         lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        //         ticking = false;
+        //     }
+        //     
+        //     window.addEventListener('scroll', function() {
+        //         if (!ticking) {
+        //             window.requestAnimationFrame(updateNavbar);
+        //             ticking = true;
+        //         }
+        //     }, { passive: true });
+        // })();
+        
+        // Ensure navbar is always visible
         (function() {
             const nav = document.querySelector('.nav');
-            let lastScrollTop = 0;
-            let scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
-            let ticking = false;
-            
+            if (nav) {
+                nav.classList.remove('nav-hidden');
+            }
+        })();
+        
+        // Rounded navbar on scroll (large screens only)
+        (function() {
+            const nav = document.querySelector('.nav');
             if (!nav) return;
             
-            function updateNavbar() {
+            // Only apply on large screens
+            if (window.innerWidth < 769) return;
+            
+            let scrollThreshold = 50; // Scroll distance to trigger rounded style
+            let buffer = 15; // Buffer to prevent rapid toggling
+            let ticking = false;
+            let isScrolled = false;
+            
+            function updateNavbarStyle() {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 
-                // Always show navbar at the top of the page
-                if (scrollTop <= scrollThreshold) {
-                    nav.classList.remove('nav-hidden');
-                } else {
-                    // Hide when scrolling down, show when scrolling up
-                    if (scrollTop > lastScrollTop) {
-                        // Scrolling down - hide navbar
-                        nav.classList.add('nav-hidden');
-                    } else {
-                        // Scrolling up - show navbar
-                        nav.classList.remove('nav-hidden');
+                // Use hysteresis (different thresholds for adding/removing class)
+                if (scrollTop > scrollThreshold + buffer) {
+                    if (!isScrolled) {
+                        nav.classList.add('nav-scrolled');
+                        isScrolled = true;
+                    }
+                } else if (scrollTop < scrollThreshold - buffer) {
+                    if (isScrolled) {
+                        nav.classList.remove('nav-scrolled');
+                        isScrolled = false;
                     }
                 }
                 
-                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
                 ticking = false;
             }
             
             window.addEventListener('scroll', function() {
-                if (!ticking) {
-                    window.requestAnimationFrame(updateNavbar);
+                if (!ticking && window.innerWidth >= 769) {
+                    window.requestAnimationFrame(updateNavbarStyle);
                     ticking = true;
                 }
             }, { passive: true });
+            
+            // Also check on resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth < 769) {
+                    nav.classList.remove('nav-scrolled');
+                    isScrolled = false;
+                } else {
+                    // Re-check scroll position on resize
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    if (scrollTop > scrollThreshold + buffer) {
+                        nav.classList.add('nav-scrolled');
+                        isScrolled = true;
+                    } else {
+                        nav.classList.remove('nav-scrolled');
+                        isScrolled = false;
+                    }
+                }
+            });
         })();
     </script>
 </body>
