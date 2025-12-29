@@ -107,10 +107,10 @@
 
 <div class="cultural-fit-container" style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Cultural Fit Indicators</h3>
+    <div style="margin-bottom: 20px;">
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Cultural Fit Indicators</h3>
         @if($confidence)
-            <span style="background: #f1f5f9; color: #374151; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                 Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
@@ -118,7 +118,7 @@
     
     <!-- Overview Text -->
     @if($overview)
-        <p style="color: #64748b; line-height: 1.8; font-size: 14px; margin-bottom: 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <p style="color: #64748b; line-height: 1.8; font-size: 16px; margin-bottom: 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             {{ $overview }}
         </p>
     @endif
@@ -499,7 +499,7 @@
                 </div>
                 
                 <!-- Description -->
-                <p style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+                <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                     {{ $indicator['description'] }}
                 </p>
             </div>
@@ -508,7 +508,7 @@
     
     <!-- Additional Details -->
     @if(isset($data['overall_fit']) || isset($data['concerns']) || isset($data['strengths']))
-        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['overall_fit']) && is_string($data['overall_fit']))
                 <div style="margin-bottom: 16px;">
                     <strong style="color: #374151;">Overall Fit:</strong> 

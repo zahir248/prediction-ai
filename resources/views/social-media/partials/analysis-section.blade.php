@@ -1,5 +1,5 @@
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
-    <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">{{ $title }}</h3>
+    <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 16px; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $title }}</h3>
     
     @foreach($data as $key => $value)
         @if($key === 'recommendations' || $key === 'evidence' || $key === 'concerns' || $key === 'strengths' || $key === 'indicators' || $key === 'notable_patterns' || $key === 'key_characteristics')

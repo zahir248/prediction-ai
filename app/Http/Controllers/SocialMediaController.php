@@ -909,7 +909,7 @@ class SocialMediaController extends Controller
             'defaultFont' => 'Arial',
             'defaultMediaType' => 'screen',
             'isFontSubsettingEnabled' => true,
-            'isPhpEnabled' => false,
+            'isPhpEnabled' => true,
             'isJavascriptEnabled' => false,
             'defaultPaperSize' => 'a4',
             'defaultPaperOrientation' => 'portrait',
@@ -917,6 +917,28 @@ class SocialMediaController extends Controller
             'fontHeightRatio' => 0.9,
             'enable-smart-shrinking' => true,
             'enable-local-file-access' => true
+        ]);
+        
+        // Add page numbers using DomPDF callback - runs on every page
+        $dompdf = $pdf->getDomPDF();
+        $dompdf->setCallbacks([
+            'myCallbacks' => [
+                'event' => 'end_page', 'f' => function ($infos) {
+                    $canvas = $infos["canvas"];
+                    $fontMetrics = $infos["fontMetrics"];
+                    $font = $fontMetrics->getFont("Times New Roman", "normal");
+                    $size = 9;
+                    $pageText = "{PAGE_NUM}";
+                    $y = $canvas->get_height() - 24;
+                    // Get page dimensions - A4 is 595.28 x 841.89 points (at 72 DPI)
+                    // Account for 1.2cm margins (33.87 points each side)
+                    $pageWidth = 595.28; // A4 width in points
+                    $textWidth = $fontMetrics->get_text_width($pageText, $font, $size);
+                    // Center the text on the page, with adjustment to the right
+                    $x = ($pageWidth / 2) - ($textWidth / 2) + 25; // +25 points to shift right
+                    $canvas->page_text($x, $y, $pageText, $font, $size, array(0, 0, 0)); // Black color
+                }
+            ]
         ]);
 
         // Generate filename

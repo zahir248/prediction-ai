@@ -12,7 +12,31 @@
     <style>
         @page {
             margin: 1.2cm;
+            margin-bottom: 2.5cm;
             size: A4;
+        }
+        
+        /* Page numbering using footer element */
+        .page-number {
+            position: fixed;
+            bottom: 0.5cm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            font-family: 'Times New Roman', serif;
+            z-index: 1000;
+        }
+        
+        /* Alternative: Use CSS for page numbers if supported */
+        @page {
+            @bottom-center {
+                content: counter(page);
+                font-size: 9pt;
+                color: #666;
+                font-family: 'Times New Roman', serif;
+            }
         }
         
         body {
@@ -578,7 +602,7 @@
 
         <!-- Overall Assessment -->
         @if(isset($analysis['overall_assessment']) && is_string($analysis['overall_assessment']))
-        <div class="section major-section">
+        <div class="section major-section" style="page-break-before: always; break-before: page;">
             <div class="section-title">Overall Assessment</div>
             <div class="content-box">
                 <p>{{ $analysis['overall_assessment'] }}</p>
@@ -624,6 +648,21 @@
         <p>Generated: {{ date('Y-m-d H:i:s') }}</p>
         <p>For questions or support, please visit <a href="https://iesb.com.my/" style="color: #666; text-decoration: none;">https://iesb.com.my/</a></p>
     </div>
+    
+    <script type="text/php">
+        if (isset($pdf)) {
+            $font = $fontMetrics->getFont("Times New Roman", "normal");
+            $size = 9;
+            $pageText = "{PAGE_NUM}";
+            $y = $pdf->get_height() - 24;
+            // Get the actual page width
+            $pageWidth = $pdf->get_width();
+            $textWidth = $fontMetrics->get_text_width($pageText, $font, $size);
+            // Center the text on the page, with adjustment to the right
+            $x = ($pageWidth / 2) - ($textWidth / 2) + 25; // +25 points to shift right
+            $pdf->page_text($x, $y, $pageText, $font, $size, array(0, 0, 0)); // Black color
+        }
+    </script>
 </body>
 </html>
 

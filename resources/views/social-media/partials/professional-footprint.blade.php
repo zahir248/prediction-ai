@@ -89,7 +89,7 @@
     <div style="margin-bottom: 20px;">
         <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Professional Footprint Analysis</h3>
         @if($confidence)
-            <span style="background: #f1f5f9; color: #64748b; padding: 5px 12px; border-radius: 10px; font-size: 11px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                 Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
@@ -97,11 +97,11 @@
 
     <!-- Overview Text -->
     @if($overview)
-        <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 15px; max-width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 16px; max-width: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             {!! nl2br(e($overview)) !!}
         </div>
     @else
-        <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 15px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+        <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @php
                 $username = $socialMediaAnalysis->username ?? 'This profile';
                 $postsText = $totalPosts ? "based on analysis of {$totalPosts} posts" : '';
@@ -172,7 +172,7 @@
 
     <!-- Breakdown of Metrics -->
     <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
-        <div style="color: #374151; line-height: 1.8; font-size: 14px;">
+        <div style="color: #374151; line-height: 1.8; font-size: 16px;">
             <strong style="color: #1e293b;">Breaking down the professionalism metrics:</strong>
             <div style="margin-top: 12px;">
                 @if(!empty($breakdown) && is_array($breakdown))
