@@ -3,26 +3,397 @@
 @section('content')
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
-    <div style="max-width: 900px; margin: 0 auto;">
-        <!-- Main Form Card -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-            <form action="{{ route('predictions.store') }}" method="POST" enctype="multipart/form-data">
-                @csrf
-                
-                <!-- Form Header -->
-                <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
-                    <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0;">Predictions Analysis</h1>
-                    <p style="color: #64748b; font-size: 14px; margin-top: 8px; margin-bottom: 0;">Fill in the details below to generate your NUJUM-powered prediction analysis</p>
+<style>
+    .cursor-layout {
+        display: flex;
+        height: calc(100vh - 72px);
+        background: #ffffff;
+        overflow: hidden;
+    }
+    
+    .cursor-sidebar {
+        width: 400px;
+        background: #fafafa;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cursor-main {
+        flex: 1;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #e5e7eb;
+        position: relative;
+    }
+    
+    .cursor-main.scrollable {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* AI-Themed Animated Background */
+    .animated-ai-background {
+        position: relative;
+    }
+    
+    /* Floating Particles (Neural Network Nodes) */
+    .ai-particle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.15) 50%, rgba(102, 126, 234, 0.05) 100%);
+        pointer-events: none;
+        filter: blur(2px);
+        z-index: 0;
+    }
+    
+    .ai-particle-1 {
+        width: 80px;
+        height: 80px;
+        top: 10%;
+        left: 10%;
+        animation: float-particle-1 20s ease-in-out infinite;
+    }
+    
+    .ai-particle-2 {
+        width: 60px;
+        height: 60px;
+        top: 25%;
+        right: 15%;
+        animation: float-particle-2 25s ease-in-out infinite;
+    }
+    
+    .ai-particle-3 {
+        width: 70px;
+        height: 70px;
+        top: 40%;
+        left: 20%;
+        animation: float-particle-3 18s ease-in-out infinite;
+    }
+    
+    .ai-particle-4 {
+        width: 65px;
+        height: 65px;
+        top: 55%;
+        right: 25%;
+        animation: float-particle-4 22s ease-in-out infinite;
+    }
+    
+    .ai-particle-5 {
+        width: 55px;
+        height: 55px;
+        top: 70%;
+        left: 15%;
+        animation: float-particle-5 30s ease-in-out infinite;
+    }
+    
+    .ai-particle-6 {
+        width: 75px;
+        height: 75px;
+        top: 85%;
+        right: 20%;
+        animation: float-particle-6 16s ease-in-out infinite;
+    }
+    
+    /* Gradient Waves */
+    .ai-wave {
+        position: absolute;
+        width: 200%;
+        height: 150px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(102, 126, 234, 0.06) 25%, 
+            rgba(139, 92, 246, 0.1) 50%, 
+            rgba(102, 126, 234, 0.06) 75%, 
+            transparent 100%);
+        border-radius: 50%;
+        opacity: 0.8;
+        pointer-events: none;
+        filter: blur(30px);
+        z-index: 0;
+    }
+    
+    .ai-wave-1 {
+        top: -75px;
+        left: -50%;
+        animation: wave-move-1 15s ease-in-out infinite;
+    }
+    
+    .ai-wave-2 {
+        bottom: -75px;
+        right: -50%;
+        animation: wave-move-2 20s ease-in-out infinite;
+    }
+    
+    /* Neural Network Connections */
+    .ai-connection {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(102, 126, 234, 0.3) 50%, 
+            transparent 100%);
+        pointer-events: none;
+        opacity: 0.4;
+        z-index: 0;
+    }
+    
+    .ai-connection-1 {
+        width: 200px;
+        top: 30%;
+        left: 15%;
+        transform: rotate(25deg);
+        animation: connection-pulse-1 3s ease-in-out infinite;
+    }
+    
+    .ai-connection-2 {
+        width: 180px;
+        bottom: 35%;
+        right: 20%;
+        transform: rotate(-35deg);
+        animation: connection-pulse-2 4s ease-in-out infinite;
+    }
+    
+    .ai-connection-3 {
+        width: 160px;
+        top: 60%;
+        left: 45%;
+        transform: rotate(45deg);
+        animation: connection-pulse-3 3.5s ease-in-out infinite;
+    }
+    
+    /* Particle Animations */
+    @keyframes float-particle-1 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(40px, 80px) scale(1.2); }
+        50% { transform: translate(-20px, 150px) scale(0.9); }
+        75% { transform: translate(30px, 200px) scale(1.1); }
+    }
+    
+    @keyframes float-particle-2 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(-50px, -50px) scale(1.15); }
+        50% { transform: translate(30px, -100px) scale(0.85); }
+        75% { transform: translate(-40px, -150px) scale(1.2); }
+    }
+    
+    @keyframes float-particle-3 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(60px, -75px) scale(1.3); }
+        66% { transform: translate(-45px, -150px) scale(0.9); }
+    }
+    
+    @keyframes float-particle-4 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(-40px, 100px) scale(1.1); }
+        50% { transform: translate(50px, 200px) scale(0.9); }
+        75% { transform: translate(-30px, 300px) scale(1.15); }
+    }
+    
+    @keyframes float-particle-5 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        30% { transform: translate(-60px, -100px) scale(1.4); }
+        60% { transform: translate(40px, -200px) scale(0.8); }
+        90% { transform: translate(-50px, -300px) scale(1.2); }
+    }
+    
+    @keyframes float-particle-6 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(50px, 125px) scale(1.25); }
+        66% { transform: translate(-35px, 250px) scale(0.9); }
+    }
+    
+    @keyframes wave-move-1 {
+        0%, 100% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(50px) rotate(180deg); }
+    }
+    
+    @keyframes wave-move-2 {
+        0%, 100% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(-50px) rotate(-180deg); }
+    }
+    
+    @keyframes connection-pulse-1 {
+        0%, 100% { opacity: 0.2; transform: rotate(25deg) scaleX(1); }
+        50% { opacity: 0.4; transform: rotate(25deg) scaleX(1.2); }
+    }
+    
+    @keyframes connection-pulse-2 {
+        0%, 100% { opacity: 0.2; transform: rotate(-35deg) scaleX(1); }
+        50% { opacity: 0.4; transform: rotate(-35deg) scaleX(1.15); }
+    }
+    
+    @keyframes connection-pulse-3 {
+        0%, 100% { opacity: 0.2; transform: rotate(45deg) scaleX(1); }
+        50% { opacity: 0.4; transform: rotate(45deg) scaleX(1.1); }
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+    }
+    
+    .cursor-sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+    }
+    
+    .cursor-sidebar-content {
+        flex: 1;
+        padding: 16px;
+        padding-bottom: 100px;
+        overflow-x: visible;
+    }
+    
+    .cursor-main-content {
+        flex: 1;
+        padding: 32px;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cursor-section {
+        margin-bottom: 24px;
+    }
+    
+    .cursor-section-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        padding: 0 4px;
+    }
+    
+    .cursor-item {
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin-bottom: 4px;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: #374151;
+    }
+    
+    .cursor-item:hover {
+        background: #f3f4f6;
+    }
+    
+    .cursor-item.active {
+        background: #eff6ff;
+        color: #2563eb;
+    }
+    
+    .cursor-tip-card {
+        padding: 12px;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #4b5563;
+    }
+    
+    .cursor-progress-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: #6b7280;
+    }
+    
+    .cursor-progress-item.completed {
+        color: #059669;
+    }
+    
+    .cursor-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        text-decoration: none;
+        color: #374151;
+        font-size: 13px;
+        border-radius: 6px;
+        transition: background 0.15s ease;
+    }
+    
+    .cursor-link:hover {
+        background: #f3f4f6;
+        color: #111827;
+    }
+    
+    @media (max-width: 1024px) {
+        .cursor-layout {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .cursor-sidebar {
+            width: 100%;
+            border-right: none;
+            border-top: 1px solid #e5e7eb;
+            order: 1;
+        }
+        
+        .cursor-main {
+            border-left: none;
+            border-bottom: 1px solid #e5e7eb;
+            order: 2;
+        }
+    }
+</style>
+
+<div class="cursor-layout">
+    <!-- Left Panel: Form -->
+    <div class="cursor-sidebar">
+        <div class="cursor-sidebar-header" id="sidebarHeader">
+            <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Analyze Prediction</h2>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Fill in the form to generate analysis</p>
                 </div>
+        
+        <!-- Prompt Details Header (hidden by default, shown during analysis) -->
+        <div class="cursor-sidebar-header" id="promptDetailsHeader" style="display: none;">
+            <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Analysis Input Details</h2>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Review the details being analyzed</p>
+        </div>
+        
+        <div class="cursor-sidebar-content">
+            <!-- Form Card (shown by default) -->
+            <div id="formCard">
+                <form id="prediction-form" action="{{ route('predictions.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
                 
                 <!-- Basic Information Section -->
-                <div style="margin-bottom: 32px;">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Basic Information</h2>
+                    <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Basic Information</h2>
                     
                     <!-- Report Title Field -->
-                    <div style="margin-bottom: 24px;">
-                        <label for="topic" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                    <div style="margin-bottom: 20px;">
+                        <label for="topic" style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
                             Report Title <span style="color: #dc2626;">*</span>
                             <span class="info-tooltip" data-tooltip="The title that will appear on your prediction report. This helps identify and organize your analysis reports. Choose a clear, descriptive title that summarizes the main topic of your prediction.">
                                 <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
@@ -32,7 +403,7 @@
                                id="topic" 
                                name="topic" 
                                value="{{ old('topic') }}"
-                               style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;"
+                               style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: all 0.15s ease; background: #ffffff;"
                                placeholder="Malaysia E-commerce Market Growth 2024"
                                required>
                         @error('topic')
@@ -40,19 +411,17 @@
                         @enderror
                     </div>
 
-                    <!-- Prediction Period and Target Row -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
                         <!-- Prediction Period Field -->
-                        <div>
-                            <label for="prediction_horizon" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                    <div style="margin-bottom: 20px;">
+                        <label for="prediction_horizon" style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
                                 Prediction Period <span style="color: #dc2626;">*</span>
                                 <span class="info-tooltip" data-tooltip="The time horizon for your prediction analysis. This determines how far into the future NUJUM will forecast. Shorter periods (days/weeks) focus on immediate trends, while longer periods (months/years) analyze broader patterns and strategic implications.">
-                                    <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
                                 </span>
                             </label>
                             <select id="prediction_horizon" 
                                     name="prediction_horizon" 
-                                    style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb; cursor: pointer;"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: all 0.15s ease; background: #ffffff; cursor: pointer;"
                                     required>
                                 <option value="">Select prediction time period</option>
                                 <option value="next_two_days" {{ old('prediction_horizon') == 'next_two_days' ? 'selected' : '' }}>Next Two Days</option>
@@ -64,45 +433,44 @@
                                 <option value="two_years" {{ old('prediction_horizon') == 'two_years' ? 'selected' : '' }}>2 Years</option>
                             </select>
                             @error('prediction_horizon')
-                                <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                            <p style="color: #dc2626; font-size: 12px; margin-top: 4px; margin-bottom: 0;">{{ $message }}</p>
                             @enderror
                         </div>
 
                         <!-- Target Field -->
-                        <div>
-                            <label for="target" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
-                                Target Audience/Subject <span style="color: #64748b; font-weight: 400; font-size: 12px;">(Optional)</span>
+                    <div style="margin-bottom: 20px;">
+                        <label for="target" style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
+                            Target Audience/Subject <span style="color: #64748b; font-weight: 400; font-size: 11px;">(Optional)</span>
                                 <span class="info-tooltip" data-tooltip="The specific entity, group, industry, or demographic that your prediction focuses on. This helps NUJUM tailor the analysis to the relevant context. Examples: specific companies, market sectors, demographic groups, or geographic regions.">
-                                    <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
                                 </span>
                             </label>
                             <input type="text" 
                                    id="target" 
                                    name="target" 
                                    value="{{ old('target') }}"
-                                   style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;"
+                               style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: all 0.15s ease; background: #ffffff;"
                                    placeholder="Malaysian SMEs, Tech Startups, E-commerce Sector">
                             @error('target')
-                                <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                            <p style="color: #dc2626; font-size: 12px; margin-top: 4px; margin-bottom: 0;">{{ $message }}</p>
                             @enderror
-                        </div>
                     </div>
                 </div>
 
                 <!-- Issue Details Section -->
-                <div style="margin-bottom: 32px;">
-                    <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Issue Details</h2>
+                <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Issue Details</h2>
                     <div>
-                        <label for="input_data" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
+                        <label for="input_data" style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
                             Describe the issue or topic <span style="color: #dc2626;">*</span>
                             <span class="info-tooltip" data-tooltip="Provide detailed information about the issue, situation, or topic you want to analyze. Include relevant data, statistics, current trends, challenges, and context. The more detailed information you provide, the more accurate and comprehensive the NUJUM prediction will be. This is the core input that drives the entire analysis.">
-                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
                             </span>
                         </label>
                         <textarea id="input_data" 
                                   name="input_data" 
                                   rows="6"
-                                  style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb; resize: vertical; font-family: inherit; line-height: 1.6;"
+                                  style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: all 0.15s ease; background: #ffffff; resize: vertical; font-family: inherit; line-height: 1.5;"
                                   placeholder="Malaysia's e-commerce sector has experienced rapid growth, with online sales increasing by 42% in 2023. However, Malaysian SMEs face challenges including rising operational costs, digital adoption barriers, and competition from international platforms. Consumer behavior shows increasing preference for local products, with 68% of Malaysian shoppers supporting local brands. The shift towards cashless payments is accelerating, with e-wallet usage growing by 55%. Supply chain disruptions and logistics costs remain concerns for businesses. What are the predictions for the next 12 months regarding market trends, consumer preferences, and business opportunities in Malaysia's digital economy?"
                                   required>{{ old('input_data') }}</textarea>
                         <p style="color: #64748b; font-size: 13px; margin-top: 8px; margin-bottom: 0;">Minimum 10 characters required</p>
@@ -123,21 +491,19 @@
                     </button>
                     
                     <div id="optional-section" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                        <!-- Source URLs and File Upload -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                             <!-- Source URLs Field -->
-                            <div>
-                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 14px;">
+                        <div style="margin-bottom: 20px;">
+                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
                                     Source URLs
                                     <span class="info-tooltip" data-tooltip="Add URLs to articles, reports, or web pages that provide additional context for your analysis. NUJUM will automatically fetch and read the content from these URLs, then cite specific facts, numbers, and insights from the source material in the analysis. This enhances the accuracy and credibility of predictions.">
-                                        <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                        <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
                                     </span>
                                 </label>
                                 <div id="source-urls-container">
                                     <div class="source-url-row" style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center;">
                                         <input type="url" 
                                                name="source_urls[]" 
-                                               style="width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 6px; font-size: 14px; transition: all 0.3s ease; background: #f9fafb;"
+                                               style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: all 0.15s ease; background: #ffffff;"
                                                placeholder="https://www.thestar.com.my/business"
                                                pattern="https?://.+">
                                         <button type="button" 
@@ -173,16 +539,16 @@
                                     <div id="validation-content" style="display: none;"></div>
                                 </div>
                                 @error('source_urls')
-                                    <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                                    <p style="color: #dc2626; font-size: 12px; margin-top: 4px; margin-bottom: 0;">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <!-- File Uploads Field -->
-                            <div>
-                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 14px;">
+                        <div style="margin-bottom: 20px;">
+                                <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
                                     Upload Files
                                     <span class="info-tooltip" data-tooltip="Upload supporting documents such as PDF reports, Excel spreadsheets, CSV data files, or text documents. NUJUM will extract and analyze data from these files, including numerical data, trends, patterns, and structured information. This data is integrated with your text input to provide more comprehensive predictions.">
-                                        <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 16px;"></i>
+                                        <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
                                     </span>
                                 </label>
                                 <div style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 2px dashed #cbd5e1; text-align: center;">
@@ -202,30 +568,130 @@
                                     </div>
                                 </div>
                                 @error('uploaded_files')
-                                    <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
+                                    <p style="color: #dc2626; font-size: 12px; margin-top: 4px; margin-bottom: 0;">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
                     </div>
+
+                </form>
                 </div>
 
-                <!-- Submit Buttons -->
-                <div class="submit-buttons-container" style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; border-top: 2px solid #e2e8f0; margin-top: 32px;">
-                    <a href="{{ route('dashboard') }}" style="display: inline-block; padding: 12px 24px; background: transparent; color: #64748b; text-decoration: none; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 15px; transition: all 0.3s ease;">
-                        Cancel
-                    </a>
-                    <button type="submit" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 32px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
-                        Generate Prediction
-                    </button>
+            <!-- Prompt Details (hidden by default, shown during analysis) -->
+            <div id="promptDetailsCard" style="display: none;">
+                <div id="promptDetailsContent">
+                    <!-- Prompt details will be populated here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating Action Buttons for Prompt Details (hidden by default, same position as Generate button) -->
+        <div class="floating-submit-container" id="promptDetailsActions" style="display: none;">
+            <div style="display: flex; gap: 12px;">
+                <a href="#" id="exportBtn" onclick="event.preventDefault(); confirmExportFromCreate(); return false;" class="floating-submit-btn" style="flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    Export
+                </a>
+                <a href="{{ route('predictions.create') }}" class="floating-submit-btn" style="flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    New Prediction
+                </a>
+            </div>
                 </div>
                 
-            </form>
+        <!-- Floating Submit Button -->
+        <div class="floating-submit-container" id="floatingSubmitContainer">
+            <button type="submit" form="prediction-form" class="floating-submit-btn" id="floatingSubmitBtn">
+                        Generate
+                    </button>
+        </div>
+                </div>
+                
+    <!-- Right Panel: Did You Know Section -->
+    <div class="cursor-main animated-ai-background">
+        <!-- Animated Background Elements -->
+        <div id="animatedBackground" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;">
+            <div class="ai-particle ai-particle-1"></div>
+            <div class="ai-particle ai-particle-2"></div>
+            <div class="ai-particle ai-particle-3"></div>
+            <div class="ai-particle ai-particle-4"></div>
+            <div class="ai-particle ai-particle-5"></div>
+            <div class="ai-particle ai-particle-6"></div>
+            <div class="ai-wave ai-wave-1"></div>
+            <div class="ai-wave ai-wave-2"></div>
+            <div class="ai-connection ai-connection-1"></div>
+            <div class="ai-connection ai-connection-2"></div>
+            <div class="ai-connection ai-connection-3"></div>
+        </div>
+        
+        <div class="cursor-main-content" style="position: relative; z-index: 10; padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 100%;">
+            <!-- Did You Know Section (shown by default, centered) -->
+            <div id="didYouKnowSection" style="max-width: 600px; width: 100%; text-align: center;">
+                <div style="margin-bottom: 32px; border: none; border-bottom: none; padding-bottom: 0;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); animation: pulse-glow 2s ease-in-out infinite;">
+                        <i class="bi bi-lightbulb-fill" style="color: #f59e0b; font-size: 32px;"></i>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0; padding: 0; border: none; border-bottom: none; letter-spacing: -0.5px;">
+                        Did you know?
+                    </h2>
+                </div>
+                <div id="typingFacts" style="min-height: 200px; color: #374151; font-size: 16px; line-height: 2; font-family: 'Georgia', 'Times New Roman', serif; padding: 24px 0;">
+                    <span id="typingText" style="white-space: pre-wrap; word-wrap: break-word; display: inline;"></span><span id="typingCursor" style="display: inline-block; width: 3px; height: 22px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-left: 4px; animation: blink 1s infinite; vertical-align: middle; border-radius: 2px;"></span>
+    </div>
+</div>
+
+            <!-- Instructions Card (hidden by default, removed Quick Steps) -->
+            <div id="instructionsCard" style="display: none;"></div>
+            
+            <!-- Progress Card (hidden by default) -->
+            <div id="progressCard" style="display: none; background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; max-width: 500px; width: 100%; margin: 0 auto;">
+                <!-- Title -->
+                <h2 style="color: #1e293b; margin-bottom: 8px; font-size: 18px; font-weight: 700; text-align: center;">NUJUM Analysis in Progress</h2>
+                
+                <!-- Description -->
+                <p style="color: #64748b; margin-bottom: 20px; font-size: 13px; line-height: 1.5; text-align: center;">
+                    Generating your comprehensive analysis. This may take 2-5 minutes.
+                </p>
+                
+                <!-- Progress Bar Container -->
+                <div style="margin-bottom: 16px;">
+                    <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; position: relative;">
+                        <div id="progressBar" class="progress-bar-fill" style="background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); height: 100%; border-radius: 8px; width: 0%; transition: width 0.3s ease; position: relative; overflow: hidden;">
+                            <div class="progress-bar-shine" style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); animation: shine 2s infinite;"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span id="progressText" style="color: #64748b; font-size: 12px; font-weight: 500;">0%</span>
+                        <span id="progressStatus" style="color: #0ea5e9; font-size: 12px; font-weight: 600;">Initializing...</span>
+                    </div>
+                </div>
+                
+                <!-- Status Messages -->
+                <div id="statusMessages" style="min-height: 40px; margin-top: 16px;">
+                    <div class="status-message active" style="padding: 10px 12px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #0ea5e9; margin-bottom: 6px; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div class="status-dot" style="width: 6px; height: 6px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                            <span style="color: #0369a1; font-size: 12px; font-weight: 500;">Processing your request...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Note -->
+                <p style="color: #94a3b8; margin-top: 16px; font-size: 11px; line-height: 1.4; text-align: center;">
+                    Please do not close this window. Results will appear here when complete.
+                </p>
+            </div>
+            
+            <!-- Result Display (hidden by default, shown when analysis completes) -->
+            <div id="resultCard" style="display: none; padding: 0;">
+                <div id="resultContent">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- NUJUM Analysis Progress Modal -->
-<div id="analysisProgressModal" class="analysis-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
+<!-- NUJUM Analysis Progress Modal (Hidden - using left panel instead) -->
+<div id="analysisProgressModal" class="analysis-modal-overlay" style="display: none !important; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 16px;">
     <div class="analysis-modal-content" style="background: white; border-radius: 20px; padding: 40px; max-width: 500px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; animation: modalFadeIn 0.3s ease-out;">
         <!-- Close button (optional, but disabled during processing) -->
         <button id="closeModalBtn" onclick="closeAnalysisModal()" style="display: none; position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: #64748b; font-size: 24px; cursor: pointer; width: 32px; height: 32px; border-radius: 50%; transition: all 0.3s ease; padding: 0;">
@@ -348,6 +814,141 @@
         animation: slideIn 0.3s ease-out;
     }
     
+    /* Cursor-style buttons */
+    .cursor-sidebar-content button[type="submit"] {
+        width: 100%;
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s ease;
+        margin-top: 8px;
+    }
+    
+    .cursor-sidebar-content button[type="submit"]:hover {
+        background: #1d4ed8;
+    }
+    
+    .cursor-sidebar-content .submit-buttons-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+    }
+    
+    .cursor-sidebar-content .submit-buttons-container a {
+        width: 100%;
+        padding: 10px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        text-align: center;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        display: block;
+    }
+    
+    .cursor-sidebar-content .submit-buttons-container a:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+    
+    /* Floating Submit Button */
+    .floating-submit-container {
+        position: sticky;
+        bottom: 0;
+        width: 100%;
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
+        padding: 16px;
+        z-index: 100;
+        box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+        flex-shrink: 0;
+    }
+    
+    .floating-submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .floating-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Export button hover effect */
+    #exportBtn:hover {
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    }
+    
+    .floating-submit-btn:active {
+        transform: translateY(0);
+    }
+    
+    /* Floating action buttons for prompt details */
+    #promptDetailsActions .floating-submit-btn {
+        min-width: 0;
+    }
+    
+    #promptDetailsActions .floating-submit-btn i {
+        font-size: 14px;
+    }
+    
+    .cursor-sidebar-content {
+        padding-bottom: 0;
+    }
+    
+    .cursor-main-content button[type="submit"] {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+    
+    .cursor-main-content button[type="submit"]:hover {
+        background: #1d4ed8;
+    }
+    
+    .cursor-main-content a[style*="Cancel"] {
+        padding: 10px 20px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid #d1d5db;
+        color: #374151;
+        transition: all 0.15s ease;
+    }
+    
+    .cursor-main-content a[style*="Cancel"]:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+    
     /* Modal Responsive Styles */
     @media (max-width: 768px) {
         .analysis-modal-content {
@@ -433,14 +1034,11 @@
     .info-tooltip {
         position: relative;
         display: inline-block;
+        cursor: help;
     }
     
-    .info-tooltip:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
+    .info-tooltip-tooltip {
+        position: fixed;
         background: #1f2937;
         color: white;
         padding: 10px 14px;
@@ -449,68 +1047,223 @@
         font-weight: 400;
         white-space: normal;
         width: 280px;
-        z-index: 1000;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 99999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         line-height: 1.5;
         pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
     }
     
-    .info-tooltip:hover::before {
-        content: '';
-        position: absolute;
-        bottom: 115%;
-        left: 50%;
-        transform: translateX(-50%);
+    .info-tooltip-tooltip.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .info-tooltip-arrow {
+        position: fixed;
         border: 6px solid transparent;
-        border-top-color: #1f2937;
-        z-index: 1001;
+        z-index: 99999;
         pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
     }
     
-    @media (max-width: 768px) {
-        .info-tooltip:hover::after,
-        .info-tooltip.active::after {
-            width: calc(100vw - 32px);
-            max-width: 320px;
+    .info-tooltip-arrow.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Ensure tooltips appear above all panels */
+    .cursor-layout {
+        position: relative;
+    }
+    
+    .cursor-main {
+        z-index: 1;
+    }
+    
+    
+    /* Cursor-style form inputs */
+    .cursor-sidebar-content input[type="text"],
+    .cursor-sidebar-content input[type="url"],
+    .cursor-sidebar-content textarea,
+    .cursor-sidebar-content select {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 13px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background: #ffffff;
+    }
+    
+    .cursor-sidebar-content input[type="text"]:focus,
+    .cursor-sidebar-content input[type="url"]:focus,
+    .cursor-sidebar-content textarea:focus,
+    .cursor-sidebar-content select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .cursor-sidebar-content label {
             font-size: 12px;
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%);
-            bottom: 125%;
-        }
-        
-        .info-tooltip:hover::before,
-        .info-tooltip.active::before {
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%);
-            bottom: 115%;
-        }
-        
-        /* For very small screens, position tooltip below icon */
-        @media (max-width: 480px) {
-            .info-tooltip:hover::after,
-            .info-tooltip.active::after {
-                bottom: auto;
-                top: 125%;
-            }
-            
-            .info-tooltip:hover::before,
-            .info-tooltip.active::before {
-                bottom: auto;
-                top: 115%;
-                border-top-color: transparent;
-                border-bottom-color: #1f2937;
-            }
-        }
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
     }
     
-    /* Responsive grid layout */
-    @media (max-width: 1024px) {
-        div[style*="grid-template-columns: 2fr 1fr"],
-        div[style*="grid-template-columns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-        }
+    .cursor-sidebar-content .info-tooltip {
+        font-size: 12px;
+    }
+    
+    .cursor-sidebar-content textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    /* Progress Card Styles - Centered */
+    #progressCard {
+        max-width: 500px;
+        width: 100%;
+        margin: 0 auto;
+    }
+    
+    /* Result Display Styles - No card, full display */
+    #resultCard {
+        width: 100%;
+        padding: 0;
+        display: block;
+    }
+    
+    #resultContent {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    /* When results are shown, ensure cursor-main-content displays properly */
+    .cursor-main.scrollable .cursor-main-content {
+        display: block !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+    }
+    
+    /* Ensure progress card is centered when displayed */
+    .cursor-main-content:has(#progressCard[style*="display: block"]) {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
+    /* Left panel scrollbar (only when scrollable) */
+    .cursor-main.scrollable {
+        scrollbar-width: thin;
+        scrollbar-color: #cbd5e1 #f1f5f9;
+    }
+    
+    .cursor-main.scrollable::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    .cursor-main.scrollable::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    
+    .cursor-main.scrollable::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+    
+    .cursor-main.scrollable::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    /* Compact result styles */
+    #resultContent h1,
+    #resultContent h2 {
+        font-size: 16px !important;
+        margin-bottom: 12px !important;
+    }
+    
+    #resultContent h3,
+    #resultContent h4 {
+        font-size: 14px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #resultContent p {
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+    }
+    
+    #resultContent ul,
+    #resultContent ol {
+        padding-left: 16px !important;
+        margin: 8px 0 !important;
+    }
+    
+    #resultContent li {
+        font-size: 12px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    
+    .cursor-main-content input[type="text"],
+    .cursor-main-content input[type="url"],
+    .cursor-main-content textarea,
+    .cursor-main-content select {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 14px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background: #ffffff;
+    }
+    
+    .cursor-main-content input[type="text"]:focus,
+    .cursor-main-content input[type="url"]:focus,
+    .cursor-main-content textarea:focus,
+    .cursor-main-content select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .cursor-main-content label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+    
+    .cursor-main-content h2 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Override for Did you know section */
+    #didYouKnowSection h2 {
+        text-transform: none !important;
+        border: none !important;
+        border-bottom: none !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    #didYouKnowSection > div {
+        border: none !important;
+        border-bottom: none !important;
     }
     
     @media (max-width: 768px) {
@@ -983,8 +1736,13 @@ function displayValidationResults(data) {
             <div style="margin-bottom: 16px;">
                 <h5 style="margin: 0 0 8px 0; color: #166534; font-size: 14px;">✅ Accessible URLs</h5>
                 ${data.accessible_urls.map(url => `
-                    <div style="padding: 8px 12px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; margin-bottom: 4px; font-size: 14px; color: #166534;">
-                        ${url.url} <span style="float: right; font-size: 12px;">${url.response_time}ms</span>
+                    <div style="padding: 8px 12px; background: #f0fdf4; border: 1px solid #10b981; border-radius: 6px; margin-bottom: 4px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                        <div style="flex: 1; min-width: 0; word-break: break-all; font-size: 12px; color: #166534; line-height: 1.5;">
+                            ${url.url}
+                        </div>
+                        <div style="flex-shrink: 0; font-size: 11px; color: #059669; font-weight: 600; white-space: nowrap;">
+                            ${url.response_time}ms
+                        </div>
                     </div>
                 `).join('')}
             </div>
@@ -1040,25 +1798,173 @@ function toggleOptionalSection() {
     }
 }
 
+// Form Progress Tracking
+function updateFormProgress() {
+    const progressItems = [
+        { id: 'progress-topic', field: 'topic' },
+        { id: 'progress-horizon', field: 'prediction_horizon' },
+        { id: 'progress-input', field: 'input_data' }
+    ];
+    
+    progressItems.forEach(({ id, field }) => {
+        const item = document.getElementById(id);
+        if (!item) return;
+        
+        const fieldElement = document.querySelector(`[name="${field}"], #${field}`);
+        const icon = item.querySelector('i');
+        const text = item.querySelector('span');
+        
+        if (fieldElement && fieldElement.value && fieldElement.value.trim() !== '') {
+            icon.className = 'bi bi-check-circle-fill';
+            icon.style.color = '#059669';
+            item.classList.add('completed');
+            text.style.color = '#059669';
+        } else {
+            icon.className = 'bi bi-circle';
+            icon.style.color = '#d1d5db';
+            item.classList.remove('completed');
+            text.style.color = '#6b7280';
+        }
+    });
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded, initializing...');
     
-    // Add click/tap support for tooltips on mobile
+    // Dynamic tooltip positioning with fixed positioning
+    let tooltipElement = null;
+    let tooltipArrow = null;
+    
+    function createTooltipElements() {
+        if (!tooltipElement) {
+            tooltipElement = document.createElement('div');
+            tooltipElement.className = 'info-tooltip-tooltip';
+            document.body.appendChild(tooltipElement);
+        }
+        if (!tooltipArrow) {
+            tooltipArrow = document.createElement('div');
+            tooltipArrow.className = 'info-tooltip-arrow';
+            document.body.appendChild(tooltipArrow);
+        }
+    }
+    
+    function showTooltip(element, text) {
+        createTooltipElements();
+        
+        const rect = element.getBoundingClientRect();
+        const isInSidebar = element.closest('.cursor-sidebar');
+        const tooltipWidth = 280;
+        const arrowSize = 6;
+        const spacing = 12;
+        
+        // Set tooltip content first to calculate height
+        tooltipElement.textContent = text;
+        tooltipElement.style.width = tooltipWidth + 'px';
+        tooltipElement.style.visibility = 'hidden';
+        tooltipElement.style.display = 'block';
+        const tooltipHeight = tooltipElement.offsetHeight;
+        tooltipElement.style.display = '';
+        tooltipElement.style.visibility = '';
+        
+        let tooltipLeft, tooltipTop, arrowLeft, arrowTop;
+        let arrowDirection = 'top';
+        
+        if (isInSidebar) {
+            // Show tooltip to the left (towards center)
+            tooltipLeft = rect.left - tooltipWidth - spacing;
+            tooltipTop = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+            
+            // Arrow pointing right
+            arrowLeft = rect.left - spacing;
+            arrowTop = rect.top + (rect.height / 2);
+            arrowDirection = 'right';
+            
+            // Ensure tooltip doesn't go off screen
+            if (tooltipLeft < 10) {
+                tooltipLeft = rect.right + spacing;
+                arrowLeft = rect.right;
+                arrowDirection = 'left';
+            }
+        } else {
+            // Show tooltip above
+            tooltipLeft = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+            tooltipTop = rect.top - tooltipHeight - spacing;
+            
+            // Arrow pointing down
+            arrowLeft = rect.left + (rect.width / 2);
+            arrowTop = rect.top - spacing;
+            arrowDirection = 'top';
+            
+            // Ensure tooltip doesn't go off screen
+            if (tooltipTop < 10) {
+                tooltipTop = rect.bottom + spacing;
+                arrowTop = rect.bottom;
+                arrowDirection = 'bottom';
+            }
+            if (tooltipLeft < 10) {
+                tooltipLeft = 10;
+            }
+            if (tooltipLeft + tooltipWidth > window.innerWidth - 10) {
+                tooltipLeft = window.innerWidth - tooltipWidth - 10;
+            }
+        }
+        
+        // Set tooltip position
+        tooltipElement.style.left = tooltipLeft + 'px';
+        tooltipElement.style.top = tooltipTop + 'px';
+        tooltipElement.classList.add('show');
+        
+        // Set arrow position and direction
+        tooltipArrow.style.left = arrowLeft + 'px';
+        tooltipArrow.style.top = arrowTop + 'px';
+        tooltipArrow.style.transform = 'translate(-50%, -50%)';
+        
+        // Set arrow direction
+        tooltipArrow.style.borderTopColor = arrowDirection === 'top' ? '#1f2937' : 'transparent';
+        tooltipArrow.style.borderBottomColor = arrowDirection === 'bottom' ? '#1f2937' : 'transparent';
+        tooltipArrow.style.borderLeftColor = arrowDirection === 'left' ? '#1f2937' : 'transparent';
+        tooltipArrow.style.borderRightColor = arrowDirection === 'right' ? '#1f2937' : 'transparent';
+        
+        tooltipArrow.classList.add('show');
+    }
+    
+    function hideTooltip() {
+        if (tooltipElement) {
+            tooltipElement.classList.remove('show');
+        }
+        if (tooltipArrow) {
+            tooltipArrow.classList.remove('show');
+        }
+    }
+    
+    // Add hover support for tooltips
     const tooltips = document.querySelectorAll('.info-tooltip');
     tooltips.forEach(tooltip => {
+        const tooltipText = tooltip.getAttribute('data-tooltip');
+        
+        tooltip.addEventListener('mouseenter', function(e) {
+            if (tooltipText) {
+                showTooltip(this, tooltipText);
+            }
+        });
+        
+        tooltip.addEventListener('mouseleave', function() {
+            hideTooltip();
+        });
+        
+        // Mobile click support
         tooltip.addEventListener('click', function(e) {
-            // Only handle click on mobile devices
             if (window.innerWidth <= 768) {
                 e.preventDefault();
                 e.stopPropagation();
-                // Toggle active class
                 const isActive = this.classList.contains('active');
-                // Remove active from all tooltips
                 tooltips.forEach(t => t.classList.remove('active'));
-                // Toggle current tooltip
-                if (!isActive) {
+                if (!isActive && tooltipText) {
                     this.classList.add('active');
+                    showTooltip(this, tooltipText);
+                } else {
+                    hideTooltip();
                 }
             }
         });
@@ -1069,43 +1975,619 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.innerWidth <= 768) {
             if (!e.target.closest('.info-tooltip')) {
                 tooltips.forEach(t => t.classList.remove('active'));
+                hideTooltip();
             }
         }
     });
+    
+    // Hide tooltip on scroll
+    window.addEventListener('scroll', hideTooltip, true);
         
         // Set up initial remove button visibility
         updateRemoveButtonVisibility();
 
-    // Show analysis progress modal when form is submitted
-    const form = document.querySelector('form');
-    const analysisModal = document.getElementById('analysisProgressModal');
+    // Track form progress
+    const formFields = document.querySelectorAll('input, textarea, select');
+    formFields.forEach(field => {
+        field.addEventListener('input', updateFormProgress);
+        field.addEventListener('change', updateFormProgress);
+    });
     
-    if (form && analysisModal) {
-        form.addEventListener('submit', function() {
-            showAnalysisModal();
+    // Initial progress update
+    updateFormProgress();
+
+    // Show analysis progress in left panel when form is submitted
+    const form = document.getElementById('prediction-form');
+    const instructionsCard = document.getElementById('instructionsCard');
+    const progressCard = document.getElementById('progressCard');
+    const resultCard = document.getElementById('resultCard');
+    const formCard = document.getElementById('formCard');
+    const promptDetailsCard = document.getElementById('promptDetailsCard');
+    const promptDetailsContent = document.getElementById('promptDetailsContent');
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
+    const typingText = document.getElementById('typingText');
+    const typingCursor = document.getElementById('typingCursor');
+    
+    // Make currentPredictionId globally accessible
+    window.currentPredictionId = null;
+    let pollingInterval = null;
+    let typingAnimationInterval = null;
+    let currentFactIndex = 0;
+    let isDeleting = false;
+    let currentText = '';
+    
+    // AI Facts for "Did you know?" section
+    const aiFacts = [
+        "AI copilots become standard in most jobs. Writing, coding, design, accounting, and customer support roles will commonly include AI copilots, similar to how spreadsheets became standard tools.",
+        "Most software will be partially AI-generated. Not fully autonomous—but large portions of code, tests, UI layouts, and documentation will be created by AI and reviewed by humans.",
+        "AI models shift from \"general\" to task-specialized. More companies will use smaller, cheaper, domain-specific models (legal AI, medical AI, finance AI) instead of one massive model.",
+        "AI runs more on local devices (edge AI). Phones, laptops, cars, and cameras will increasingly run AI offline for privacy, speed, and lower cloud costs.",
+        "Search engines become answer engines. Traditional \"10 blue links\" search will keep declining, replaced by AI-generated summaries with source citations.",
+        "AI regulation becomes unavoidable and fragmented. Different regions (EU, US, China, ASEAN) will enforce different AI rules, forcing companies to customize models by country.",
+        "Fake content detection becomes mandatory. Watermarking, content provenance, and AI-detection systems will be required for news, elections, and education platforms.",
+        "AI increases productivity—but not equally. Individuals and companies that know how to use AI well will gain large advantages, widening skill and income gaps.",
+        "Customer service is mostly AI-first. Humans will handle only complex or emotional cases; AI will manage the majority of chats, calls, and tickets.",
+        "AI literacy becomes a core education skill. Schools and universities will teach how to work with AI (prompting, verifying, ethics), not just how to avoid it."
+    ];
+    
+    // Typing animation function
+    function startTypingAnimation() {
+        if (!typingText || !typingCursor) return;
+        
+        // Clear any existing animation
+        if (typingAnimationInterval) {
+            clearTimeout(typingAnimationInterval);
+        }
+        
+        function animate() {
+            // Get current fact dynamically (not captured in closure)
+            const currentFact = aiFacts[currentFactIndex];
+            
+            if (isDeleting) {
+                // Delete characters
+                if (currentText.length > 0) {
+                    currentText = currentText.substring(0, currentText.length - 1);
+                    typingText.textContent = currentText;
+                    typingCursor.style.display = 'inline-block';
+                    typingAnimationInterval = setTimeout(animate, 30); // Fast deletion
+                } else {
+                    // Finished deleting, move to next fact
+                    isDeleting = false;
+                    currentFactIndex = (currentFactIndex + 1) % aiFacts.length;
+                    typingAnimationInterval = setTimeout(animate, 500); // Pause before typing new fact
+                }
+            } else {
+                // Type characters
+                if (currentText.length < currentFact.length) {
+                    currentText = currentFact.substring(0, currentText.length + 1);
+                    typingText.textContent = currentText;
+                    typingCursor.style.display = 'inline-block';
+                    
+                    // Random delay between 20-50ms for natural typing effect
+                    const delay = Math.random() * 30 + 20;
+                    typingAnimationInterval = setTimeout(animate, delay);
+                } else {
+                    // Finished typing, wait then start deleting
+                    typingCursor.style.display = 'inline-block';
+                    typingAnimationInterval = setTimeout(() => {
+                        isDeleting = true;
+                        typingAnimationInterval = setTimeout(animate, 3000); // Wait 3 seconds before deleting
+                    }, 3000);
+                }
+            }
+        }
+        
+        // Start animation
+        animate();
+    }
+    
+    // Start typing animation on page load
+    if (didYouKnowSection && typingText) {
+        // Initialize with first fact
+        currentText = '';
+        isDeleting = false;
+        currentFactIndex = 0;
+        setTimeout(() => {
+            startTypingAnimation();
+        }, 500);
+    }
+    
+    if (form && instructionsCard && progressCard) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show progress and prompt details
+            showAnalysisProgress();
+            showPromptDetails();
             
             // Disable the submit button
             const submitButton = form.querySelector('button[type="submit"]');
             if (submitButton) {
                 submitButton.disabled = true;
-                submitButton.textContent = '🔄 Processing...';
+                submitButton.textContent = 'Processing...';
                 submitButton.style.opacity = '0.7';
                 submitButton.style.cursor = 'not-allowed';
+            }
+            
+            // Submit form via AJAX
+            const formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok && response.status !== 422) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.prediction_id) {
+                    window.currentPredictionId = data.prediction_id; // Store globally
+                    
+                    // Store prediction ID for export
+                    // Export button will use currentPredictionId when clicked
+                    
+                    // Start polling immediately since processing happens synchronously
+                    setTimeout(() => {
+                        checkPredictionStatus(window.currentPredictionId);
+                    }, 2000); // Wait 2 seconds before first check
+                } else if (data.error) {
+                    showError(data.error);
+                    // Re-enable submit button on error
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Generate';
+                        submitButton.style.opacity = '1';
+                    }
+                } else if (data.errors) {
+                    // Validation errors
+                    const errorMessages = Object.values(data.errors).flat().join(', ');
+                    showError('Validation error: ' + errorMessages);
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = 'Generate';
+                        submitButton.style.opacity = '1';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Form submission error:', error);
+                showError('An error occurred. Please try again.');
+                // Re-enable submit button on error
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Generate';
+                    submitButton.style.opacity = '1';
+                }
+            });
+        });
+    }
+    
+    function showPromptDetails() {
+        if (!formCard || !promptDetailsCard) return;
+        
+        // Hide form, header, and submit button, show prompt details
+        formCard.style.display = 'none';
+        promptDetailsCard.style.display = 'block';
+        
+        // Hide prompt details action buttons during analysis
+        const promptDetailsActions = document.getElementById('promptDetailsActions');
+        if (promptDetailsActions) {
+            promptDetailsActions.style.display = 'none';
+        }
+        
+        // Hide Analyze Prediction header, show Analysis Input Details header
+        const sidebarHeader = document.getElementById('sidebarHeader');
+        if (sidebarHeader) {
+            sidebarHeader.style.display = 'none';
+        }
+        const promptDetailsHeader = document.getElementById('promptDetailsHeader');
+        if (promptDetailsHeader) {
+            promptDetailsHeader.style.display = 'block';
+        }
+        
+        // Hide floating submit button
+        const floatingSubmitContainer = document.getElementById('floatingSubmitContainer');
+        if (floatingSubmitContainer) {
+            floatingSubmitContainer.style.display = 'none';
+        }
+        
+        // Get form values
+        const topic = document.getElementById('topic')?.value || 'N/A';
+        const horizon = document.getElementById('prediction_horizon')?.value || 'N/A';
+        const inputData = document.getElementById('input_data')?.value || 'N/A';
+        const target = document.getElementById('target')?.value || 'N/A';
+        const sourceUrls = Array.from(document.querySelectorAll('input[name="source_urls[]"]')).map(input => input.value).filter(url => url);
+        const files = document.getElementById('uploaded_files')?.files || [];
+        
+        // Build prompt details HTML - informational display style (not form fields)
+        let detailsHtml = `
+            <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Report Title</div>
+                <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${topic}</div>
+            </div>
+            <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Prediction Period</div>
+                <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${horizon.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+            </div>
+        `;
+        
+        if (target && target !== 'N/A') {
+            detailsHtml += `
+                <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                    <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Target</div>
+                    <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${target}</div>
+                </div>
+            `;
+        }
+        
+        // Add Issue Description
+        if (inputData && inputData !== 'N/A') {
+            detailsHtml += `
+                <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                    <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Issue Details</div>
+                    <div style="font-size: 13px; color: #374151; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">${inputData}</div>
+                </div>
+            `;
+        }
+        
+        if (sourceUrls.length > 0) {
+            detailsHtml += `
+                <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                    <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Source URLs (${sourceUrls.length})</div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        ${sourceUrls.map(url => `<div style="font-size: 12px; color: #2563eb; word-break: break-all; line-height: 1.5;">${url}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        if (files.length > 0) {
+            detailsHtml += `
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Uploaded Files (${files.length})</div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        ${Array.from(files).map(file => `<div style="font-size: 12px; color: #4b5563; line-height: 1.5;">${file.name} <span style="color: #9ca3af;">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        promptDetailsContent.innerHTML = detailsHtml;
+    }
+    
+    
+    function checkPredictionStatus(predictionId) {
+        // Check status via API endpoint
+        fetch(`/predictions/${predictionId}/model-info`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch status');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'completed' || data.status === 'completed_with_warnings') {
+                // Update progress to 100%
+                const progressBar = document.getElementById('progressBar');
+                const progressText = document.getElementById('progressText');
+                if (progressBar) {
+                    progressBar.style.width = '100%';
+                }
+                if (progressText) {
+                    progressText.textContent = '100%';
+                }
+                
+                // Fetch full result HTML
+                setTimeout(() => {
+                    fetchPredictionResult(predictionId);
+                }, 500);
+            } else if (data.status === 'failed') {
+                if (pollingInterval) clearInterval(pollingInterval);
+                showError('Analysis failed. Please try again.');
+            } else {
+                // Still processing, continue polling
+                if (!pollingInterval) {
+                    pollingInterval = setInterval(() => {
+                        checkPredictionStatus(predictionId);
+                    }, 3000);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Status check error:', error);
+            // Continue polling on error (might be processing)
+            if (!pollingInterval) {
+                pollingInterval = setInterval(() => {
+                    checkPredictionStatus(predictionId);
+                }, 3000);
             }
         });
     }
     
-    // Progress bar animation
-    function showAnalysisModal() {
-        const modal = document.getElementById('analysisProgressModal');
+    function fetchPredictionResult(predictionId) {
+        // Clear polling
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+        
+        // Store prediction ID globally for export
+        window.currentPredictionId = predictionId;
+        
+        // Fetch prediction HTML
+        fetch(`/predictions/${predictionId}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // Extract the main content area
+            const mainContent = doc.querySelector('.prediction-main-card');
+            if (mainContent) {
+                // Remove header actions (back button, export, etc.) for cleaner display
+                const headerActions = mainContent.querySelector('.header-actions');
+                if (headerActions) {
+                    headerActions.remove();
+                }
+                
+                displayResult(mainContent.innerHTML);
+            } else {
+                showError('Could not load results. Please refresh the page.');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching result:', error);
+            showError('Error loading results. Please refresh the page.');
+        });
+    }
+    
+    function displayResult(resultHtml) {
+        if (!progressCard || !resultCard) return;
+        
+        // Hide progress, did you know section, and animated background, show result
+        progressCard.style.display = 'none';
+        if (didYouKnowSection) {
+            didYouKnowSection.style.display = 'none';
+        }
+        resultCard.style.display = 'block';
+        
+        // Stop typing animation
+        if (typingAnimationInterval) {
+            clearInterval(typingAnimationInterval);
+            typingAnimationInterval = null;
+        }
+        
+        // Show prompt details action buttons after results are complete
+        const promptDetailsActions = document.getElementById('promptDetailsActions');
+        if (promptDetailsActions) {
+            promptDetailsActions.style.display = 'block';
+        }
+        
+        // Hide animated background
+        const animatedBackground = document.getElementById('animatedBackground');
+        if (animatedBackground) {
+            animatedBackground.style.display = 'none';
+        }
+        
+        // Change background to solid white and make scrollable when showing results
+        const mainPanel = document.querySelector('.cursor-main');
+        if (mainPanel) {
+            mainPanel.style.background = '#ffffff';
+            mainPanel.classList.add('scrollable');
+        }
+        
+        // Update cursor-main-content styling for result display
+        const mainContent = document.querySelector('.cursor-main-content');
+        if (mainContent) {
+            mainContent.style.display = 'block';
+            mainContent.style.alignItems = 'flex-start';
+            mainContent.style.justifyContent = 'flex-start';
+            mainContent.style.padding = '24px';
+            mainContent.style.minHeight = 'auto';
+        }
+        
+        // Populate result content
+        const resultContent = document.getElementById('resultContent');
+        if (resultContent) {
+            // Create a temporary container to parse and modify the HTML
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = resultHtml;
+            
+            // Remove header actions (back button, export, etc.) for cleaner display
+            const headerActions = tempDiv.querySelector('.header-actions');
+            if (headerActions) {
+                headerActions.remove();
+            }
+            
+            // Adjust styles for full display in right panel
+            const allElements = tempDiv.querySelectorAll('*');
+            allElements.forEach(el => {
+                // Remove card-like backgrounds and borders from main content
+                if (el.classList.contains('prediction-main-card')) {
+                    el.style.background = 'transparent';
+                    el.style.border = 'none';
+                    el.style.boxShadow = 'none';
+                    el.style.borderRadius = '0';
+                    el.style.padding = '0';
+                }
+                
+                // Reduce font sizes slightly for better fit
+                if (el.style.fontSize) {
+                    const fontSize = parseInt(el.style.fontSize);
+                    if (fontSize > 16) {
+                        el.style.fontSize = (fontSize - 1) + 'px';
+                    }
+                }
+                
+                // Reduce excessive padding
+                if (el.style.padding) {
+                    const padding = el.style.padding;
+                    if (padding.includes('32px')) {
+                        el.style.padding = padding.replace(/32px/g, '24px');
+                    }
+                }
+            });
+            
+            resultContent.innerHTML = tempDiv.innerHTML;
+            
+            // Scroll to top of right panel
+            if (mainPanel) {
+                mainPanel.scrollTop = 0;
+            }
+        }
+    }
+    
+    function showError(message) {
+        if (!progressCard) return;
+        
+        const statusMessages = document.getElementById('statusMessages');
+        if (statusMessages) {
+            statusMessages.innerHTML = `
+                <div style="padding: 12px; background: #fee2e2; border-radius: 6px; border-left: 3px solid #ef4444; color: #991b1b; font-size: 12px;">
+                    <strong>Error:</strong> ${message}
+                </div>
+            `;
+        }
+    }
+    
+    function showInstructionsAgain() {
+        if (progressCard && resultCard) {
+            resultCard.style.display = 'none';
+            progressCard.style.display = 'none';
+            
+            // Show did you know section again
+            if (didYouKnowSection) {
+                didYouKnowSection.style.display = 'block';
+                // Restart typing animation (don't reset index, continue from where it was)
+                currentText = '';
+                isDeleting = false;
+                // Keep currentFactIndex as is, or reset to 0 if you want to start from beginning
+                // currentFactIndex = 0; // Uncomment to restart from first fact
+                setTimeout(() => {
+                    startTypingAnimation();
+                }, 500);
+            }
+            
+            // Show animated background again
+            const animatedBackground = document.getElementById('animatedBackground');
+            if (animatedBackground) {
+                animatedBackground.style.display = 'block';
+            }
+            
+            // Restore gradient background and remove scrollable class
+            const mainPanel = document.querySelector('.cursor-main');
+            if (mainPanel) {
+                mainPanel.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)';
+                mainPanel.classList.remove('scrollable');
+            }
+            
+            // Restore cursor-main-content styling for centered display
+            const mainContent = document.querySelector('.cursor-main-content');
+            if (mainContent) {
+                mainContent.style.display = 'flex';
+                mainContent.style.alignItems = 'center';
+                mainContent.style.justifyContent = 'center';
+                mainContent.style.padding = '24px';
+                mainContent.style.minHeight = '100%';
+            }
+            
+            // Reset form
+            form.reset();
+            
+            // Re-enable submit button
+            const submitButton = form.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Generate';
+                submitButton.style.opacity = '1';
+                submitButton.style.cursor = 'pointer';
+            }
+            
+            // Show form, header, and submit button again
+            if (formCard && promptDetailsCard) {
+                formCard.style.display = 'block';
+                promptDetailsCard.style.display = 'none';
+            }
+            
+            // Hide prompt details action buttons
+            const promptDetailsActions = document.getElementById('promptDetailsActions');
+            if (promptDetailsActions) {
+                promptDetailsActions.style.display = 'none';
+            }
+            
+            // Show Analyze Prediction header, hide Analysis Input Details header
+            const sidebarHeader = document.getElementById('sidebarHeader');
+            if (sidebarHeader) {
+                sidebarHeader.style.display = 'block';
+            }
+            const promptDetailsHeader = document.getElementById('promptDetailsHeader');
+            if (promptDetailsHeader) {
+                promptDetailsHeader.style.display = 'none';
+            }
+            
+            // Show floating submit button
+            const floatingSubmitContainer = document.getElementById('floatingSubmitContainer');
+            if (floatingSubmitContainer) {
+                floatingSubmitContainer.style.display = 'block';
+            }
+            
+            // Scroll to top of left panel
+            if (mainPanel) {
+                mainPanel.scrollTop = 0;
+            }
+            
+            // Clear polling
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+    }
+    
+    // Progress bar animation in left panel
+    function showAnalysisProgress() {
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
         const progressStatus = document.getElementById('progressStatus');
         const statusMessages = document.getElementById('statusMessages');
         
-        if (!modal) return;
+        if (!progressCard) return;
         
-        modal.style.display = 'flex';
+        // Ensure cursor-main-content is centered for progress display
+        const mainContent = document.querySelector('.cursor-main-content');
+        if (mainContent) {
+            mainContent.style.display = 'flex';
+            mainContent.style.alignItems = 'center';
+            mainContent.style.justifyContent = 'center';
+            mainContent.style.padding = '24px';
+            mainContent.style.minHeight = '100%';
+        }
+        
+        // Hide did you know section, show progress
+        if (didYouKnowSection) {
+            didYouKnowSection.style.display = 'none';
+        }
+        progressCard.style.display = 'block';
         
         // Status messages sequence
         const statusSequence = [
@@ -1145,17 +2627,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Add new status message
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'status-message active';
-                messageDiv.style.cssText = 'padding: 12px 16px; background: #f0f9ff; border-radius: 8px; border-left: 3px solid #0ea5e9; margin-bottom: 8px; text-align: left; animation: slideIn 0.3s ease-out;';
+                messageDiv.style.cssText = 'padding: 10px 12px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #0ea5e9; margin-bottom: 6px; text-align: left; animation: slideIn 0.3s ease-out;';
                 messageDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div class="status-dot" style="width: 8px; height: 8px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
-                        <span style="color: #0369a1; font-size: 14px; font-weight: 500;">${status.text}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="status-dot" style="width: 6px; height: 6px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <span style="color: #0369a1; font-size: 12px; font-weight: 500;">${status.text}</span>
                     </div>
                 `;
                 
-                // Remove old messages (keep only last 3)
+                // Remove old messages (keep only last 2 for compact display)
                 const existingMessages = statusMessages.querySelectorAll('.status-message');
-                if (existingMessages.length >= 3) {
+                if (existingMessages.length >= 2) {
                     existingMessages[0].remove();
                 }
                 
@@ -1190,35 +2672,173 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 20000); // Update status every 20 seconds (adjust based on expected processing time)
         
         // Store interval IDs for cleanup if needed
-        modal.dataset.progressInterval = progressUpdateInterval;
-        modal.dataset.statusInterval = statusInterval;
+        progressCard.dataset.progressInterval = progressUpdateInterval;
+        progressCard.dataset.statusInterval = statusInterval;
     }
-    
-    function closeAnalysisModal() {
-        const modal = document.getElementById('analysisProgressModal');
-        if (modal) {
-            const progressIntervalId = modal.dataset.progressInterval;
-            const statusIntervalId = modal.dataset.statusInterval;
-            if (progressIntervalId) {
-                clearInterval(parseInt(progressIntervalId));
-            }
-            if (statusIntervalId) {
-                clearInterval(parseInt(statusIntervalId));
-            }
-            modal.style.display = 'none';
-        }
-    }
-    
-    // Prevent closing modal during processing (optional)
-    document.getElementById('analysisProgressModal')?.addEventListener('click', function(e) {
-        if (e.target === this) {
-            // Allow closing only if processing is complete (you can add a flag)
-            // For now, we'll prevent closing during processing
-            // closeAnalysisModal();
-        }
-    });
     
     console.log('Initialization complete');
+    
+    // Export modal functions
+    let currentExportId = null;
+    
+    window.confirmExportFromCreate = function() {
+        // Get prediction ID from global variable
+        const predictionId = window.currentPredictionId;
+        
+        if (!predictionId) {
+            alert('Prediction ID not available. Please wait for the analysis to complete.');
+            return;
+        }
+        
+        // Get topic from the form
+        const topic = document.getElementById('topic')?.value || 'Untitled Prediction';
+        
+        // Store the prediction ID for export
+        currentExportId = predictionId;
+        
+        const exportTopicElement = document.getElementById('exportTopic');
+        if (exportTopicElement) {
+            exportTopicElement.textContent = topic.length > 50 ? topic.substring(0, 50) + '...' : topic;
+        }
+        const exportModal = document.getElementById('exportModal');
+        if (exportModal) {
+            exportModal.style.display = 'flex';
+        }
+    };
+    
+    window.closeExportModal = function() {
+        const exportModal = document.getElementById('exportModal');
+        if (exportModal) {
+            exportModal.style.display = 'none';
+        }
+        currentExportId = null;
+    };
+    
+    window.exportPrediction = function() {
+        // Use currentExportId if available, otherwise try window.currentPredictionId
+        const predictionId = currentExportId || window.currentPredictionId;
+        
+        if (!predictionId || predictionId === 'null' || predictionId === null) {
+            alert('Prediction ID not available. Please try again.');
+            closeExportModal();
+            return;
+        }
+        
+        // Close the modal first
+        closeExportModal();
+        
+        // Redirect to the export route
+        window.location.href = `/predictions/${predictionId}/export`;
+    };
+    
+    // Set up the confirm export button
+    const confirmExportBtn = document.getElementById('confirmExportBtn');
+    if (confirmExportBtn) {
+        confirmExportBtn.onclick = exportPrediction;
+    }
+    
+    // Close export modal when clicking outside
+    const exportModal = document.getElementById('exportModal');
+    if (exportModal) {
+        exportModal.onclick = function(e) {
+        if (e.target === this) {
+                closeExportModal();
+            }
+        };
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const exportModal = document.getElementById('exportModal');
+            if (exportModal && exportModal.style.display === 'flex') {
+                closeExportModal();
+            }
+        }
+    });
 });
 </script>
+
+<!-- Export Confirmation Modal -->
+<div id="exportModal" class="export-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="export-modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div style="margin-bottom: 24px;">
+            <span style="font-size: 48px; color: #10b981;">📄</span>
+        </div>
+        <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Export PDF Report</h3>
+        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you ready to export this prediction analysis as a PDF report?</p>
+        <p id="exportTopic" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and NUJUM insights.</p>
+        
+        <div style="display: flex; gap: 16px; justify-content: center;">
+            <button onclick="closeExportModal()" 
+                    style="padding: 12px 24px; background: transparent; color: #64748b; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="confirmExportBtn" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                Export PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Export Modal Styles */
+    .export-modal-overlay {
+        display: flex;
+    }
+    
+    .export-modal-content {
+        animation: modalFadeIn 0.3s ease-out;
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .export-modal-overlay {
+            padding: 16px !important;
+            align-items: flex-start !important;
+            padding-top: 20vh !important;
+        }
+        
+        .export-modal-content {
+            padding: 24px 20px !important;
+            max-width: 100% !important;
+        }
+        
+        .export-modal-content h3 {
+            font-size: 18px !important;
+        }
+        
+        .export-modal-content p {
+            font-size: 14px !important;
+        }
+        
+        .export-modal-content button {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            min-height: 44px !important;
+        }
+        
+        .export-modal-content div[style*="display: flex; gap: 16px"] {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        
+        .export-modal-content div[style*="display: flex; gap: 16px"] button {
+            width: 100% !important;
+        }
+    }
+</style>
+
 @endsection

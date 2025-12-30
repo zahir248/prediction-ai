@@ -124,6 +124,13 @@ class PredictionController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Return JSON for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
@@ -244,6 +251,16 @@ class PredictionController extends Controller
 
                 $successMessage = 'Prediction completed successfully!';
 
+                // Return JSON for AJAX requests
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'prediction_id' => $prediction->id,
+                        'message' => $successMessage,
+                        'redirect_url' => route('predictions.show', $prediction)
+                    ]);
+                }
+
                 return redirect()->route('predictions.show', $prediction)
                     ->with('success', $successMessage);
             } elseif (isset($result['raw_response'])) {
@@ -265,6 +282,17 @@ class PredictionController extends Controller
 
                 $warningMessage = 'Prediction completed with warnings. The AI response may be incomplete due to processing limitations.';
 
+                // Return JSON for AJAX requests
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'prediction_id' => $prediction->id,
+                        'message' => $warningMessage,
+                        'warning' => true,
+                        'redirect_url' => route('predictions.show', $prediction)
+                    ]);
+                }
+
                 return redirect()->route('predictions.show', $prediction)
                     ->with('warning', $warningMessage);
             } else {
@@ -276,6 +304,16 @@ class PredictionController extends Controller
                 ]);
 
                 $errorMessage = isset($result['error']) ? $result['error'] : 'Analysis failed due to unknown error';
+                
+                // Return JSON for AJAX requests
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'AI analysis failed: ' . $errorMessage,
+                        'prediction_id' => $prediction->id
+                    ], 500);
+                }
+                
                 return redirect()->back()
                     ->with('error', 'AI analysis failed: ' . $errorMessage)
                     ->withInput();
@@ -290,6 +328,15 @@ class PredictionController extends Controller
                 'model_used' => 'error',
                 'processing_time' => $processingTime // Use actual calculated processing time
             ]);
+            
+            // Return JSON for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'An error occurred during processing: ' . $e->getMessage(),
+                    'prediction_id' => $prediction->id ?? null
+                ], 500);
+            }
             
             return redirect()->back()
                 ->with('error', 'An error occurred during processing: ' . $e->getMessage())
