@@ -25,50 +25,217 @@
         <!-- Two Column Layout -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; align-items: stretch;">
             <!-- Left Section: Account Information -->
-            <div style="display: flex;">
-                <div style="background: #f0f9ff; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #bae6fd; width: 100%; display: flex; flex-direction: column;">
+            <div style="display: flex; height: 100%;">
+                <div style="width: 100%; display: flex; flex-direction: column; flex: 1;">
                     <h3 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0 0 20px 0;">Account Information</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1;">
-                        <div style="background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #667eea;">
-                                    <path d="M12,1L3,5V11C3,16.55 6.16,21.74 12,23C17.84,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11.5C15.4,11.5 16,12.4 16,13V16C16,17.1 15.1,18 14,18H10C8.9,18 8,17.1 8,16V13C8,12.4 8.6,11.5 9.2,11.5V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.5,8.7 10.5,9.5V11.5H13.5V9.5C13.5,8.7 12.8,8.2 12,8.2Z"/>
-                                </svg>
-                                <p style="color: #6b7280; font-size: 12px; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Role</p>
+                    
+                    <!-- Staff ID Card Design -->
+                    <div style="position: relative; background: white; border-radius: 12px; padding: 0; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); overflow: hidden; width: 100%; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                        <!-- Colored Header Strip -->
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 50px; position: relative;">
+                            <!-- Profile Card Text -->
+                            <div style="position: absolute; top: 50%; left: 20px; transform: translateY(-50%);">
+                                <h4 style="color: white; font-size: 16px; font-weight: 700; margin: 0; letter-spacing: 1px;">PROFILE CARD</h4>
                             </div>
-                            <p style="color: #111827; font-size: 15px; margin: 0; font-weight: 600;">{{ ucfirst($user->role) }}</p>
                         </div>
-                        @if($user->organization)
-                        <div style="background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #667eea;">
-                                    <path d="M10,20V14H14V20H19V12H22L12,3L2,12H5V20H10Z"/>
-                                </svg>
-                                <p style="color: #6b7280; font-size: 12px; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Organization</p>
+                        
+                        <!-- Card Body -->
+                        <div style="padding: 24px; display: flex; gap: 24px; flex: 1; flex-direction: column;">
+                            <!-- Content Wrapper to match heights -->
+                            <div style="display: flex; gap: 24px; width: 100%; align-items: flex-start; flex: 1;">
+                                <!-- Left Side: Photo Area -->
+                                <div style="flex-shrink: 0;">
+                                    <div style="width: 120px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);" id="profile-image-container">
+                                        <!-- Placeholder for photo - using initials -->
+                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; min-height: 100%;">
+                                            <span style="color: white; font-size: 42px; font-weight: 700; text-transform: uppercase;">
+                                                @php
+                                                    $initials = '';
+                                                    $nameParts = explode(' ', $user->name);
+                                                    foreach($nameParts as $part) {
+                                                        $initials .= strtoupper(substr($part, 0, 1));
+                                                    }
+                                                    echo substr($initials, 0, 2);
+                                                @endphp
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Right Side: Information -->
+                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px;" id="info-section">
+                                    <!-- Name -->
+                                    <div>
+                                        <p style="color: #111827; font-size: 20px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">{{ strtoupper($user->name) }}</p>
+                                    </div>
+                                    
+                                    <!-- Account Details -->
+                                    <div style="padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px 24px;">
+                                            <!-- Role -->
+                                            <div>
+                                                <p style="color: #6b7280; font-size: 10px; margin: 0 0 6px 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Role</p>
+                                                <p style="color: #111827; font-size: 14px; margin: 0; font-weight: 600;">{{ ucfirst($user->role) }}</p>
+                                            </div>
+                                            
+                                            <!-- Organization -->
+                                            <div>
+                                                <p style="color: #6b7280; font-size: 10px; margin: 0 0 6px 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Organization</p>
+                                                <p style="color: #111827; font-size: 14px; margin: 0; font-weight: 600;">{{ $user->organization ? $user->organization : 'N/A' }}</p>
+                                            </div>
+                                            
+                                            <!-- Last Login -->
+                                            <div>
+                                                <p style="color: #6b7280; font-size: 10px; margin: 0 0 6px 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Last Login</p>
+                                                <p style="color: #111827; font-size: 14px; margin: 0; font-weight: 600;">{{ $user->last_login_at ? $user->last_login_at->format('M d, Y') : 'Never' }}</p>
+                                            </div>
+                                            
+                                            <!-- Member Since -->
+                                            <div>
+                                                <p style="color: #6b7280; font-size: 10px; margin: 0 0 6px 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">Member Since</p>
+                                                <p style="color: #111827; font-size: 14px; margin: 0; font-weight: 600;">{{ $user->created_at->format('M d, Y') }}</p>
+                                            </div>
+                                        </div>
                             </div>
-                            <p style="color: #111827; font-size: 15px; margin: 0; font-weight: 600;">{{ $user->organization }}</p>
                         </div>
-                        @endif
-                        @if($user->last_login_at)
-                        <div style="background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #667eea;">
-                                    <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
-                                </svg>
-                                <p style="color: #6b7280; font-size: 12px; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Last Login</p>
                             </div>
-                            <p style="color: #111827; font-size: 15px; margin: 0; font-weight: 600;">{{ $user->last_login_at->format('M d, Y H:i') }}</p>
                         </div>
-                        @endif
-                        <div style="background: white; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-                                <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #667eea;">
-                                    <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19M17,12H15V17H17M13,12H11V17H13M9,12H7V17H9M17,7H15V10H17M13,7H11V10H13M9,7H7V10H9Z"/>
-                                </svg>
-                                <p style="color: #6b7280; font-size: 12px; margin: 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em;">Member Since</p>
+                        
+                        <!-- Barcode Section -->
+                        <div style="padding: 0 24px 20px 24px; margin-top: auto;">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 2px; height: 70px; background: #f9fafb; border-radius: 4px; padding: 10px;">
+                                <!-- Barcode lines -->
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 3px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
+                                <div style="width: 4px; height: 100%; background: #111827;"></div>
+                                <div style="width: 1px; height: 100%; background: #111827;"></div>
+                                <div style="width: 2px; height: 100%; background: #111827;"></div>
                             </div>
-                            <p style="color: #111827; font-size: 15px; margin: 0; font-weight: 600;">{{ $user->created_at->format('M d, Y') }}</p>
                         </div>
+                        
+                        <script>
+                            // Match profile image height to info section height
+                            document.addEventListener('DOMContentLoaded', function() {
+                                const profileImage = document.getElementById('profile-image-container');
+                                const infoSection = document.getElementById('info-section');
+                                
+                                if (profileImage && infoSection) {
+                                    function updateHeight() {
+                                        profileImage.style.height = infoSection.offsetHeight + 'px';
+                                    }
+                                    
+                                    updateHeight();
+                                    window.addEventListener('resize', updateHeight);
+                                    
+                                    // Use MutationObserver to watch for content changes
+                                    const observer = new MutationObserver(updateHeight);
+                                    observer.observe(infoSection, { childList: true, subtree: true, attributes: true });
+                                }
+                            });
+                        </script>
                     </div>
                 </div>
             </div>
@@ -235,6 +402,45 @@
         
         div[style*="padding: 24px"] {
             padding: 16px !important;
+        }
+        
+        /* ID Card responsive adjustments */
+        div[style*="aspect-ratio: 1.586 / 1"] {
+            max-width: 100% !important;
+        }
+        
+        div[style*="height: 50px"] {
+            height: 45px !important;
+        }
+        
+        h4[style*="font-size: 16px"] {
+            font-size: 14px !important;
+        }
+        
+        div[style*="width: 90px; height: 110px"] {
+            width: 70px !important;
+            height: 85px !important;
+        }
+        
+        span[style*="font-size: 32px"] {
+            font-size: 24px !important;
+        }
+        
+        p[style*="font-size: 18px"][style*="text-transform: uppercase"] {
+            font-size: 16px !important;
+        }
+        
+        div[style*="padding: 18px"] {
+            padding: 14px !important;
+            gap: 14px !important;
+        }
+        
+        div[style*="width: 90px"][style*="flex-shrink: 0"] {
+            width: 70px !important;
+        }
+        
+        div[style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
         }
     }
 </style>
