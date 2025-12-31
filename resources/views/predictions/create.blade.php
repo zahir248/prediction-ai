@@ -24,7 +24,7 @@
     
     .cursor-main {
         flex: 1;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+        background: #ffffff;
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -264,7 +264,7 @@
     
     .cursor-main-content {
         flex: 1;
-        padding: 32px;
+        padding: 24px;
         max-width: 100%;
         width: 100%;
     }
@@ -1183,22 +1183,36 @@
         background: #94a3b8;
     }
     
-    /* Compact result styles */
-    #resultContent h1,
+    /* Result styles matching history page */
+    #resultContent .prediction-topic {
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        color: #1e293b !important;
+        margin: 0 0 8px 0 !important;
+    }
+    
     #resultContent h2 {
         font-size: 16px !important;
-        margin-bottom: 12px !important;
+        font-weight: 600 !important;
+        color: #374151 !important;
+        margin-bottom: 16px !important;
+        padding-bottom: 8px !important;
+        border-bottom: 1px solid #e5e7eb !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
     }
     
     #resultContent h3,
     #resultContent h4 {
         font-size: 14px !important;
         margin-bottom: 8px !important;
+        text-transform: none !important;
     }
     
     #resultContent p {
-        font-size: 12px !important;
-        line-height: 1.5 !important;
+        font-size: 14px !important;
+        line-height: 1.6 !important;
+        text-transform: none !important;
     }
     
     #resultContent ul,
@@ -1208,8 +1222,21 @@
     }
     
     #resultContent li {
-        font-size: 12px !important;
+        font-size: 14px !important;
         margin-bottom: 6px !important;
+        text-transform: none !important;
+    }
+    
+    /* Remove uppercase from all text in result content */
+    #resultContent * {
+        text-transform: none !important;
+    }
+    
+    /* Header container style */
+    #resultContent > div > div[style*="border-bottom: 2px"] {
+        border-bottom: 2px solid #e2e8f0 !important;
+        padding-bottom: 20px !important;
+        margin-bottom: 32px !important;
     }
     
     
@@ -2293,6 +2320,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     progressText.textContent = '100%';
                 }
                 
+                // Show success toast
+                showToast('Analysis completed successfully!', 'success');
+                
                 // Fetch full result HTML
                 setTimeout(() => {
                     fetchPredictionResult(predictionId);
@@ -2389,10 +2419,9 @@ document.addEventListener('DOMContentLoaded', function() {
             animatedBackground.style.display = 'none';
         }
         
-        // Change background to solid white and make scrollable when showing results
+        // Make scrollable when showing results (background is already white)
         const mainPanel = document.querySelector('.cursor-main');
         if (mainPanel) {
-            mainPanel.style.background = '#ffffff';
             mainPanel.classList.add('scrollable');
         }
         
@@ -2423,7 +2452,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const allElements = tempDiv.querySelectorAll('*');
             allElements.forEach(el => {
                 // Remove card-like backgrounds and borders from main content
-                if (el.classList.contains('prediction-main-card')) {
+                if (el.classList.contains && el.classList.contains('prediction-main-card')) {
                     el.style.background = 'transparent';
                     el.style.border = 'none';
                     el.style.boxShadow = 'none';
@@ -2431,16 +2460,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     el.style.padding = '0';
                 }
                 
-                // Reduce font sizes slightly for better fit
-                if (el.style.fontSize) {
-                    const fontSize = parseInt(el.style.fontSize);
-                    if (fontSize > 16) {
-                        el.style.fontSize = (fontSize - 1) + 'px';
+                // Ensure header container has correct border and padding
+                if (el.style && el.style.borderBottom && el.style.borderBottom.includes('2px')) {
+                    el.style.borderBottom = '2px solid #e2e8f0';
+                    el.style.paddingBottom = '20px';
+                    el.style.marginBottom = '32px';
+                }
+                
+                // Ensure h1 (prediction-topic) has correct size
+                if (el.classList && (el.classList.contains('prediction-topic') || (el.tagName === 'H1' && el.classList.contains('prediction-topic')))) {
+                    el.style.fontSize = '24px';
+                    el.style.fontWeight = '700';
+                    el.style.color = '#1e293b';
+                    el.style.margin = '0 0 8px 0';
+                }
+                
+                // Ensure h2 section headers have correct style (no uppercase)
+                if (el.tagName === 'H2' && el.classList && !el.classList.contains('prediction-topic')) {
+                    el.style.fontSize = '16px';
+                    el.style.fontWeight = '600';
+                    el.style.color = '#374151';
+                    el.style.marginBottom = '16px';
+                    el.style.paddingBottom = '8px';
+                    el.style.textTransform = 'none';
+                    el.style.letterSpacing = 'normal';
+                    if (!el.style.borderBottom || !el.style.borderBottom.includes('1px solid')) {
+                        el.style.borderBottom = '1px solid #e5e7eb';
                     }
                 }
                 
-                // Reduce excessive padding
-                if (el.style.padding) {
+                // Reduce excessive padding (but keep header padding)
+                if (el.style && el.style.padding && (!el.style.borderBottom || !el.style.borderBottom.includes('2px'))) {
                     const padding = el.style.padding;
                     if (padding.includes('32px')) {
                         el.style.padding = padding.replace(/32px/g, '24px');
@@ -2457,6 +2507,74 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Toast notification functions
+    function showToast(message, type = 'success') {
+        // Remove existing toasts with animation
+        const existingToasts = document.querySelectorAll('.toast-notification');
+        existingToasts.forEach(toast => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        });
+        
+        // Create toast element
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#10b981' : '#ef4444'};
+            color: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+            max-width: 400px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+        `;
+        
+        // Add icon
+        const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+        toast.innerHTML = `
+            <i class="bi ${icon}" style="font-size: 20px;"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateX(0)';
+            });
+        });
+        
+        // Auto remove after 4 seconds
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+            }, 300);
+        }, 4000);
+    }
+
     function showError(message) {
         if (!progressCard) return;
         
@@ -2468,6 +2586,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
+        
+        // Show error toast notification
+        showToast(message, 'error');
     }
     
     function showInstructionsAgain() {
@@ -2494,10 +2615,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 animatedBackground.style.display = 'block';
             }
             
-            // Restore gradient background and remove scrollable class
+            // Remove scrollable class (background stays white)
             const mainPanel = document.querySelector('.cursor-main');
             if (mainPanel) {
-                mainPanel.style.background = 'linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)';
                 mainPanel.classList.remove('scrollable');
             }
             
@@ -2686,7 +2806,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const predictionId = window.currentPredictionId;
         
         if (!predictionId) {
-            alert('Prediction ID not available. Please wait for the analysis to complete.');
+            showToast('Prediction ID not available. Please wait for the analysis to complete.', 'error');
             return;
         }
         
@@ -2719,16 +2839,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const predictionId = currentExportId || window.currentPredictionId;
         
         if (!predictionId || predictionId === 'null' || predictionId === null) {
-            alert('Prediction ID not available. Please try again.');
+            showToast('Error: Prediction ID not found', 'error');
             closeExportModal();
             return;
         }
         
+        // Store the ID before closing the modal
+        const predictionIdToExport = predictionId;
+        
         // Close the modal first
         closeExportModal();
         
+        // Show loading message
+        showToast('Exporting PDF...', 'success');
+        
         // Redirect to the export route
-        window.location.href = `/predictions/${predictionId}/export`;
+        // The download will start automatically
+        // Show success message after a short delay (optimistic)
+        setTimeout(() => {
+            showToast('PDF exported successfully!', 'success');
+        }, 1000);
+        
+        window.location.href = `/predictions/${predictionIdToExport}/export`;
     };
     
     // Set up the confirm export button

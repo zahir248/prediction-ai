@@ -366,6 +366,11 @@ class PredictionController extends Controller
             abort(403, 'Unauthorized access to prediction. User ID: ' . Auth::id() . ', Prediction User ID: ' . $prediction->user_id);
         }
         
+        // Return HTML content for AJAX requests (for history page)
+        if (request()->ajax() && request()->header('X-Requested-With') === 'XMLHttpRequest') {
+            return view('predictions.partials.content', compact('prediction'))->render();
+        }
+        
         return view('predictions.show', compact('prediction'));
     }
 
