@@ -37,7 +37,7 @@
                             <div style="display: flex; gap: 40px; width: 100%; align-items: flex-start; flex: 1;">
                                 <!-- Left Side: Photo Area -->
                                 <div style="flex-shrink: 0;">
-                                    <div style="width: 180px; height: 180px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;" id="profile-image-container" onclick="document.getElementById('profile_image').click()" onmouseenter="showImageOverlay()" onmouseleave="hideImageOverlay()">
+                                    <div style="width: 180px; height: 180px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;" id="profile-image-container" onclick="handleProfileImageClick(event)" onmouseenter="showImageOverlay()" onmouseleave="hideImageOverlay()">
                                         @if($user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image))
                                             @php
                                                 $imagePath = $user->profile_image;
@@ -61,11 +61,22 @@
                                             </div>
                                         @endif
                                         <!-- Hover Overlay -->
-                                        <div id="profile-image-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease;">
-                                            <div style="text-align: center; color: white;">
-                                                <i class="bi bi-camera" style="font-size: 32px; display: block; margin-bottom: 8px;"></i>
-                                                <span style="font-size: 14px; font-weight: 600;">Change Photo</span>
-                                            </div>
+                                        <div id="profile-image-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; flex-direction: column; gap: 12px;">
+                                            @if($user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image))
+                                                <div style="text-align: center; color: white; cursor: pointer;" onclick="event.stopPropagation(); document.getElementById('profile_image').click();">
+                                                    <i class="bi bi-camera" style="font-size: 24px; display: block; margin-bottom: 4px;"></i>
+                                                    <span style="font-size: 12px; font-weight: 600;">Change</span>
+                                                </div>
+                                                <div style="text-align: center; color: white; cursor: pointer;" onclick="event.stopPropagation(); removeProfileImage();">
+                                                    <i class="bi bi-trash" style="font-size: 24px; display: block; margin-bottom: 4px;"></i>
+                                                    <span style="font-size: 12px; font-weight: 600;">Remove</span>
+                                                </div>
+                                            @else
+                                                <div style="text-align: center; color: white;">
+                                                    <i class="bi bi-camera" style="font-size: 32px; display: block; margin-bottom: 8px;"></i>
+                                                    <span style="font-size: 14px; font-weight: 600;">Change Photo</span>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -453,6 +464,14 @@
 </style>
 
 <script>
+function handleProfileImageClick(event) {
+    // Don't trigger if clicking on overlay buttons
+    if (event.target.closest('#profile-image-overlay')) {
+        return;
+    }
+    document.getElementById('profile_image').click();
+}
+
 function showImageOverlay() {
     const overlay = document.getElementById('profile-image-overlay');
     if (overlay) {
@@ -526,6 +545,33 @@ function handleProfileImageChange(input) {
         };
         
         reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeProfileImage() {
+    if (confirm('Are you sure you want to remove your profile image?')) {
+        // Create a form to submit DELETE request
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("profile.image.remove") }}';
+        
+        // Add CSRF token
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = '{{ csrf_token() }}';
+        form.appendChild(csrfInput);
+        
+        // Add method spoofing for DELETE
+        const methodInput = document.createElement('input');
+        methodInput.type = 'hidden';
+        methodInput.name = '_method';
+        methodInput.value = 'DELETE';
+        form.appendChild(methodInput);
+        
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
     }
 }
 

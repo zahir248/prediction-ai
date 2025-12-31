@@ -57,4 +57,22 @@ class ProfileController extends Controller
 
         return redirect()->route('profile.show')->with('success', 'Profile updated successfully.');
     }
+
+    /**
+     * Remove the user's profile image
+     */
+    public function removeImage()
+    {
+        $user = Auth::user();
+        
+        // Delete profile image if it exists
+        if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
+            Storage::disk('public')->delete($user->profile_image);
+        }
+        
+        // Remove profile image from user record
+        $user->update(['profile_image' => null]);
+
+        return redirect()->route('profile.show')->with('success', 'Profile image removed successfully.');
+    }
 }

@@ -42,6 +42,7 @@ Route::middleware(['auth'])->group(function () {
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/image', [ProfileController::class, 'removeImage'])->name('profile.image.remove');
     
     // Profile image route (serves images through Laravel to avoid 403 errors in cPanel)
     Route::get('/profile-image/{filename}', function ($filename) {
