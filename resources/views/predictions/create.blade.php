@@ -642,12 +642,12 @@
             <div id="instructionsCard" style="display: none;"></div>
             
             <!-- Progress Card (hidden by default) -->
-            <div id="progressCard" style="display: none; background: #ffffff; border-radius: 12px; padding: 24px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; max-width: 500px; width: 100%; margin: 0 auto;">
+            <div id="progressCard" style="display: none; background: transparent; padding: 24px; max-width: 500px; width: 100%; margin: 0 auto;">
                 <!-- Title -->
-                <h2 style="color: #1e293b; margin-bottom: 8px; font-size: 18px; font-weight: 700; text-align: center;">NUJUM Analysis in Progress</h2>
+                <h2 style="color: #1e293b; margin-bottom: 8px; font-size: 18px; font-weight: 700; text-align: center; border: none; border-bottom: none; text-decoration: none;">NUJUM Analysis in Progress</h2>
                 
                 <!-- Description -->
-                <p style="color: #64748b; margin-bottom: 20px; font-size: 13px; line-height: 1.5; text-align: center;">
+                <p style="color: #64748b; margin-bottom: 20px; font-size: 13px; line-height: 1.5; text-align: center; border: none; border-top: none;">
                     Generating your comprehensive analysis. This may take 2-5 minutes.
                 </p>
                 
@@ -2693,6 +2693,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!progressCard) return;
         
+        // Hide animated background
+        const animatedBackground = document.getElementById('animatedBackground');
+        if (animatedBackground) {
+            animatedBackground.style.display = 'none';
+        }
+        
+        // Set main panel background to white
+        const mainPanel = document.querySelector('.cursor-main');
+        if (mainPanel) {
+            mainPanel.style.background = '#ffffff';
+        }
+        
         // Ensure cursor-main-content is centered for progress display
         const mainContent = document.querySelector('.cursor-main-content');
         if (mainContent) {
@@ -2701,6 +2713,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mainContent.style.justifyContent = 'center';
             mainContent.style.padding = '24px';
             mainContent.style.minHeight = '100%';
+            mainContent.style.background = '#ffffff';
         }
         
         // Hide did you know section, show progress
