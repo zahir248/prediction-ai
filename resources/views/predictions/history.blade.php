@@ -39,13 +39,15 @@
     
     .cursor-sidebar-header {
         padding: 16px;
+        padding-bottom: 16px;
         border-bottom: 1px solid #e5e7eb;
         background: #ffffff;
+        margin-bottom: 16px;
     }
     
     .cursor-sidebar-content {
         flex: 1;
-        padding: 16px;
+        padding: 0;
         padding-bottom: 16px;
         overflow-y: auto;
         overflow-x: visible;
@@ -66,6 +68,11 @@
     
     .cursor-section {
         margin-bottom: 24px;
+        padding: 0 16px;
+    }
+    
+    .cursor-section:first-of-type {
+        padding-top: 0;
     }
     
     .cursor-section-title {
@@ -282,25 +289,6 @@
         to { transform: rotate(360deg); }
     }
     
-    /* Custom scrollbar for sidebar */
-    .cursor-sidebar-content::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .cursor-sidebar-content::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 3px;
-    }
-    
-    .cursor-sidebar-content::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-    
-    .cursor-sidebar-content::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    
     @media (max-width: 1024px) {
         .cursor-layout {
             flex-direction: column;
@@ -352,12 +340,12 @@
 <div class="cursor-layout">
     <!-- Left Panel: Filters & Stats -->
     <div class="cursor-sidebar">
-        <div class="cursor-sidebar-header">
-            <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Prediction History</h2>
-            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Filter and manage your analyses</p>
-                    </div>
-        
         <div class="cursor-sidebar-content">
+            <div class="cursor-sidebar-header">
+                <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Prediction History</h2>
+                <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Filter and manage your analyses</p>
+            </div>
+            
             <!-- Search and Filter Section -->
             <div class="cursor-section">
                 <div class="cursor-section-title" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleFilterSection()">
