@@ -39,7 +39,12 @@
                                 <div style="flex-shrink: 0;">
                                     <div style="width: 180px; height: 180px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;" id="profile-image-container" onclick="document.getElementById('profile_image').click()" onmouseenter="showImageOverlay()" onmouseleave="hideImageOverlay()">
                                         @if($user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image))
-                                            <img src="{{ asset('storage/' . $user->profile_image) }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; transition: all 0.3s ease;" id="profile-image-display">
+                                            @php
+                                                $imagePath = $user->profile_image;
+                                                $filename = basename($imagePath);
+                                                $imageUrl = route('profile.image', ['filename' => $filename]);
+                                            @endphp
+                                            <img src="{{ $imageUrl }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; transition: all 0.3s ease;" id="profile-image-display">
                                         @else
                                             <!-- Placeholder for photo - using initials -->
                                             <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; transition: all 0.3s ease;" id="profile-initials">

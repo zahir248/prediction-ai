@@ -43,6 +43,27 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     
+    // Profile image route (serves images through Laravel to avoid 403 errors in cPanel)
+    Route::get('/profile-image/{filename}', function ($filename) {
+        // Security: Only allow image files
+        if (!preg_match('/^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif)$/i', $filename)) {
+            abort(404);
+        }
+        
+        $path = storage_path('app/public/profile-images/' . $filename);
+        
+        if (!file_exists($path)) {
+            abort(404);
+        }
+        
+        $file = file_get_contents($path);
+        $type = mime_content_type($path);
+        
+        return response($file, 200)
+            ->header('Content-Type', $type)
+            ->header('Cache-Control', 'public, max-age=31536000');
+    })->name('profile.image');
+    
     // Prediction routes - ALL specific routes must come BEFORE parameterized routes
     Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
     Route::get('/predictions/create', [PredictionController::class, 'create'])->name('predictions.create');
