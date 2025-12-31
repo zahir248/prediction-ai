@@ -70,9 +70,22 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($user->profile_image);
         }
         
-        // Remove profile image from user record
+        // Set to null - default avatar will be shown
         $user->update(['profile_image' => null]);
 
         return redirect()->route('profile.show')->with('success', 'Profile image removed successfully.');
+    }
+    
+    /**
+     * Get default avatar initials for user
+     */
+    private function getDefaultAvatarInitials($user)
+    {
+        $initials = '';
+        $nameParts = explode(' ', $user->name);
+        foreach($nameParts as $part) {
+            $initials .= strtoupper(substr($part, 0, 1));
+        }
+        return substr($initials, 0, 2) ?: 'U';
     }
 }

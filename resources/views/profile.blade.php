@@ -38,31 +38,20 @@
                                 <!-- Left Side: Photo Area -->
                                 <div style="flex-shrink: 0;">
                                     <div style="width: 180px; height: 180px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;" id="profile-image-container" onclick="handleProfileImageClick(event)" onmouseenter="showImageOverlay()" onmouseleave="hideImageOverlay()">
-                                        @if($user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image))
-                                            @php
+                                        @php
+                                            $hasImage = $user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image);
+                                            if ($hasImage) {
                                                 $imagePath = $user->profile_image;
                                                 $filename = basename($imagePath);
                                                 $imageUrl = route('profile.image', ['filename' => $filename]);
-                                            @endphp
-                                            <img src="{{ $imageUrl }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; transition: all 0.3s ease;" id="profile-image-display">
-                                        @else
-                                            <!-- Placeholder for photo - using initials -->
-                                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; transition: all 0.3s ease;" id="profile-initials">
-                                                <span style="color: white; font-size: 64px; font-weight: 700; text-transform: uppercase;">
-                                                    @php
-                                                        $initials = '';
-                                                        $nameParts = explode(' ', $user->name);
-                                                        foreach($nameParts as $part) {
-                                                            $initials .= strtoupper(substr($part, 0, 1));
-                                                        }
-                                                        echo substr($initials, 0, 2);
-                                                    @endphp
-                                                </span>
-                                            </div>
-                                        @endif
+                                            } else {
+                                                $imageUrl = asset('image/default-user-profile.jpg');
+                                            }
+                                        @endphp
+                                        <img src="{{ $imageUrl }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; transition: all 0.3s ease;" id="profile-image-display">
                                         <!-- Hover Overlay -->
-                                        <div id="profile-image-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; flex-direction: column; gap: 12px;">
-                                            @if($user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image))
+                                        <div id="profile-image-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease; flex-direction: row; gap: 20px;" @if(!$hasImage) onclick="handleOverlayClick(event)" @endif>
+                                            @if($hasImage)
                                                 <div style="text-align: center; color: white; cursor: pointer;" onclick="event.stopPropagation(); document.getElementById('profile_image').click();">
                                                     <i class="bi bi-camera" style="font-size: 24px; display: block; margin-bottom: 4px;"></i>
                                                     <span style="font-size: 12px; font-weight: 600;">Change</span>
@@ -72,7 +61,7 @@
                                                     <span style="font-size: 12px; font-weight: 600;">Remove</span>
                                                 </div>
                                             @else
-                                                <div style="text-align: center; color: white;">
+                                                <div style="text-align: center; color: white; cursor: pointer; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column;" onclick="event.stopPropagation(); event.preventDefault(); setTimeout(function(){ const input = document.getElementById('profile_image'); if(input) { input.click(); } else { console.error('Profile image input not found'); } }, 10);">
                                                     <i class="bi bi-camera" style="font-size: 32px; display: block; margin-bottom: 8px;"></i>
                                                     <span style="font-size: 14px; font-weight: 600;">Change Photo</span>
                                                 </div>
@@ -461,7 +450,99 @@
             grid-template-columns: 1fr !important;
         }
     }
+    
+    /* Remove Image Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+    
+    .modal-overlay.active {
+        display: flex;
+    }
+    
+    .modal {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        text-align: center;
+    }
+    
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #111827;
+        margin-bottom: 12px;
+    }
+    
+    .modal-message {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+    }
+    
+    .modal-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+    
+    .modal-btn-cancel {
+        background: #f3f4f6;
+        color: #374151;
+    }
+    
+    .modal-btn-cancel:hover {
+        background: #e5e7eb;
+    }
+    
+    .modal-btn-confirm {
+        background: #ef4444;
+        color: white;
+    }
+    
+    .modal-btn-confirm:hover {
+        background: #dc2626;
+    }
 </style>
+
+<!-- Remove Image Modal -->
+<div class="modal-overlay" id="removeImageModal">
+    <div class="modal">
+        <div class="modal-title">Remove Profile Image</div>
+        <div class="modal-message">Are you sure you want to remove your profile image? This action cannot be undone.</div>
+        <div class="modal-actions">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="hideRemoveImageModal()">Cancel</button>
+            <form method="POST" action="{{ route('profile.image.remove') }}" style="display: inline;">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="modal-btn modal-btn-confirm">Remove Image</button>
+            </form>
+        </div>
+    </div>
+</div>
 
 <script>
 function handleProfileImageClick(event) {
@@ -470,6 +551,23 @@ function handleProfileImageClick(event) {
         return;
     }
     document.getElementById('profile_image').click();
+}
+
+function handleOverlayClick(event) {
+    // Prevent event from bubbling to container
+    event.stopPropagation();
+    
+    // Only trigger if clicking directly on overlay or its immediate child (when no image)
+    const overlay = document.getElementById('profile-image-overlay');
+    const hasImage = overlay.querySelector('[onclick*="removeProfileImage"]') !== null;
+    
+    if (!hasImage) {
+        // No image - clicking anywhere on overlay should trigger file picker
+        const fileInput = document.getElementById('profile_image');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
 }
 
 function showImageOverlay() {
@@ -519,12 +617,7 @@ function handleProfileImageChange(input) {
         const reader = new FileReader();
         
         reader.onload = function(e) {
-            // Hide initials div if it exists
-            if (initialsDiv) {
-                initialsDiv.style.display = 'none';
-            }
-            
-            // Check if image already exists, if not create it
+            // Get or create image element
             let img = document.getElementById('profile-image-display');
             if (!img) {
                 img = document.createElement('img');
@@ -549,30 +642,15 @@ function handleProfileImageChange(input) {
 }
 
 function removeProfileImage() {
-    if (confirm('Are you sure you want to remove your profile image?')) {
-        // Create a form to submit DELETE request
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route("profile.image.remove") }}';
-        
-        // Add CSRF token
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = '{{ csrf_token() }}';
-        form.appendChild(csrfInput);
-        
-        // Add method spoofing for DELETE
-        const methodInput = document.createElement('input');
-        methodInput.type = 'hidden';
-        methodInput.name = '_method';
-        methodInput.value = 'DELETE';
-        form.appendChild(methodInput);
-        
-        // Submit the form
-        document.body.appendChild(form);
-        form.submit();
-    }
+    showRemoveImageModal();
+}
+
+function showRemoveImageModal() {
+    document.getElementById('removeImageModal').classList.add('active');
+}
+
+function hideRemoveImageModal() {
+    document.getElementById('removeImageModal').classList.remove('active');
 }
 
 function showToast(message, type = 'success') {
@@ -656,6 +734,16 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('{{ $error }}', 'error');
         @endforeach
     @endif
+    
+    // Close modal when clicking outside
+    const removeImageModal = document.getElementById('removeImageModal');
+    if (removeImageModal) {
+        removeImageModal.addEventListener('click', function(event) {
+            if (event.target === removeImageModal) {
+                hideRemoveImageModal();
+            }
+        });
+    }
 });
 </script>
 @endsection

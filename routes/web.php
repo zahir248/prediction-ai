@@ -65,6 +65,32 @@ Route::middleware(['auth'])->group(function () {
             ->header('Cache-Control', 'public, max-age=31536000');
     })->name('profile.image');
     
+    // Default profile image route (generates avatar with initials)
+    Route::get('/default-avatar/{initials}', function ($initials) {
+        // Limit to 2 characters and sanitize
+        $initials = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $initials), 0, 2));
+        if (empty($initials)) {
+            $initials = 'U';
+        }
+        
+        // Create SVG avatar
+        $size = 200;
+        $svg = '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            <rect width="' . $size . '" height="' . $size . '" fill="url(#grad)" rx="12"/>
+            <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="' . ($size * 0.4) . '" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="central">' . htmlspecialchars($initials) . '</text>
+        </svg>';
+        
+        return response($svg, 200)
+            ->header('Content-Type', 'image/svg+xml')
+            ->header('Cache-Control', 'public, max-age=31536000');
+    })->name('profile.default.avatar');
+    
     // Prediction routes - ALL specific routes must come BEFORE parameterized routes
     Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
     Route::get('/predictions/create', [PredictionController::class, 'create'])->name('predictions.create');
