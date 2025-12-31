@@ -140,24 +140,6 @@
         background: #94a3b8;
     }
     
-    .cursor-main::-webkit-scrollbar {
-        width: 6px;
-    }
-    
-    .cursor-main::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 3px;
-    }
-    
-    .cursor-main::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 3px;
-    }
-    
-    .cursor-main::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-    
     @media (max-width: 1024px) {
         .cursor-layout {
             flex-direction: column;
