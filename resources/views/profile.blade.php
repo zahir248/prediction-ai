@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 <!-- Profile Page -->
 <div style="min-height: calc(100vh - 72px); padding: 30px 24px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);">
     <div style="max-width: 1200px; margin: 0 auto;">
@@ -11,16 +13,6 @@
                 Manage your account information and preferences
             </p>
         </div>
-
-        <!-- Success Message -->
-        @if(session('success'))
-        <div style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #86efac; border-radius: 8px; padding: 16px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px;">
-            <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: #10b981;">
-                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,16.5L6.5,12L7.91,10.59L11,13.67L16.59,8.09L18,9.5L11,16.5Z"/>
-            </svg>
-            <span style="color: #065f46; font-size: 14px; font-weight: 500;">{{ session('success') }}</span>
-        </div>
-        @endif
 
         <!-- Two Column Layout -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; align-items: stretch;">
@@ -42,28 +34,39 @@
                         <!-- Card Body -->
                         <div style="padding: 24px; display: flex; gap: 24px; flex: 1; flex-direction: column;">
                             <!-- Content Wrapper to match heights -->
-                            <div style="display: flex; gap: 24px; width: 100%; align-items: flex-start; flex: 1;">
+                            <div style="display: flex; gap: 40px; width: 100%; align-items: flex-start; flex: 1;">
                                 <!-- Left Side: Photo Area -->
                                 <div style="flex-shrink: 0;">
-                                    <div style="width: 120px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 2px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);" id="profile-image-container">
-                                        <!-- Placeholder for photo - using initials -->
-                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; min-height: 100%;">
-                                            <span style="color: white; font-size: 42px; font-weight: 700; text-transform: uppercase;">
-                                                @php
-                                                    $initials = '';
-                                                    $nameParts = explode(' ', $user->name);
-                                                    foreach($nameParts as $part) {
-                                                        $initials .= strtoupper(substr($part, 0, 1));
-                                                    }
-                                                    echo substr($initials, 0, 2);
-                                                @endphp
-                                            </span>
+                                    <div style="width: 180px; height: 180px; background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%); border-radius: 12px; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); cursor: pointer; transition: all 0.3s ease;" id="profile-image-container" onclick="document.getElementById('profile_image').click()" onmouseenter="showImageOverlay()" onmouseleave="hideImageOverlay()">
+                                        @if($user->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($user->profile_image))
+                                            <img src="{{ asset('storage/' . $user->profile_image) }}" alt="Profile Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; transition: all 0.3s ease;" id="profile-image-display">
+                                        @else
+                                            <!-- Placeholder for photo - using initials -->
+                                            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; transition: all 0.3s ease;" id="profile-initials">
+                                                <span style="color: white; font-size: 64px; font-weight: 700; text-transform: uppercase;">
+                                                    @php
+                                                        $initials = '';
+                                                        $nameParts = explode(' ', $user->name);
+                                                        foreach($nameParts as $part) {
+                                                            $initials .= strtoupper(substr($part, 0, 1));
+                                                        }
+                                                        echo substr($initials, 0, 2);
+                                                    @endphp
+                                                </span>
+                                            </div>
+                                        @endif
+                                        <!-- Hover Overlay -->
+                                        <div id="profile-image-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; align-items: center; justify-content: center; border-radius: 12px; transition: all 0.3s ease;">
+                                            <div style="text-align: center; color: white;">
+                                                <i class="bi bi-camera" style="font-size: 32px; display: block; margin-bottom: 8px;"></i>
+                                                <span style="font-size: 14px; font-weight: 600;">Change Photo</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <!-- Right Side: Information -->
-                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px;" id="info-section">
+                                <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; min-width: 0;" id="info-section">
                                     <!-- Name -->
                                     <div>
                                         <p style="color: #111827; font-size: 20px; font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2;">{{ strtoupper($user->name) }}</p>
@@ -216,26 +219,6 @@
                             </div>
                         </div>
                         
-                        <script>
-                            // Match profile image height to info section height
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const profileImage = document.getElementById('profile-image-container');
-                                const infoSection = document.getElementById('info-section');
-                                
-                                if (profileImage && infoSection) {
-                                    function updateHeight() {
-                                        profileImage.style.height = infoSection.offsetHeight + 'px';
-                                    }
-                                    
-                                    updateHeight();
-                                    window.addEventListener('resize', updateHeight);
-                                    
-                                    // Use MutationObserver to watch for content changes
-                                    const observer = new MutationObserver(updateHeight);
-                                    observer.observe(infoSection, { childList: true, subtree: true, attributes: true });
-                                }
-                            });
-                        </script>
                     </div>
                 </div>
             </div>
@@ -243,9 +226,24 @@
             <!-- Right Section: Update Fields -->
             <div style="display: flex;">
                 <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; width: 100%; display: flex; flex-direction: column;">
-                    <form action="{{ route('profile.update') }}" method="POST">
+                    <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" id="profileForm">
                         @csrf
                         @method('PUT')
+                        
+                        <!-- Hidden file input for profile image -->
+                        <input 
+                            type="file" 
+                            id="profile_image" 
+                            name="profile_image" 
+                            accept="image/jpeg,image/png,image/jpg,image/gif"
+                            style="display: none;"
+                            onchange="handleProfileImageChange(this)"
+                        >
+                        @error('profile_image')
+                            <div style="margin-bottom: 16px; padding: 12px; background: #fee2e2; border: 1px solid #fecaca; border-radius: 8px;">
+                                <p style="color: #ef4444; font-size: 12px; margin: 0;">{{ $message }}</p>
+                            </div>
+                        @enderror
 
                         <!-- Name and Email Fields - Side by Side -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
@@ -444,4 +442,165 @@
         }
     }
 </style>
+
+<script>
+function showImageOverlay() {
+    const overlay = document.getElementById('profile-image-overlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+    }
+    const container = document.getElementById('profile-image-container');
+    if (container) {
+        container.style.transform = 'scale(1.01)';
+        container.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
+    }
+}
+
+function hideImageOverlay() {
+    const overlay = document.getElementById('profile-image-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    const container = document.getElementById('profile-image-container');
+    if (container) {
+        container.style.transform = 'scale(1)';
+        container.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.08)';
+    }
+}
+
+function handleProfileImageChange(input) {
+    const container = document.getElementById('profile-image-container');
+    const initialsDiv = document.getElementById('profile-initials');
+    
+    if (input.files && input.files[0]) {
+        // Validate file size (2MB)
+        if (input.files[0].size > 2 * 1024 * 1024) {
+            showToast('Image size must be less than 2MB', 'error');
+            input.value = '';
+            return;
+        }
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+        if (!validTypes.includes(input.files[0].type)) {
+            showToast('Please select a valid image file (JPEG, PNG, JPG, GIF)', 'error');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Hide initials div if it exists
+            if (initialsDiv) {
+                initialsDiv.style.display = 'none';
+            }
+            
+            // Check if image already exists, if not create it
+            let img = document.getElementById('profile-image-display');
+            if (!img) {
+                img = document.createElement('img');
+                img.id = 'profile-image-display';
+                img.alt = 'Profile Image';
+                img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 12px; transition: all 0.3s ease;';
+                container.insertBefore(img, container.firstChild);
+            }
+            
+            img.src = e.target.result;
+            img.style.display = 'block';
+            
+            // Hide overlay
+            hideImageOverlay();
+            
+            // Auto-submit the form
+            document.getElementById('profileForm').submit();
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function showToast(message, type = 'success') {
+    // Remove existing toasts with animation
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => {
+        toast.style.animation = 'slideOutRight 0.3s ease-out';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    });
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 400px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    `;
+    
+    // Add icon
+    const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+    toast.innerHTML = `
+        <i class="bi ${icon}" style="font-size: 20px;"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Show toast notifications on page load
+document.addEventListener('DOMContentLoaded', function() {
+    @if(session('success'))
+        showToast('{{ session('success') }}', 'success');
+    @endif
+    
+    @if(session('error'))
+        showToast('{{ session('error') }}', 'error');
+    @endif
+    
+    @if($errors->any())
+        @foreach($errors->all() as $error)
+            showToast('{{ $error }}', 'error');
+        @endforeach
+    @endif
+});
+</script>
 @endsection

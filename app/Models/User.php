@@ -25,6 +25,7 @@ class User extends Authenticatable
         'organization',
         'client_limit',
         'last_login_at',
+        'profile_image',
     ];
 
     /**

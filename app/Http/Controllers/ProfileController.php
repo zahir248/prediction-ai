@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -26,6 +27,7 @@ class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . Auth::id(),
             'password' => 'nullable|string|min:8|confirmed',
+            'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $data = [
@@ -35,6 +37,20 @@ class ProfileController extends Controller
 
         if ($request->filled('password')) {
             $data['password'] = bcrypt($request->password);
+        }
+
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) {
+            $user = Auth::user();
+            
+            // Delete old profile image if it exists
+            if ($user->profile_image && Storage::disk('public')->exists($user->profile_image)) {
+                Storage::disk('public')->delete($user->profile_image);
+            }
+            
+            // Store new profile image
+            $imagePath = $request->file('profile_image')->store('profile-images', 'public');
+            $data['profile_image'] = $imagePath;
         }
 
         Auth::user()->update($data);
