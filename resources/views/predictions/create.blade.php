@@ -664,16 +664,6 @@
                     </div>
                 </div>
                 
-                <!-- Status Messages -->
-                <div id="statusMessages" style="min-height: 40px; margin-top: 16px;">
-                    <div class="status-message active" style="padding: 10px 12px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #0ea5e9; margin-bottom: 6px; text-align: left;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="status-dot" style="width: 6px; height: 6px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
-                            <span style="color: #0369a1; font-size: 12px; font-weight: 500;">Processing your request...</span>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Note -->
                 <p style="color: #94a3b8; margin-top: 16px; font-size: 11px; line-height: 1.4; text-align: center;">
                     Please do not close this window. Results will appear here when complete.
@@ -2689,7 +2679,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const progressBar = document.getElementById('progressBar');
         const progressText = document.getElementById('progressText');
         const progressStatus = document.getElementById('progressStatus');
-        const statusMessages = document.getElementById('statusMessages');
         
         if (!progressCard) return;
         
@@ -2756,42 +2745,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 progressBar.style.width = currentProgress + '%';
                 progressText.textContent = currentProgress + '%';
                 progressStatus.textContent = status.text;
-                
-                // Add new status message
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'status-message active';
-                messageDiv.style.cssText = 'padding: 10px 12px; background: #f0f9ff; border-radius: 6px; border-left: 3px solid #0ea5e9; margin-bottom: 6px; text-align: left; animation: slideIn 0.3s ease-out;';
-                messageDiv.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div class="status-dot" style="width: 6px; height: 6px; background: #0ea5e9; border-radius: 50%; animation: pulse 2s infinite;"></div>
-                        <span style="color: #0369a1; font-size: 12px; font-weight: 500;">${status.text}</span>
-                    </div>
-                `;
-                
-                // Remove old messages (keep only last 2 for compact display)
-                const existingMessages = statusMessages.querySelectorAll('.status-message');
-                if (existingMessages.length >= 2) {
-                    existingMessages[0].remove();
-                }
-                
-                statusMessages.appendChild(messageDiv);
-                
-                // Mark previous messages as completed
-                existingMessages.forEach((msg, index) => {
-                    if (index < existingMessages.length - 1) {
-                        msg.style.background = '#f1f5f9';
-                        msg.style.borderLeftColor = '#cbd5e1';
-                        const dot = msg.querySelector('.status-dot');
-                        if (dot) {
-                            dot.style.background = '#94a3b8';
-                            dot.style.animation = 'none';
-                        }
-                        const span = msg.querySelector('span');
-                        if (span) {
-                            span.style.color = '#64748b';
-                        }
-                    }
-                });
                 
                 currentStatusIndex++;
             } else {
