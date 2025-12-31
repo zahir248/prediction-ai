@@ -212,6 +212,13 @@
             font-weight: 600;
         }
         
+        /* Remove hover/active effects for profile image link */
+        .nav-link[href*="profile"]:hover,
+        .nav-link[href*="profile"].active {
+            background-color: transparent !important;
+            color: inherit !important;
+        }
+        
         .nav-dropdown.active .nav-dropdown-toggle {
             color: #667eea;
             background-color: #f0f4ff;
@@ -513,6 +520,13 @@
             color: #667eea;
             background-color: #f0f4ff;
             font-weight: 600;
+        }
+        
+        /* Remove hover/active effects for mobile profile image link */
+        .mobile-nav-link[href*="profile"]:hover,
+        .mobile-nav-link[href*="profile"].active {
+            background-color: transparent !important;
+            color: inherit !important;
         }
         
         .mobile-nav-section.active .mobile-nav-section-header {
@@ -1145,8 +1159,28 @@
                     <div class="nav-user hidden-mobile">
                         @auth
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                                    Profile
+                                <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="display: flex; align-items: center; text-decoration: none; padding: 0; background-color: transparent !important;" onmouseover="this.style.backgroundColor='transparent';" onmouseout="this.style.backgroundColor='transparent';">
+                                    <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
+                                        @if(Auth::user()->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists(Auth::user()->profile_image))
+                                            @php
+                                                $imagePath = Auth::user()->profile_image;
+                                                $filename = basename($imagePath);
+                                                $imageUrl = route('profile.image', ['filename' => $filename]);
+                                            @endphp
+                                            <img src="{{ $imageUrl }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                                        @else
+                                            <span style="color: white; font-size: 16px; font-weight: 700; text-transform: uppercase;">
+                                                @php
+                                                    $initials = '';
+                                                    $nameParts = explode(' ', Auth::user()->name);
+                                                    foreach($nameParts as $part) {
+                                                        $initials .= strtoupper(substr($part, 0, 1));
+                                                    }
+                                                    echo substr($initials, 0, 2);
+                                                @endphp
+                                            </span>
+                                        @endif
+                                    </div>
                                 </a>
                                 <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
                                     Logout
@@ -1208,8 +1242,29 @@
                         </div>
                     </div>
                     @auth
-                        <a href="{{ route('profile.show') }}" class="mobile-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                            Profile
+                        <a href="{{ route('profile.show') }}" class="mobile-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0;">
+                                @if(Auth::user()->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists(Auth::user()->profile_image))
+                                    @php
+                                        $imagePath = Auth::user()->profile_image;
+                                        $filename = basename($imagePath);
+                                        $imageUrl = route('profile.image', ['filename' => $filename]);
+                                    @endphp
+                                    <img src="{{ $imageUrl }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
+                                @else
+                                    <span style="color: white; font-size: 14px; font-weight: 700; text-transform: uppercase;">
+                                        @php
+                                            $initials = '';
+                                            $nameParts = explode(' ', Auth::user()->name);
+                                            foreach($nameParts as $part) {
+                                                $initials .= strtoupper(substr($part, 0, 1));
+                                            }
+                                            echo substr($initials, 0, 2);
+                                        @endphp
+                                    </span>
+                                @endif
+                            </div>
+                            <span>Profile</span>
                         </a>
                         <button type="button" onclick="showLogoutModal()" class="mobile-nav-link">
                             Logout
