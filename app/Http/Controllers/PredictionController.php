@@ -400,8 +400,8 @@ class PredictionController extends Controller
             $query->whereDate('created_at', '<=', $request->get('date_to'));
         }
         
-        // Preserve filters in pagination
-        $predictions = $query->latest()->paginate(5)->appends($request->query());
+        // Get all predictions (no pagination - display as continuous scrollable list)
+        $predictions = $query->latest()->get();
         
         // Get total counts for stats (not just current page)
         $allPredictions = Auth::user()->predictions();

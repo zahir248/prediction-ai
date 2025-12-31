@@ -466,31 +466,6 @@
                         No predictions found
                         </div>
                         @endforelse
-            
-                    <!-- Pagination for tiles -->
-                    @if($predictions->hasPages())
-                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-                                @if ($predictions->onFirstPage())
-                                <span style="color: #9ca3af; font-size: 11px;">« Prev</span>
-                                @else
-                                <a href="{{ $predictions->previousPageUrl() }}" 
-                                   onclick="sessionStorage.setItem('predictionsHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);"
-                                   style="color: #64748b; text-decoration: none; font-size: 11px; transition: color 0.2s ease;">« Prev</a>
-                                @endif
-
-                            <span style="color: #64748b; font-size: 11px;">Page {{ $predictions->currentPage() }} of {{ $predictions->lastPage() }}</span>
-
-                                @if ($predictions->hasMorePages())
-                                <a href="{{ $predictions->nextPageUrl() }}" 
-                                   onclick="sessionStorage.setItem('predictionsHistoryScrollPosition', window.pageYOffset || document.documentElement.scrollTop);"
-                                   style="color: #64748b; text-decoration: none; font-size: 11px; transition: color 0.2s ease;">Next »</a>
-                                @else
-                                <span style="color: #9ca3af; font-size: 11px;">Next »</span>
-                                @endif
-                            </div>
-                                </div>
-                                    @endif
                                     </div>
                                 </div>
                             </div>
