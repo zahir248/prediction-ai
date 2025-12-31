@@ -1,55 +1,249 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="analytics-page-container" style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
-    <div class="analytics-content-wrapper" style="max-width: 900px; margin: 0 auto;">
-        <!-- Main Card -->
-        <div class="analytics-main-card" style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-            <!-- Header Section -->
-            <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
-                <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">My Analytics Dashboard</h1>
-                <p style="color: #64748b; font-size: 14px; margin: 0;">Track your NUJUM analysis usage, costs, and performance metrics</p>
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+<style>
+    .cursor-layout {
+        display: flex;
+        height: calc(100vh - 72px);
+        background: #ffffff;
+        overflow: hidden;
+    }
+    
+    .cursor-sidebar {
+        width: 400px;
+        background: #fafafa;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cursor-main {
+        flex: 1;
+        background: #ffffff;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #e5e7eb;
+        position: relative;
+    }
+    
+    .cursor-sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+    }
+    
+    .cursor-sidebar-content {
+        flex: 1;
+        padding: 16px;
+        padding-bottom: 16px;
+        overflow-y: auto;
+        overflow-x: visible;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+    
+    .cursor-main-content {
+        flex: 1;
+        padding: 24px;
+        padding-bottom: 120px;
+        max-width: 100%;
+        width: 100%;
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+    }
+    
+    .cursor-section {
+        margin-bottom: 24px;
+    }
+    
+    .cursor-section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .metric-card {
+        background: #ffffff;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+    }
+    
+    .metric-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+    
+    .metric-value {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .metric-label {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .metric-description {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 4px;
+    }
+    
+    .analytics-section {
+        margin-bottom: 32px;
+    }
+    
+    .analytics-section-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    /* Custom scrollbar for sidebar */
+    .cursor-sidebar-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .cursor-sidebar-content::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+    
+    .cursor-sidebar-content::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    .cursor-sidebar-content::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    .cursor-main::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .cursor-main::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 3px;
+    }
+    
+    .cursor-main::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    .cursor-main::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+    
+    @media (max-width: 1024px) {
+        .cursor-layout {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .cursor-sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid #e5e7eb;
+            order: 1;
+            max-height: 50vh;
+        }
+        
+        .cursor-main {
+            border-left: none;
+            border-top: 1px solid #e5e7eb;
+            order: 2;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .cursor-main-content {
+            padding: 20px 16px;
+            padding-bottom: 80px;
+        }
+    }
+</style>
+
+<div class="cursor-layout">
+    <!-- Left Panel: Date Range & Key Metrics -->
+    <div class="cursor-sidebar">
+        <div class="cursor-sidebar-header">
+            <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Analytics Dashboard</h2>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Track your NUJUM analysis usage</p>
             </div>
 
-            <!-- Date Range Selector Section -->
-            <div style="margin-bottom: 32px;">
-                <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Date Range Selection</h2>
-                <form method="GET" class="date-range-form" style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 12px; align-items: end;">
-                    <div class="form-field">
-                        <label for="start_date" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
-                            Start Date
-                        </label>
-                        <input type="date" id="start_date" name="start_date" 
+        <div class="cursor-sidebar-content">
+            <!-- Filter Section -->
+            <div class="cursor-section">
+                <div class="cursor-section-title">
+                    <span>Filter</span>
+                </div>
+                <form method="GET" action="{{ route('predictions.analytics') }}" id="dateRangeForm">
+                    <!-- Date From and To Row -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
+                        <!-- Date From -->
+                        <div>
+                            <label for="start_date" style="display: block; margin-bottom: 4px; font-weight: 600; color: #374151; font-size: 11px;">From Date</label>
+                            <input type="date" 
+                                   id="start_date" 
+                                   name="start_date" 
                                value="{{ request('start_date', now()->subMonth()->format('Y-m-d')) }}"
-                               class="date-input"
-                               style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;">
+                                   style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; transition: all 0.15s ease; background: #ffffff;">
                     </div>
-                    <div class="form-field">
-                        <label for="end_date" style="display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px;">
-                            End Date
-                        </label>
-                        <input type="date" id="end_date" name="end_date" 
+                        
+                        <!-- Date To -->
+                        <div>
+                            <label for="end_date" style="display: block; margin-bottom: 4px; font-weight: 600; color: #374151; font-size: 11px;">To Date</label>
+                            <input type="date" 
+                                   id="end_date" 
+                                   name="end_date" 
                                value="{{ request('end_date', now()->format('Y-m-d')) }}"
-                               class="date-input"
-                               style="width: 100%; padding: 12px 16px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #f9fafb;">
+                                   style="width: 100%; padding: 6px 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 12px; transition: all 0.15s ease; background: #ffffff;">
                     </div>
-                    <div class="form-button">
-                        <button type="submit" class="update-btn" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); white-space: nowrap;">
-                            Update
-                        </button>
                     </div>
-                    <div class="form-button">
-                        <a href="{{ route('predictions.analytics') }}" class="clear-btn" style="padding: 12px 24px; background: transparent; color: #64748b; border: 2px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease; text-decoration: none; display: inline-block; white-space: nowrap;">
-                            Clear
+                    
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 6px;">
+                        <a href="{{ route('predictions.analytics') }}" 
+                           style="flex: 1; padding: 6px 10px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; font-weight: 500; font-size: 11px; text-decoration: none; text-align: center; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
+                            <i class="bi bi-x-circle" style="font-size: 11px;"></i>Clear
                         </a>
                     </div>
                 </form>
             </div>
+        </div>
+            </div>
 
-            <!-- Key Metrics Section -->
-            <div style="margin-bottom: 32px;">
-                <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Key Metrics</h2>
-                <div class="key-metrics-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+    <!-- Right Panel: Detailed Analytics -->
+    <div class="cursor-main scrollable">
+        <div class="cursor-main-content">
+            <!-- Key Metrics -->
+            <div class="analytics-section">
+                <div class="analytics-section-title">Key Metrics</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                     <!-- Total Analyses -->
                     <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <div style="font-size: 28px; font-weight: 700; color: #667eea; margin-bottom: 8px;">{{ number_format($analytics['total_analyses']) }}</div>
@@ -80,11 +274,10 @@
                 </div>
             </div>
 
-            <!-- Performance Metrics Section -->
-            <div style="margin-bottom: 32px;">
-                <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Performance Metrics</h2>
-                <div class="performance-metrics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <!-- Performance Metrics -->
+            <div class="analytics-section">
+                <div class="analytics-section-title">Performance Metrics</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                     <div>
                         <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: #f8fafc; border-radius: 8px; margin-bottom: 12px;">
                             <span style="color: #64748b; font-weight: 500; font-size: 14px;">Average Processing Time</span>
@@ -122,29 +315,10 @@
                 </div>
             </div>
 
-            <!-- Prediction Period Breakdown Section -->
-            <div style="margin-bottom: 32px;">
-                <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Prediction Period Usage</h2>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
-                    @if(!empty($analytics['prediction_horizon_breakdown']))
-                        @foreach($analytics['prediction_horizon_breakdown'] as $horizon => $count)
-                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="font-size: 24px; font-weight: 700; color: #667eea; margin-bottom: 6px;">{{ number_format($count) }}</div>
-                            <div style="color: #64748b; font-size: 12px; text-transform: capitalize;">{{ str_replace('_', ' ', $horizon) }}</div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="color: #9ca3af; font-size: 13px;">No prediction period data</div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Usage Trends Section -->
-            <div>
-                <h2 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 20px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;">Usage Trends</h2>
-                <div class="usage-trends-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- Usage Trends -->
+            <div class="analytics-section">
+                <div class="analytics-section-title">Usage Trends</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <!-- Daily Analysis Count -->
                     <div>
                         <h3 style="font-size: 14px; font-weight: 600; color: #374151; margin-bottom: 16px;">Daily Analysis Count</h3>
@@ -194,285 +368,47 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Prediction Period Breakdown -->
+            <div class="analytics-section">
+                <div class="analytics-section-title">Prediction Period Usage</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                    @if(!empty($analytics['prediction_horizon_breakdown']))
+                        @foreach($analytics['prediction_horizon_breakdown'] as $horizon => $count)
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-size: 24px; font-weight: 700; color: #667eea; margin-bottom: 6px;">{{ number_format($count) }}</div>
+                            <div style="color: #64748b; font-size: 12px; text-transform: capitalize;">{{ str_replace('_', ' ', $horizon) }}</div>
+                        </div>
+                        @endforeach
+                    @else
+                        <div style="text-align: center; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="color: #9ca3af; font-size: 13px;">No prediction period data</div>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<style>
-    /* Mobile Responsive Styles */
-    @media (max-width: 1024px) {
-        /* Date range form - 2 columns on tablet */
-        .date-range-form {
-            grid-template-columns: 1fr 1fr !important;
-        }
-        
-        .form-button {
-            grid-column: span 1 !important;
-        }
-        
-        /* Key metrics - 2 columns on tablet */
-        .key-metrics-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        
-        /* Performance metrics - stack on tablet */
-        .performance-metrics-grid {
-            grid-template-columns: 1fr !important;
-        }
-        
-        /* Usage trends - stack on tablet */
-        .usage-trends-grid {
-            grid-template-columns: 1fr !important;
-        }
+<script>
+// Auto-submit on date change
+document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const dateRangeForm = document.getElementById('dateRangeForm');
+    
+    if (startDateInput) {
+        startDateInput.addEventListener('change', function() {
+            dateRangeForm.submit();
+        });
     }
     
-    @media (max-width: 768px) {
-        /* Container and card padding */
-        .analytics-page-container {
-            padding: 16px 8px !important;
-        }
-        
-        .analytics-content-wrapper {
-            padding: 0 !important;
-        }
-        
-        .analytics-main-card {
-            padding: 20px 16px !important;
-            border-radius: 12px !important;
-        }
-        
-        /* Header section */
-        h1 {
-            font-size: 20px !important;
-        }
-        
-        p[style*="color: #64748b; font-size: 14px"] {
-            font-size: 12px !important;
-        }
-        
-        /* Date range form - stack on mobile */
-        .date-range-form {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-        }
-        
-        .form-field {
-            width: 100% !important;
-        }
-        
-        .form-button {
-            width: 100% !important;
-        }
-        
-        .update-btn,
-        .clear-btn {
-            width: 100% !important;
-            padding: 12px 16px !important;
-            text-align: center !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-        
-        .date-input {
-            font-size: 16px !important; /* Prevent zoom on iOS */
-        }
-        
-        /* Key metrics - 2 columns on mobile */
-        .key-metrics-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 12px !important;
-        }
-        
-        .key-metrics-grid > div {
-            padding: 16px !important;
-        }
-        
-        .key-metrics-grid > div > div[style*="font-size: 28px"] {
-            font-size: 22px !important;
-        }
-        
-        .key-metrics-grid > div > div[style*="font-size: 13px"] {
-            font-size: 12px !important;
-        }
-        
-        .key-metrics-grid > div > div[style*="font-size: 12px"] {
-            font-size: 11px !important;
-        }
-        
-        /* Performance metrics - already stacked */
-        .performance-metrics-grid {
-            gap: 12px !important;
-        }
-        
-        .performance-metrics-grid > div > div {
-            padding: 12px !important;
-            flex-wrap: wrap !important;
-        }
-        
-        .performance-metrics-grid span {
-            font-size: 13px !important;
-        }
-        
-        /* Prediction period breakdown */
-        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 10px !important;
-        }
-        
-        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] > div {
-            padding: 12px !important;
-        }
-        
-        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] > div > div[style*="font-size: 24px"] {
-            font-size: 20px !important;
-        }
-        
-        /* Usage trends - already stacked */
-        .usage-trends-grid {
-            gap: 16px !important;
-        }
-        
-        .usage-trends-grid > div {
-            min-width: 0 !important;
-        }
-        
-        .usage-trends-grid h3 {
-            font-size: 13px !important;
-        }
-        
-        .usage-trends-grid > div > div[style*="min-height: 220px"] {
-            min-height: 180px !important;
-            padding: 16px 8px 8px 8px !important;
-            overflow-x: auto !important;
-            -webkit-overflow-scrolling: touch !important;
-        }
-        
-        .usage-trends-grid > div > div > div {
-            min-width: 30px !important;
-        }
-        
-        .usage-trends-grid span[style*="font-size: 10px"] {
-            font-size: 9px !important;
-        }
-        
-        .usage-trends-grid span[style*="font-size: 9px"] {
-            font-size: 8px !important;
-        }
-        
-        /* Section headings */
-        h2 {
-            font-size: 14px !important;
-        }
-        
-        h3 {
-            font-size: 13px !important;
-        }
+    if (endDateInput) {
+        endDateInput.addEventListener('change', function() {
+            dateRangeForm.submit();
+        });
     }
-    
-    @media (max-width: 480px) {
-        /* Very small screens */
-        .analytics-page-container {
-            padding: 12px 4px !important;
-        }
-        
-        .analytics-main-card {
-            padding: 16px 12px !important;
-            border-radius: 10px !important;
-        }
-        
-        h1 {
-            font-size: 18px !important;
-        }
-        
-        /* Date range form */
-        .date-range-form {
-            gap: 10px !important;
-        }
-        
-        .update-btn,
-        .clear-btn {
-            padding: 10px 14px !important;
-            font-size: 13px !important;
-        }
-        
-        /* Key metrics - single column on very small screens */
-        .key-metrics-grid {
-            grid-template-columns: 1fr !important;
-            gap: 10px !important;
-        }
-        
-        .key-metrics-grid > div {
-            padding: 14px !important;
-        }
-        
-        .key-metrics-grid > div > div[style*="font-size: 28px"] {
-            font-size: 20px !important;
-        }
-        
-        /* Performance metrics */
-        .performance-metrics-grid > div > div {
-            padding: 10px !important;
-        }
-        
-        .performance-metrics-grid span {
-            font-size: 12px !important;
-        }
-        
-        /* Prediction period breakdown */
-        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] {
-            grid-template-columns: 1fr !important;
-            gap: 8px !important;
-        }
-        
-        div[style*="grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))"] > div {
-            padding: 10px !important;
-        }
-        
-        /* Usage trends */
-        .usage-trends-grid > div > div[style*="min-height: 220px"] {
-            min-height: 160px !important;
-            padding: 12px 6px 6px 6px !important;
-        }
-        
-        .usage-trends-grid > div > div > div {
-            min-width: 25px !important;
-        }
-        
-        h2 {
-            font-size: 13px !important;
-        }
-        
-        h3 {
-            font-size: 12px !important;
-        }
-    }
-    
-    /* Ensure all text wraps properly */
-    * {
-        box-sizing: border-box;
-    }
-    
-    /* Prevent horizontal overflow */
-    body {
-        overflow-x: hidden;
-    }
-    
-    /* Improve chart scrolling on mobile */
-    @media (max-width: 768px) {
-        .usage-trends-grid > div > div[style*="min-height: 220px"]::-webkit-scrollbar {
-            height: 4px !important;
-        }
-        
-        .usage-trends-grid > div > div[style*="min-height: 220px"]::-webkit-scrollbar-track {
-            background: #f1f5f9 !important;
-            border-radius: 2px !important;
-        }
-        
-        .usage-trends-grid > div > div[style*="min-height: 220px"]::-webkit-scrollbar-thumb {
-            background: #cbd5e1 !important;
-            border-radius: 2px !important;
-        }
-    }
-</style>
+});
+</script>
 @endsection
