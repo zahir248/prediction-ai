@@ -2121,7 +2121,22 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 if (data.success && data.prediction_id) {
-                    window.currentPredictionId = data.prediction_id; // Store globally
+                    // Validate and store prediction ID
+                    const predictionId = parseInt(data.prediction_id);
+                    if (isNaN(predictionId) || predictionId <= 0) {
+                        console.error('Invalid prediction ID received:', data.prediction_id);
+                        showError('Invalid prediction ID received. Please try again.');
+                        // Re-enable submit button on error
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                            submitButton.textContent = 'Generate';
+                            submitButton.style.opacity = '1';
+                        }
+                        return;
+                    }
+                    
+                    window.currentPredictionId = predictionId; // Store globally
                     
                     // Store prediction ID for export
                     // Export button will use currentPredictionId when clicked
@@ -2260,22 +2275,52 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     function checkPredictionStatus(predictionId) {
+        // Validate predictionId before making request
+        if (!predictionId || predictionId === 'null' || predictionId === 'undefined') {
+            console.error('Status check error: Invalid prediction ID', predictionId);
+            // Don't continue polling if ID is invalid
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+            showError('Invalid prediction ID. Please refresh the page and try again.');
+            return;
+        }
+        
+        // Generate URL using base URL to handle subdirectory deployments (cPanel)
+        const baseUrl = '{{ url("/") }}';
+        const statusUrl = `${baseUrl}/predictions/${predictionId}/model-info`;
+        
         // Check status via API endpoint
-        fetch(`/predictions/${predictionId}/model-info`, {
+        fetch(statusUrl, {
             method: 'GET',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
                 'Accept': 'application/json'
-            }
+            },
+            credentials: 'same-origin'
         })
         .then(response => {
+            // Log response details for debugging
             if (!response.ok) {
-                throw new Error('Failed to fetch status');
+                console.error('Status check failed:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: statusUrl,
+                    predictionId: predictionId
+                });
+                throw new Error(`Failed to fetch status: ${response.status} ${response.statusText}`);
             }
             return response.json();
         })
         .then(data => {
             if (data.status === 'completed' || data.status === 'completed_with_warnings') {
+                // Clear polling interval
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                
                 // Update progress to 100%
                 const progressBar = document.getElementById('progressBar');
                 const progressText = document.getElementById('progressText');
@@ -2294,7 +2339,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     fetchPredictionResult(predictionId);
                 }, 500);
             } else if (data.status === 'failed') {
-                if (pollingInterval) clearInterval(pollingInterval);
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
                 showError('Analysis failed. Please try again.');
             } else {
                 // Still processing, continue polling
@@ -2307,16 +2355,42 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Status check error:', error);
-            // Continue polling on error (might be processing)
-            if (!pollingInterval) {
-                pollingInterval = setInterval(() => {
-                    checkPredictionStatus(predictionId);
-                }, 3000);
+            console.error('Error details:', {
+                message: error.message,
+                predictionId: predictionId,
+                url: statusUrl
+            });
+            
+            // Only continue polling if it's a network error and we have a valid ID
+            // Don't poll indefinitely on 404/403 errors
+            if (predictionId && !error.message.includes('404') && !error.message.includes('403')) {
+                if (!pollingInterval) {
+                    pollingInterval = setInterval(() => {
+                        checkPredictionStatus(predictionId);
+                    }, 3000);
+                }
+            } else {
+                // Stop polling on authentication/authorization errors
+                if (pollingInterval) {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                }
+                // Don't show error for network issues during processing, but log it
+                if (error.message.includes('404') || error.message.includes('403')) {
+                    showError('Unable to check prediction status. Please refresh the page.');
+                }
             }
         });
     }
     
     function fetchPredictionResult(predictionId) {
+        // Validate predictionId
+        if (!predictionId || predictionId === 'null' || predictionId === 'undefined') {
+            console.error('Fetch result error: Invalid prediction ID', predictionId);
+            showError('Invalid prediction ID. Please refresh the page and try again.');
+            return;
+        }
+        
         // Clear polling
         if (pollingInterval) {
             clearInterval(pollingInterval);
@@ -2326,11 +2400,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // Store prediction ID globally for export
         window.currentPredictionId = predictionId;
         
+        // Generate URL using base URL to handle subdirectory deployments (cPanel)
+        const baseUrl = '{{ url("/") }}';
+        const resultUrl = `${baseUrl}/predictions/${predictionId}`;
+        
         // Fetch prediction HTML
-        fetch(`/predictions/${predictionId}`, {
+        fetch(resultUrl, {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
-            }
+            },
+            credentials: 'same-origin'
         })
         .then(response => response.text())
         .then(html => {
@@ -2353,6 +2432,11 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error fetching result:', error);
+            console.error('Error details:', {
+                message: error.message,
+                predictionId: predictionId,
+                url: resultUrl
+            });
             showError('Error loading results. Please refresh the page.');
         });
     }
@@ -2780,20 +2864,33 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use currentExportId if available, otherwise try window.currentPredictionId
         const predictionId = currentExportId || window.currentPredictionId;
         
-        if (!predictionId || predictionId === 'null' || predictionId === null) {
+        if (!predictionId || predictionId === 'null' || predictionId === null || predictionId === 'undefined') {
             showToast('Error: Prediction ID not found', 'error');
             closeExportModal();
             return;
         }
         
+        // Validate prediction ID is a valid number
+        const predictionIdNum = parseInt(predictionId);
+        if (isNaN(predictionIdNum) || predictionIdNum <= 0) {
+            console.error('Invalid prediction ID for export:', predictionId);
+            showToast('Error: Invalid prediction ID', 'error');
+            closeExportModal();
+            return;
+        }
+        
         // Store the ID before closing the modal
-        const predictionIdToExport = predictionId;
+        const predictionIdToExport = predictionIdNum;
         
         // Close the modal first
         closeExportModal();
         
         // Show loading message
         showToast('Exporting PDF...', 'success');
+        
+        // Generate absolute URL to handle subdirectory deployments (cPanel)
+        const baseUrl = '{{ url("/") }}';
+        const exportUrl = `${baseUrl}/predictions/${predictionIdToExport}/export`;
         
         // Redirect to the export route
         // The download will start automatically
@@ -2802,7 +2899,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showToast('PDF exported successfully!', 'success');
         }, 1000);
         
-        window.location.href = `/predictions/${predictionIdToExport}/export`;
+        window.location.href = exportUrl;
     };
     
     // Set up the confirm export button
