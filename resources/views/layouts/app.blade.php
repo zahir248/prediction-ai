@@ -212,12 +212,6 @@
             font-weight: 600;
         }
         
-        /* Remove hover/active effects for profile image link */
-        .nav-link[href*="profile"]:hover,
-        .nav-link[href*="profile"].active {
-            background-color: transparent !important;
-            color: inherit !important;
-        }
         
         .nav-dropdown.active .nav-dropdown-toggle {
             color: #667eea;
@@ -1159,20 +1153,8 @@
                     <div class="nav-user hidden-mobile">
                         @auth
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="display: flex; align-items: center; text-decoration: none; padding: 0; background-color: transparent !important;" onmouseover="this.style.backgroundColor='transparent';" onmouseout="this.style.backgroundColor='transparent';">
-                                    <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';">
-                                        @php
-                                            $hasNavImage = Auth::user()->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists(Auth::user()->profile_image);
-                                            if ($hasNavImage) {
-                                                $imagePath = Auth::user()->profile_image;
-                                                $filename = basename($imagePath);
-                                                $navImageUrl = route('profile.image', ['filename' => $filename]);
-                                            } else {
-                                                $navImageUrl = asset('image/default-user-profile.jpg');
-                                            }
-                                        @endphp
-                                        <img src="{{ $navImageUrl }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-                                    </div>
+                                <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                                    Profile
                                 </a>
                                 <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
                                     Logout
@@ -1235,19 +1217,6 @@
                     </div>
                     @auth
                         <a href="{{ route('profile.show') }}" class="mobile-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 36px; height: 36px; border-radius: 50%; overflow: hidden; border: 1px solid #e5e7eb; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); flex-shrink: 0;">
-                                @php
-                                    $hasMobileImage = Auth::user()->profile_image && \Illuminate\Support\Facades\Storage::disk('public')->exists(Auth::user()->profile_image);
-                                    if ($hasMobileImage) {
-                                        $mobileImagePath = Auth::user()->profile_image;
-                                        $mobileFilename = basename($mobileImagePath);
-                                        $mobileImageUrl = route('profile.image', ['filename' => $mobileFilename]);
-                                    } else {
-                                        $mobileImageUrl = asset('image/default-user-profile.jpg');
-                                    }
-                                @endphp
-                                <img src="{{ $mobileImageUrl }}" alt="Profile" style="width: 100%; height: 100%; object-fit: cover;">
-                            </div>
                             <span>Profile</span>
                         </a>
                         <button type="button" onclick="showLogoutModal()" class="mobile-nav-link">
