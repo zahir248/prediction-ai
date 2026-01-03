@@ -52,19 +52,19 @@ class SocialMediaController extends Controller
             $query->whereDate('created_at', '<=', $request->get('date_to'));
         }
         
-        // Preserve filters in pagination
-        // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
-        // This prevents "Out of sort memory" errors when sorting by created_at with large JSON columns
-        $analyses = $query->orderBy('id', 'desc')->paginate(5)->appends($request->query());
+        // Optimize query: select only necessary columns and limit results to prevent memory issues
+        // Select only columns needed for the history page display
+        $analyses = $query->select('id', 'username', 'status', 'ai_analysis', 'created_at')
+            ->orderBy('created_at', 'desc')
+            ->limit(1000) // Limit to prevent memory issues on servers with limited sort buffer
+            ->get();
         
-        // Get total counts for stats (not just current page)
-        // Use select() to avoid loading large JSON fields when counting
-        $allAnalyses = Auth::user()->socialMediaAnalyses()->select('id', 'status');
+        // Get total counts for stats (optimized - use select to avoid loading full records)
         $stats = [
-            'total' => $allAnalyses->count(),
-            'completed' => $allAnalyses->where('status', SocialMediaAnalysis::STATUS_COMPLETED)->count(),
-            'processing' => $allAnalyses->where('status', SocialMediaAnalysis::STATUS_PROCESSING)->count(),
-            'failed' => $allAnalyses->where('status', SocialMediaAnalysis::STATUS_FAILED)->count(),
+            'total' => Auth::user()->socialMediaAnalyses()->count(),
+            'completed' => Auth::user()->socialMediaAnalyses()->where('status', SocialMediaAnalysis::STATUS_COMPLETED)->count(),
+            'processing' => Auth::user()->socialMediaAnalyses()->where('status', SocialMediaAnalysis::STATUS_PROCESSING)->count(),
+            'failed' => Auth::user()->socialMediaAnalyses()->where('status', SocialMediaAnalysis::STATUS_FAILED)->count(),
         ];
         
         return view('social-media.history', compact('analyses', 'stats'));
@@ -90,6 +90,15 @@ class SocialMediaController extends Controller
                 'user_role' => Auth::user()->role ?? 'unknown'
             ]);
             abort(403, 'Unauthorized access');
+        }
+        
+        // Return HTML content for AJAX requests (for history page)
+        if (request()->ajax() && request()->header('X-Requested-With') === 'XMLHttpRequest') {
+            // Check if requesting engagement metrics
+            if (request()->get('view') === 'engagement') {
+                return view('social-media.partials.engagement-metrics', compact('socialMediaAnalysis'))->render();
+            }
+            return view('social-media.partials.content', compact('socialMediaAnalysis'))->render();
         }
         
         return view('social-media.show', compact('socialMediaAnalysis'));
