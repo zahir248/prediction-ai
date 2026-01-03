@@ -2089,6 +2089,11 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Reset analysis flags for new analysis
+            window.analysisSecondToastShown = false;
+            window.analysisFailed = false;
+            window.errorSecondToastShown = false;
+            
             // Show progress and prompt details
             showAnalysisProgress();
             showPromptDetails();
@@ -2444,6 +2449,111 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayResult(resultHtml) {
         if (!progressCard || !resultCard) return;
         
+        // Check if this is a fallback/error response
+        const isFallbackResponse = resultHtml.includes('Analysis Failed') && 
+                                   (resultHtml.includes('Fallback Response') || 
+                                    resultHtml.includes('Due to technical difficulties') ||
+                                    resultHtml.includes('comprehensive analysis could not be generated'));
+        
+        // Set global flag to indicate analysis failed
+        window.analysisFailed = isFallbackResponse;
+        
+        if (isFallbackResponse) {
+            // Hide progress card
+            progressCard.style.display = 'none';
+            
+            // Center the right panel for error display (matching social media page style)
+            const mainContent = document.querySelector('.cursor-main-content');
+            if (mainContent) {
+                mainContent.style.display = 'flex';
+                mainContent.style.alignItems = 'center';
+                mainContent.style.justifyContent = 'center';
+                mainContent.style.padding = '24px';
+                mainContent.style.background = '#ffffff';
+                mainContent.classList.remove('scrollable');
+            }
+            
+            // Make main panel not scrollable for error
+            const mainPanel = document.querySelector('.cursor-main');
+            if (mainPanel) {
+                mainPanel.classList.remove('scrollable');
+            }
+            
+            // Hide prompt details action buttons for error
+            const promptDetailsActions = document.getElementById('promptDetailsActions');
+            if (promptDetailsActions) {
+                promptDetailsActions.style.display = 'none';
+            }
+            
+            // Hide animated background
+            const animatedBackground = document.getElementById('animatedBackground');
+            if (animatedBackground) {
+                animatedBackground.style.display = 'none';
+            }
+            
+            // Display simple error message directly in mainContent (matching social media page style)
+            if (mainContent) {
+                mainContent.innerHTML = `
+                    <div style="max-width: 500px; width: 100%; text-align: center; padding: 40px 24px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">Service Unavailable</h2>
+                        <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">The service is not available now. Please try again.</p>
+                        <p style="font-size: 14px; color: #94a3b8;">We are experiencing technical difficulties. Please try again later.</p>
+                    </div>
+                `;
+            }
+            
+            // Show toast notification immediately (only once)
+            let analysisErrorToastShown = false;
+            if (!analysisErrorToastShown) {
+                const toastMessage = 'The service is not available now. Please try again.';
+                if (typeof showToast === 'function') {
+                    showToast(toastMessage, 'error');
+                    analysisErrorToastShown = true;
+                }
+            }
+            
+            // Show second toast message after first toast (with delay to allow first toast to be visible)
+            // Use global flag to prevent duplicate second toast
+            if (!window.analysisSecondToastShown) {
+                window.analysisSecondToastShown = true; // Set flag immediately to prevent duplicates
+                setTimeout(() => {
+                    // Check flag again inside setTimeout to prevent race conditions
+                    if (window.analysisSecondToastShown) {
+                        // Remove any existing toast first to allow second toast to show
+                        const existingToast = document.querySelector('.toast-notification');
+                        if (existingToast) {
+                            existingToast.style.opacity = '0';
+                            existingToast.style.transform = 'translateX(100%)';
+                            setTimeout(() => {
+                                if (existingToast.parentNode) {
+                                    existingToast.parentNode.removeChild(existingToast);
+                                }
+                            }, 300);
+                        }
+                        // Reset the global toast flag to allow second toast
+                        if (typeof window.isToastShowing !== 'undefined') {
+                            window.isToastShowing = false;
+                        }
+                        
+                        // Wait a bit for the first toast to be removed, then show second toast
+                        setTimeout(() => {
+                            if (typeof showToast === 'function') {
+                                showToast('Page will redirect in 5 seconds...', 'error');
+                                
+                                // After second toast appears, wait 5 seconds then refresh page
+                                setTimeout(() => {
+                                    window.location.reload();
+                                }, 5000); // 5 seconds after second toast appears
+                            }
+                        }, 350); // Wait for toast removal animation to complete
+                    }
+                }, 1500); // 1.5 seconds delay to let first toast be visible first
+            }
+            
+            return; // Exit early for fallback response
+        }
+        
         // Hide progress, did you know section, and animated background, show result
         progressCard.style.display = 'none';
         if (didYouKnowSection) {
@@ -2626,19 +2736,109 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showError(message) {
-        if (!progressCard) return;
+        // Stop progress card
+        if (progressCard) {
+            progressCard.style.display = 'none';
+        }
         
-        const statusMessages = document.getElementById('statusMessages');
-        if (statusMessages) {
-            statusMessages.innerHTML = `
-                <div style="padding: 12px; background: #fee2e2; border-radius: 6px; border-left: 3px solid #ef4444; color: #991b1b; font-size: 12px;">
-                    <strong>Error:</strong> ${message}
+        // Stop typing animation
+        if (typingAnimationInterval) {
+            clearInterval(typingAnimationInterval);
+            typingAnimationInterval = null;
+        }
+        
+        // Stop polling if active
+        if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+        }
+        
+        // Center the right panel for error display (matching social media page style)
+        const mainContent = document.querySelector('.cursor-main-content');
+        if (mainContent) {
+            mainContent.style.display = 'flex';
+            mainContent.style.alignItems = 'center';
+            mainContent.style.justifyContent = 'center';
+            mainContent.style.padding = '24px';
+            mainContent.style.background = '#ffffff';
+            mainContent.classList.remove('scrollable');
+            
+            // Make main panel not scrollable for error
+            const mainPanel = document.querySelector('.cursor-main');
+            if (mainPanel) {
+                mainPanel.classList.remove('scrollable');
+            }
+            
+            // Hide prompt details action buttons for error
+            const promptDetailsActions = document.getElementById('promptDetailsActions');
+            if (promptDetailsActions) {
+                promptDetailsActions.style.display = 'none';
+            }
+            
+            // Hide animated background
+            const animatedBackground = document.getElementById('animatedBackground');
+            if (animatedBackground) {
+                animatedBackground.style.display = 'none';
+            }
+            
+            // Display simple error message directly in mainContent (matching social media page style exactly)
+            mainContent.innerHTML = `
+                <div style="max-width: 500px; width: 100%; text-align: center; padding: 40px 24px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px; border: none !important; border-bottom: none !important; padding-bottom: 0 !important; text-transform: none !important; letter-spacing: normal !important;">Service Unavailable</h2>
+                    <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">The service is not available now. Please try again.</p>
+                    <p style="font-size: 14px; color: #94a3b8;">We are experiencing technical difficulties. Please try again later.</p>
                 </div>
             `;
         }
         
-        // Show error toast notification
-        showToast(message, 'error');
+        // Show toast notification immediately (only once)
+        let errorToastShown = false;
+        if (!errorToastShown) {
+            const toastMessage = 'The service is not available now. Please try again.';
+            if (typeof showToast === 'function') {
+                showToast(toastMessage, 'error');
+                errorToastShown = true;
+            }
+        }
+        
+        // Show second toast message after first toast (with delay to allow first toast to be visible)
+        // Use global flag to prevent duplicate second toast
+        if (!window.errorSecondToastShown) {
+            window.errorSecondToastShown = true; // Set flag immediately to prevent duplicates
+            setTimeout(() => {
+                // Check flag again inside setTimeout to prevent race conditions
+                if (window.errorSecondToastShown) {
+                    // Remove any existing toast first to allow second toast to show
+                    const existingToast = document.querySelector('.toast-notification');
+                    if (existingToast) {
+                        existingToast.style.opacity = '0';
+                        existingToast.style.transform = 'translateX(100%)';
+                        setTimeout(() => {
+                            if (existingToast.parentNode) {
+                                existingToast.parentNode.removeChild(existingToast);
+                            }
+                        }, 300);
+                    }
+                    // Reset the global toast flag to allow second toast
+                    if (typeof window.isToastShowing !== 'undefined') {
+                        window.isToastShowing = false;
+                    }
+                    
+                    // Wait a bit for the first toast to be removed, then show second toast
+                    setTimeout(() => {
+                        if (typeof showToast === 'function') {
+                            showToast('Page will redirect in 5 seconds...', 'error');
+                            
+                            // After second toast appears, wait 5 seconds then refresh page
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000); // 5 seconds after second toast appears
+                        }
+                    }, 350); // Wait for toast removal animation to complete
+                }
+            }, 1500); // 1.5 seconds delay to let first toast be visible first
+        }
     }
     
     function showInstructionsAgain() {

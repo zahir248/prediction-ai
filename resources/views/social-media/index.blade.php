@@ -1,36 +1,364 @@
 @extends('layouts.app')
 
 @section('content')
-<div style="min-height: calc(100vh - 72px); background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); padding: 24px 16px;">
-    <div style="max-width: 900px; margin: 0 auto;">
-        <!-- Main Card -->
-        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-            <!-- Header Section -->
-            <div style="border-bottom: 2px solid #e2e8f0; padding-bottom: 20px; margin-bottom: 32px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-                    <div>
-                <h1 style="font-size: 24px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;">Social Media Analysis</h1>
-                <p style="color: #64748b; font-size: 14px; margin: 0;">
-                    Enter a username to search across all social media platforms
-                </p>
-                    </div>
-                    <div>
-                        <a href="{{ route('social-media.history') }}" style="display: inline-block; padding: 12px 24px; background: #f8fafc; color: #374151; text-decoration: none; border: 1px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 14px; transition: all 0.3s ease;">
-                            View History
-                        </a>
-                    </div>
-                </div>
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<style>
+    .cursor-layout {
+        display: flex;
+        height: calc(100vh - 72px);
+        background: #ffffff;
+        overflow: hidden;
+    }
+    
+    .cursor-sidebar {
+        width: 400px;
+        background: #fafafa;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cursor-main {
+        flex: 1;
+        background: #ffffff;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #e5e7eb;
+        position: relative;
+    }
+    
+    .cursor-main.scrollable {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    .cursor-main-content.scrollable {
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    /* AI-Themed Animated Background */
+    .animated-ai-background {
+        position: relative;
+    }
+    
+    /* Floating Particles (Neural Network Nodes) */
+    .ai-particle {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.15) 50%, rgba(102, 126, 234, 0.05) 100%);
+        pointer-events: none;
+        filter: blur(2px);
+        z-index: 0;
+    }
+    
+    .ai-particle-1 {
+        width: 80px;
+        height: 80px;
+        top: 10%;
+        left: 10%;
+        animation: float-particle-1 20s ease-in-out infinite;
+    }
+    
+    .ai-particle-2 {
+        width: 60px;
+        height: 60px;
+        top: 25%;
+        right: 15%;
+        animation: float-particle-2 25s ease-in-out infinite;
+    }
+    
+    .ai-particle-3 {
+        width: 70px;
+        height: 70px;
+        top: 40%;
+        left: 20%;
+        animation: float-particle-3 18s ease-in-out infinite;
+    }
+    
+    .ai-particle-4 {
+        width: 65px;
+        height: 65px;
+        top: 55%;
+        right: 25%;
+        animation: float-particle-4 22s ease-in-out infinite;
+    }
+    
+    .ai-particle-5 {
+        width: 55px;
+        height: 55px;
+        top: 70%;
+        left: 15%;
+        animation: float-particle-5 30s ease-in-out infinite;
+    }
+    
+    .ai-particle-6 {
+        width: 75px;
+        height: 75px;
+        top: 85%;
+        right: 20%;
+        animation: float-particle-6 16s ease-in-out infinite;
+    }
+    
+    /* Gradient Waves */
+    .ai-wave {
+        position: absolute;
+        width: 200%;
+        height: 150px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(102, 126, 234, 0.06) 25%, 
+            rgba(139, 92, 246, 0.1) 50%, 
+            rgba(102, 126, 234, 0.06) 75%, 
+            transparent 100%);
+        border-radius: 50%;
+        opacity: 0.8;
+        pointer-events: none;
+        filter: blur(30px);
+        z-index: 0;
+    }
+    
+    .ai-wave-1 {
+        top: -75px;
+        left: -50%;
+        animation: wave-move-1 15s ease-in-out infinite;
+    }
+    
+    .ai-wave-2 {
+        bottom: -75px;
+        right: -50%;
+        animation: wave-move-2 20s ease-in-out infinite;
+    }
+    
+    /* Neural Network Connections */
+    .ai-connection {
+        position: absolute;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            rgba(102, 126, 234, 0.3) 50%, 
+            transparent 100%);
+        pointer-events: none;
+        opacity: 0.4;
+        z-index: 0;
+    }
+    
+    .ai-connection-1 {
+        width: 200px;
+        top: 30%;
+        left: 15%;
+        transform: rotate(25deg);
+        animation: connection-pulse-1 3s ease-in-out infinite;
+    }
+    
+    .ai-connection-2 {
+        width: 180px;
+        bottom: 35%;
+        right: 20%;
+        transform: rotate(-35deg);
+        animation: connection-pulse-2 4s ease-in-out infinite;
+    }
+    
+    .ai-connection-3 {
+        width: 160px;
+        top: 60%;
+        left: 45%;
+        transform: rotate(45deg);
+        animation: connection-pulse-3 3.5s ease-in-out infinite;
+    }
+    
+    /* Particle Animations */
+    @keyframes float-particle-1 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(40px, 80px) scale(1.2); }
+        50% { transform: translate(-20px, 150px) scale(0.9); }
+        75% { transform: translate(30px, 200px) scale(1.1); }
+    }
+    
+    @keyframes float-particle-2 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(-50px, -50px) scale(1.15); }
+        50% { transform: translate(30px, -100px) scale(0.85); }
+        75% { transform: translate(-40px, -150px) scale(1.2); }
+    }
+    
+    @keyframes float-particle-3 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(60px, -75px) scale(1.3); }
+        66% { transform: translate(-45px, -150px) scale(0.9); }
+    }
+    
+    @keyframes float-particle-4 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        25% { transform: translate(-40px, 100px) scale(1.1); }
+        50% { transform: translate(50px, 200px) scale(0.9); }
+        75% { transform: translate(-30px, 300px) scale(1.15); }
+    }
+    
+    @keyframes float-particle-5 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        30% { transform: translate(-60px, -100px) scale(1.4); }
+        60% { transform: translate(40px, -200px) scale(0.8); }
+        90% { transform: translate(-50px, -300px) scale(1.2); }
+    }
+    
+    @keyframes float-particle-6 {
+        0%, 100% { transform: translate(0, 0) scale(1); }
+        33% { transform: translate(50px, 125px) scale(1.25); }
+        66% { transform: translate(-35px, 250px) scale(0.9); }
+    }
+    
+    @keyframes wave-move-1 {
+        0%, 100% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(50px) rotate(180deg); }
+    }
+    
+    @keyframes wave-move-2 {
+        0%, 100% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(-50px) rotate(-180deg); }
+    }
+    
+    @keyframes connection-pulse-1 {
+        0%, 100% { opacity: 0.2; transform: rotate(25deg) scaleX(1); }
+        50% { opacity: 0.4; transform: rotate(25deg) scaleX(1.2); }
+    }
+    
+    @keyframes connection-pulse-2 {
+        0%, 100% { opacity: 0.2; transform: rotate(-35deg) scaleX(1); }
+        50% { opacity: 0.4; transform: rotate(-35deg) scaleX(1.15); }
+    }
+    
+    @keyframes connection-pulse-3 {
+        0%, 100% { opacity: 0.2; transform: rotate(45deg) scaleX(1); }
+        50% { opacity: 0.4; transform: rotate(45deg) scaleX(1.1); }
+    }
+    
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0; }
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% {
+            transform: scale(1);
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        }
+        50% {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+        }
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    @keyframes shine {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+    
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.7;
+            transform: scale(1.2);
+        }
+    }
+    
+    .cursor-sidebar-header {
+        padding: 16px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #ffffff;
+    }
+    
+    .cursor-sidebar-content {
+        flex: 1;
+        padding: 16px;
+        padding-bottom: 100px;
+        overflow-x: visible;
+    }
+    
+    .cursor-main-content {
+        flex: 1;
+        padding: 24px;
+        max-width: 100%;
+        width: 100%;
+    }
+    
+    .cursor-section {
+        margin-bottom: 24px;
+    }
+    
+    .cursor-section-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    @media (max-width: 1024px) {
+        .cursor-layout {
+            flex-direction: column;
+            height: auto;
+        }
+        
+        .cursor-sidebar {
+            width: 100%;
+            border-right: none;
+            border-top: 1px solid #e5e7eb;
+            order: 1;
+        }
+        
+        .cursor-main {
+            border-left: none;
+            border-bottom: 1px solid #e5e7eb;
+            order: 2;
+        }
+    }
+</style>
+
+<div class="cursor-layout">
+    <!-- Left Panel: Form -->
+    <div class="cursor-sidebar">
+        <div class="cursor-sidebar-header" id="sidebarHeader">
+            <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Analyze Profile</h2>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Fill in the form to generate analysis</p>
+            </div>
+        
+        <!-- Analysis Input Details Header (hidden by default, shown during analysis) -->
+        <div class="cursor-sidebar-header" id="promptDetailsHeader" style="display: none;">
+            <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Analysis Input Details</h2>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Review the details being analyzed</p>
             </div>
 
+        <div class="cursor-sidebar-content">
             <!-- Error Messages -->
             @if($errors->any() || session('analysis_error'))
-                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
-                    <strong style="display: block; margin-bottom: 12px; font-size: 16px;">❌ Error:</strong>
+                <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 12px;">
+                    <strong style="display: block; margin-bottom: 8px; font-size: 13px;">❌ Error:</strong>
                     @if(session('analysis_error'))
                         @php $error = session('analysis_error'); @endphp
-                        <p style="margin: 0 0 12px 0; line-height: 1.6; font-weight: 500;">{{ $error['error'] ?? 'Unknown error' }}</p>
+                        <p style="margin: 0; line-height: 1.5; font-weight: 500;">{{ $error['error'] ?? 'Unknown error' }}</p>
                     @else
-                        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                        <ul style="margin: 0; padding-left: 16px; line-height: 1.6;">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
@@ -47,40 +375,41 @@
 
             <!-- Search Form -->
             <div id="searchSection">
-                <form id="searchForm" style="margin-bottom: 24px;">
+                <form id="searchForm">
                     @csrf
                     
                     <div style="margin-bottom: 24px;">
-                        <label for="username" style="display: block; font-weight: 600; color: #374151; margin-bottom: 8px; font-size: 14px;">
-                            Username <span style="color: #ef4444;">*</span>
+                        <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Profile Information</h2>
+                        
+                        <div style="margin-bottom: 20px;">
+                            <label for="username" style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
+                                Username <span style="color: #dc2626;">*</span>
+                                <span class="info-tooltip" data-tooltip="Enter the social media username you want to analyze. This should be the handle without the @ symbol (e.g., 'lensa3d' not '@lensa3d'). NUJUM will search for this username across the selected platforms and gather profile data, posts, and engagement metrics for comprehensive analysis.">
+                                    <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
+                                </span>
                         </label>
                         <input 
                             type="text" 
                             id="username" 
                             name="username" 
                             value="{{ old('username') }}"
-                            placeholder="Enter username (e.g., 'username' without @)"
+                                placeholder="lensa3d"
                             required
-                            style="width: 100%; padding: 12px 16px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; transition: border-color 0.2s;"
-                            onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)';"
-                            onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none';"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; transition: border-color 0.15s ease, box-shadow 0.15s ease; background: #ffffff;"
                             onkeyup="checkExistingData(this.value)"
                         >
                     </div>
 
                     <!-- Existing Data Notification -->
-                    <div id="existingDataNotification" style="display: none; margin-bottom: 16px; padding: 16px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px;">
-                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-                            <div style="flex: 1;">
+                        <div id="existingDataNotification" style="display: none; margin-bottom: 16px; padding: 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; font-size: 12px;">
                                 <div style="font-weight: 600; color: #166534; margin-bottom: 4px;">Previous Search Found</div>
-                                <div style="color: #166534; font-size: 13px; margin-bottom: 4px;">We found previous search data for this username. You can use it to skip searching.</div>
-                                <div class="date-info" style="color: #059669; font-size: 12px; font-style: italic;"></div>
-                            </div>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <div style="color: #166534; margin-bottom: 4px;">We found previous search data for this username. You can use it to skip searching.</div>
+                            <div class="date-info" style="color: #059669; font-size: 11px; font-style: italic; margin-bottom: 12px;"></div>
+                            <div style="display: flex; gap: 8px;">
                                 <button 
                                     type="button" 
                                     onclick="useExistingData()"
-                                    style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;"
+                                    style="flex: 1; padding: 6px 12px; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;"
                                     onmouseover="this.style.background='#059669';"
                                     onmouseout="this.style.background='#10b981';"
                                 >
@@ -89,147 +418,175 @@
                                 <button 
                                     type="button" 
                                     onclick="searchAgain()"
-                                    style="padding: 8px 16px; background: transparent; color: #166534; border: 1px solid #86efac; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; transition: all 0.2s;"
+                                    style="flex: 1; padding: 6px 12px; background: transparent; color: #166534; border: 1px solid #86efac; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; transition: all 0.2s;"
                                     onmouseover="this.style.background='#dcfce7';"
                                     onmouseout="this.style.background='transparent';"
                                 >
                                     Search Again
                                 </button>
                             </div>
+                    </div>
+
+                    <!-- Platform Selection -->
+                    <div id="platformSelectionSection" style="margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
+                            Platforms <span style="color: #dc2626;">*</span>
+                            <span class="info-tooltip" data-tooltip="Select one or more social media platforms to analyze. NUJUM will search for the username on each selected platform and gather profile data, posts, engagement metrics, and other relevant information for comprehensive personality and communication analysis.">
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
+                            </span>
+                        </label>
+                        <div id="inlinePlatformSelection" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <!-- Platforms will be populated by JavaScript -->
+                        </div>
+                        <input type="text" id="platforms-required" name="platforms-required" required style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; border: none; padding: 0; margin: 0;" tabindex="-1">
+                    </div>
+
+                    <!-- Platform Status -->
+                    <div id="platformStatus" style="display: none; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
+                            Platforms
+                        </label>
+                        <div id="platformStatusGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <!-- Platform status items will be populated by JavaScript -->
                         </div>
                     </div>
 
-                    <button 
-                        type="submit"
-                        id="searchButton"
-                        onclick="return checkBeforeSearch(event);"
-                        style="width: 100%; padding: 14px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';"
-                    >
-                        Start Analyze
-                    </button>
-                    
-                    <!-- Available Platforms -->
-                    <p style="text-align: center; margin-top: 12px; color: #64748b; font-size: 13px;">
-                        (Facebook, Instagram, TikTok, X)
-                    </p>
-                </form>
-            </div>
-
-            <!-- Platform Status -->
-            <div id="platformStatus" style="display: none; margin-bottom: 24px;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 16px;">Searching Platforms...</h3>
-                <div id="platformStatusGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-                    <div id="status-facebook" class="platform-status-item" onclick="showPlatformResults('facebook')" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #1877F2;">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
+                    <!-- Analysis Type Selection -->
+                    <div id="analysisTypeSection" style="margin-bottom: 24px;">
+                        <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Analysis Type</h2>
+                        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                            <div style="flex: 1; padding: 12px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.3s ease;" 
+                                 onclick="selectAnalysisTypeInline('professional')" 
+                                 id="inlineAnalysisTypeProfessional"
+                                 onmouseover="if(window.selectedAnalysisTypeInModal !== 'professional') this.style.borderColor='#9ca3af';" 
+                                 onmouseout="if(window.selectedAnalysisTypeInModal !== 'professional') this.style.borderColor='#e2e8f0';">
+                                <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                                    <input type="radio" name="inlineAnalysisType" id="inlineAnalysisType_professional" value="professional" onchange="selectAnalysisTypeInline('professional')" 
+                                           style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 13px; margin-bottom: 2px;">Professional</div>
+                                        <div style="color: #64748b; font-size: 11px;">Career, work ethic</div>
+                                    </div>
+                                </label>
+                            </div>
+                            <div style="flex: 1; padding: 12px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 6px; cursor: pointer; transition: all 0.3s ease;" 
+                                 onclick="selectAnalysisTypeInline('political')" 
+                                 id="inlineAnalysisTypePolitical"
+                                 onmouseover="if(window.selectedAnalysisTypeInModal !== 'political') this.style.borderColor='#9ca3af';" 
+                                 onmouseout="if(window.selectedAnalysisTypeInModal !== 'political') this.style.borderColor='#e2e8f0';">
+                                <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                                    <input type="radio" name="inlineAnalysisType" id="inlineAnalysisType_political" value="political" onchange="selectAnalysisTypeInline('political')" 
+                                           style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 600; color: #1e293b; font-size: 13px; margin-bottom: 2px;">Political</div>
+                                        <div style="color: #64748b; font-size: 11px;">Alignment, engagement</div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">Facebook</div>
-                            <div class="status-text" style="color: #64748b; font-size: 11px;">Searching...</div>
+                        <input type="text" id="analysis-type-required" name="analysis-type-required" required style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; border: none; padding: 0; margin: 0;" tabindex="-1">
                         </div>
-                    </div>
-                    <div id="status-instagram" class="platform-status-item" onclick="showPlatformResults('instagram')" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px;">
-                                <defs>
-                                    <linearGradient id="instagram-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" />
-                                        <stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" />
-                                    </linearGradient>
-                                </defs>
-                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient)"/>
-                            </svg>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">Instagram</div>
-                            <div class="status-text" style="color: #64748b; font-size: 11px;">Searching...</div>
-                        </div>
-                    </div>
-                    <div id="status-tiktok" class="platform-status-item" onclick="showPlatformResults('tiktok')" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;">
-                                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                            </svg>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">TikTok</div>
-                            <div class="status-text" style="color: #64748b; font-size: 11px;">Searching...</div>
-                        </div>
-                    </div>
-                    <div id="status-twitter" class="platform-status-item" onclick="showPlatformResults('twitter')" style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 8px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                        <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                            </svg>
-                        </div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: #1e293b; font-size: 13px;">X (Twitter)</div>
-                            <div class="status-text" style="color: #64748b; font-size: 11px;">Searching...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Analysis Button Container -->
-            <div id="analysisButtonContainer" style="display: none; margin-top: 24px; margin-bottom: 24px;">
-                <button onclick="openAnalysisModal('all', null)" style="width: 100%; padding: 14px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
-                    Start Analyzing Profile
-                </button>
-            </div>
-            
-            <!-- Clear Button Container (separate from analysis button) -->
-            <div id="clearButtonContainer" style="display: none; margin-top: 24px; margin-bottom: 24px;">
-                <button 
-                    type="button"
-                    id="clearButton"
-                    onclick="clearResults()"
-                    style="width: 100%; padding: 12px 24px; background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease;"
-                    onmouseover="this.style.background='#f1f5f9'; this.style.borderColor='#cbd5e1';"
-                    onmouseout="this.style.background='#f8fafc'; this.style.borderColor='#e2e8f0';"
-                >
-                    Clear
-                </button>
             </div>
 
             <!-- Results Container -->
             <div id="resultsContainer" style="display: none;"></div>
-        </div>
+                </form>
+                        </div>
+            
+            <!-- Prompt Details (hidden by default, shown during analysis) -->
+            <div id="promptDetailsCard" style="display: none;">
+                <div id="promptDetailsContent">
+                    <!-- Prompt details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+        <!-- Floating Action Buttons for Prompt Details (hidden by default, same position as Generate button) -->
+        <div class="floating-submit-container" id="promptDetailsActions" style="display: none;">
+            <div style="display: flex; gap: 12px;">
+                <a href="#" id="exportBtn" onclick="event.preventDefault(); confirmExportFromSocialMedia(); return false;" class="floating-submit-btn" style="flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                    Export
+                </a>
+                <a href="{{ route('social-media.index') }}" class="floating-submit-btn" style="flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    New Analysis
+                </a>
     </div>
 </div>
 
-<!-- Platform Selection Modal -->
-<div id="platformSelectionModal" onclick="if(event.target === this) closePlatformSelectionModal();" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
-    <div onclick="event.stopPropagation();" style="background: white; border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
-        <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 8px;">Select Platforms</h2>
-        <p style="color: #64748b; font-size: 14px; margin-bottom: 24px;">Choose which platforms you want to search:</p>
-        
-        <div id="platformSelectionList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
-            <!-- Platforms will be added here by JavaScript -->
+        <!-- Floating Submit Button -->
+        <div class="floating-submit-container" id="floatingSubmitContainer">
+            <button 
+                type="submit"
+                form="searchForm"
+                id="searchButton"
+                onclick="return checkBeforeSearch(event);"
+                class="floating-submit-btn"
+            >
+                Generate
+            </button>
+        </div>
+    </div>
+                
+    <!-- Right Panel: Did You Know Section -->
+    <div class="cursor-main animated-ai-background">
+        <!-- Animated Background Elements -->
+        <div id="animatedBackground" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;">
+            <div class="ai-particle ai-particle-1"></div>
+            <div class="ai-particle ai-particle-2"></div>
+            <div class="ai-particle ai-particle-3"></div>
+            <div class="ai-particle ai-particle-4"></div>
+            <div class="ai-particle ai-particle-5"></div>
+            <div class="ai-particle ai-particle-6"></div>
+            <div class="ai-wave ai-wave-1"></div>
+            <div class="ai-wave ai-wave-2"></div>
+            <div class="ai-connection ai-connection-1"></div>
+            <div class="ai-connection ai-connection-2"></div>
+            <div class="ai-connection ai-connection-3"></div>
         </div>
         
-        <div style="display: flex; gap: 12px; justify-content: flex-end;">
-            <button 
-                onclick="closePlatformSelectionModal()" 
-                style="padding: 12px 24px; background: transparent; color: #64748b; border: 2px solid #d1d5db; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease;"
-                onmouseover="this.style.borderColor='#9ca3af'; this.style.color='#374151';"
-                onmouseout="this.style.borderColor='#d1d5db'; this.style.color='#64748b';"
-            >
-                Cancel
-            </button>
-            <button 
-                onclick="proceedWithSelectedPlatforms()" 
-                id="proceedSearchButton"
-                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);"
-                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';"
-                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';"
-            >
-                Search Selected
-            </button>
+        <div class="cursor-main-content" style="position: relative; z-index: 10; padding: 24px; display: flex; align-items: center; justify-content: center; min-height: 100%;">
+            <!-- Analysis Progress Card (hidden by default, shown during analysis) -->
+            <div id="progressCard" style="display: none; background: transparent; padding: 24px; max-width: 500px; width: 100%; margin: 0 auto;">
+                <!-- Title -->
+                <h2 style="color: #1e293b; margin-bottom: 8px; font-size: 18px; font-weight: 700; text-align: center; border: none; border-bottom: none; text-decoration: none;">NUJUM Analysis in Progress</h2>
+                
+                <!-- Description -->
+                <p style="color: #64748b; margin-bottom: 20px; font-size: 13px; line-height: 1.5; text-align: center; border: none; border-top: none;">
+                    Generating your comprehensive analysis. This may take 2-5 minutes.
+                </p>
+                <!-- Progress Bar Container -->
+                <div style="margin-bottom: 16px;">
+                    <div style="background: #e2e8f0; border-radius: 8px; height: 10px; overflow: hidden; position: relative;">
+                        <div id="progressBar" class="progress-bar-fill" style="background: linear-gradient(90deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); height: 100%; border-radius: 8px; width: 0%; transition: width 0.3s ease; position: relative; overflow: hidden;">
+                            <div class="progress-bar-shine" style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent); animation: shine 2s infinite;"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+                        <span id="progressText" style="color: #64748b; font-size: 12px; font-weight: 500;">0%</span>
+                        <span id="progressStatus" style="color: #0ea5e9; font-size: 12px; font-weight: 600;">Initializing...</span>
+                    </div>
+                </div>
+                
+                <!-- Note -->
+                <p style="color: #94a3b8; margin-top: 16px; font-size: 11px; line-height: 1.4; text-align: center;">
+                    Please do not close this window. Results will appear here when complete.
+                </p>
+            </div>
+            
+            <!-- Did You Know Section (shown by default, centered) -->
+            <div id="didYouKnowSection" style="max-width: 600px; width: 100%; text-align: center;">
+                <div style="margin-bottom: 32px; border: none; border-bottom: none; padding-bottom: 0;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 50%; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); animation: pulse-glow 2s ease-in-out infinite;">
+                        <i class="bi bi-lightbulb-fill" style="color: #f59e0b; font-size: 32px;"></i>
+                    </div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0; padding: 0; border: none; border-bottom: none; letter-spacing: -0.5px;">
+                        Did you know?
+                    </h2>
+                </div>
+                <div id="typingFacts" style="min-height: 200px; color: #374151; font-size: 16px; line-height: 2; font-family: 'Georgia', 'Times New Roman', serif; padding: 24px 0;">
+                    <span id="typingText" style="white-space: pre-wrap; word-wrap: break-word; display: inline;"></span><span id="typingCursor" style="display: inline-block; width: 3px; height: 22px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); margin-left: 4px; animation: blink 1s infinite; vertical-align: middle; border-radius: 2px;"></span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -263,16 +620,12 @@
     /* Info Tooltip Styles - Matching Create Predictions Page */
     .info-tooltip {
         position: relative;
-        display: block;
-        width: 100%;
+        display: inline-block;
+        cursor: help;
     }
     
-    .info-tooltip:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
+    .info-tooltip-tooltip {
+        position: fixed;
         background: #1f2937;
         color: white;
         padding: 10px 14px;
@@ -281,60 +634,116 @@
         font-weight: 400;
         white-space: normal;
         width: 280px;
-        z-index: 1000;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 99999;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         line-height: 1.5;
         pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
     }
     
-    .info-tooltip:hover::before {
-        content: '';
-        position: absolute;
-        bottom: 115%;
-        left: 50%;
-        transform: translateX(-50%);
+    .info-tooltip-tooltip.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .info-tooltip-arrow {
+        position: fixed;
         border: 6px solid transparent;
-        border-top-color: #1f2937;
-        z-index: 1001;
+        z-index: 99999;
         pointer-events: none;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
     }
     
-    @media (max-width: 768px) {
-        .info-tooltip:hover::after,
-        .info-tooltip.active::after {
-            width: calc(100vw - 32px);
-            max-width: 320px;
-            font-size: 12px;
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%);
-            bottom: 125%;
-        }
-        
-        .info-tooltip:hover::before,
-        .info-tooltip.active::before {
-            left: 50%;
-            right: auto;
-            transform: translateX(-50%);
-            bottom: 115%;
-        }
-        
-        /* For very small screens, position tooltip below icon */
-        @media (max-width: 480px) {
-            .info-tooltip:hover::after,
-            .info-tooltip.active::after {
-                bottom: auto;
-                top: 125%;
-            }
-            
-            .info-tooltip:hover::before,
-            .info-tooltip.active::before {
-                bottom: auto;
-                top: 115%;
-                border-top-color: transparent;
-                border-bottom-color: #1f2937;
-            }
-        }
+    .info-tooltip-arrow.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    /* Ensure tooltips appear above all panels */
+    .cursor-layout {
+        position: relative;
+    }
+    
+    .cursor-sidebar-content .info-tooltip {
+        font-size: 12px;
+    }
+    
+    /* Cursor-style form inputs - Matching Create Predictions Page */
+    .cursor-sidebar-content input[type="text"],
+    .cursor-sidebar-content input[type="url"],
+    .cursor-sidebar-content textarea,
+    .cursor-sidebar-content select {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        padding: 8px 10px;
+        font-size: 13px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        background: #ffffff;
+    }
+    
+    .cursor-sidebar-content input[type="text"]:focus,
+    .cursor-sidebar-content input[type="url"]:focus,
+    .cursor-sidebar-content textarea:focus,
+    .cursor-sidebar-content select:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .cursor-sidebar-content label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+    
+    /* Floating Submit Button */
+    .floating-submit-container {
+        position: sticky;
+        bottom: 0;
+        width: 100%;
+        background: #ffffff;
+        border-top: 1px solid #e5e7eb;
+        padding: 16px;
+        z-index: 100;
+        box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.05);
+        flex-shrink: 0;
+    }
+    
+    .floating-submit-btn {
+        width: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .floating-submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+    
+    .floating-submit-btn:active {
+        transform: translateY(0);
+    }
+    
+    .cursor-sidebar-content {
+        padding-bottom: 0;
     }
 </style>
 
@@ -349,25 +758,221 @@ let modalOpenedFromSearchAgain = false; // Flag to track if modal was opened fro
 // Store selected platforms
 let selectedPlatforms = []; // Default: no platforms selected
 
+// Store selected analysis type from modal
+let selectedAnalysisTypeInModal = null; // No default selection
+
+// Function to update selected platforms from inline checkboxes
+function updateSelectedPlatformsFromInline() {
+    selectedPlatforms = [];
+    const platformCheckboxes = document.querySelectorAll('input[id^="inline_platform_"]');
+    platformCheckboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            const platformKey = checkbox.value;
+            if (!selectedPlatforms.includes(platformKey)) {
+                selectedPlatforms.push(platformKey);
+            }
+        }
+    });
+}
+
+// Function to validate platforms and set hidden input
+function validatePlatforms() {
+    const platformsRequired = document.getElementById('platforms-required');
+    if (!platformsRequired) return;
+    
+    // If using existing data or we already have platform data, skip validation
+    if (useExistingDataFlag || (window.searchResultsData && window.searchResultsData.platforms)) {
+        platformsRequired.removeAttribute('required');
+        platformsRequired.setCustomValidity('');
+        platformsRequired.value = 'selected';
+        return;
+    }
+    
+    // Ensure required attribute is set when not using existing data
+    if (!platformsRequired.hasAttribute('required')) {
+        platformsRequired.setAttribute('required', 'required');
+    }
+    
+    updateSelectedPlatformsFromInline();
+    const platformContainer = document.getElementById('inlinePlatformSelection');
+    
+    if (selectedPlatforms && selectedPlatforms.length > 0) {
+        platformsRequired.value = 'selected';
+        platformsRequired.setCustomValidity('');
+        // Clear red styling from platform boxes - restore normal styling
+        if (platformContainer) {
+            const platformItems = platformContainer.children;
+            Array.from(platformItems).forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    if (checkbox.checked) {
+                        item.style.borderColor = '#667eea';
+                        item.style.background = '#f8faff';
+                    } else {
+                        item.style.borderColor = '#e5e7eb';
+                        item.style.background = '#ffffff';
+                    }
+                }
+            });
+        }
+    } else {
+        platformsRequired.value = '';
+        platformsRequired.setCustomValidity('Please select at least one platform to analyze.');
+        // Add red styling to all platform boxes
+        if (platformContainer) {
+            const platformItems = platformContainer.children;
+            Array.from(platformItems).forEach(item => {
+                item.style.borderColor = '#dc2626';
+                item.style.background = '#fef2f2';
+            });
+        }
+    }
+}
+
+// Function to validate analysis type and set hidden input
+function validateAnalysisType() {
+    const selectedAnalysisType = document.querySelector('input[name="inlineAnalysisType"]:checked');
+    const analysisTypeRequired = document.getElementById('analysis-type-required');
+    const professionalDiv = document.getElementById('inlineAnalysisTypeProfessional');
+    const politicalDiv = document.getElementById('inlineAnalysisTypePolitical');
+    
+    if (analysisTypeRequired) {
+        if (selectedAnalysisType && window.selectedAnalysisTypeForAnalysis) {
+            analysisTypeRequired.value = 'selected';
+            analysisTypeRequired.setCustomValidity('');
+            // Clear red styling - boxes will have their normal selected/unselected styling
+        } else {
+            analysisTypeRequired.value = '';
+            analysisTypeRequired.setCustomValidity('Please select an analysis type.');
+            // Add red styling to both analysis type boxes (lighter red border)
+            if (professionalDiv) {
+                professionalDiv.style.borderColor = '#f87171';
+                professionalDiv.style.background = '#fef2f2';
+            }
+            if (politicalDiv) {
+                politicalDiv.style.borderColor = '#f87171';
+                politicalDiv.style.background = '#fef2f2';
+            }
+        }
+    }
+}
+
 // Check before allowing search to proceed
 async function checkBeforeSearch(event) {
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+    // Validate custom fields before native validation
+    // If using existing data, skip platform validation (platforms are already available)
+    if (useExistingDataFlag || (window.searchResultsData && window.searchResultsData.platforms)) {
+        // Ensure platforms-required is not required when using existing data
+        const platformsRequired = document.getElementById('platforms-required');
+        if (platformsRequired) {
+            platformsRequired.removeAttribute('required');
+            platformsRequired.setCustomValidity('');
+            platformsRequired.value = 'selected';
+        }
+    } else {
+        validatePlatforms();
+    }
+    validateAnalysisType();
     
-    // First, check if username is entered
-    const usernameInput = document.getElementById('username');
-    const username = usernameInput ? usernameInput.value.trim() : '';
+    // Get the form element
+    const form = document.getElementById('searchForm');
+    if (!form) {
+        return false;
+    }
     
-    if (!username || username.length < 2) {
-        showUsernameValidationModal();
-        // Reset button
+    // Check HTML5 validation
+    if (!form.checkValidity()) {
+        // Find first invalid field and show native validation
+        // Skip platforms-required if using existing data
+        let firstInvalid = form.querySelector(':invalid');
+        if (firstInvalid && firstInvalid.id === 'platforms-required' && (useExistingDataFlag || (window.searchResultsData && window.searchResultsData.platforms))) {
+            // Skip this invalid field and find the next one
+            const allInvalid = form.querySelectorAll(':invalid');
+            firstInvalid = Array.from(allInvalid).find(inv => inv.id !== 'platforms-required') || null;
+        }
+        
+        if (firstInvalid) {
+            // For hidden validation inputs, position them near their associated containers
+            if (firstInvalid.id === 'platforms-required') {
+                const platformContainer = document.getElementById('inlinePlatformSelection');
+                if (platformContainer) {
+                    const rect = platformContainer.getBoundingClientRect();
+                    const originalStyle = firstInvalid.style.cssText;
+                    
+                    // Temporarily position the input near the container
+                    firstInvalid.style.position = 'fixed';
+                    firstInvalid.style.top = (rect.top + rect.height / 2) + 'px';
+                    firstInvalid.style.left = (rect.left + rect.width / 2) + 'px';
+                    firstInvalid.style.width = '1px';
+                    firstInvalid.style.height = '1px';
+                    firstInvalid.style.opacity = '0.01';
+                    firstInvalid.style.zIndex = '10000';
+                    
+                    // Show validation
+                    firstInvalid.reportValidity();
+                    
+                    // Restore original style after validation message appears
+                    setTimeout(() => {
+                        firstInvalid.style.cssText = originalStyle;
+                    }, 100);
+                } else {
+                    firstInvalid.reportValidity();
+                }
+            } else if (firstInvalid.id === 'analysis-type-required') {
+                const analysisContainer = document.getElementById('inlineAnalysisTypeProfessional')?.parentElement;
+                if (analysisContainer) {
+                    const rect = analysisContainer.getBoundingClientRect();
+                    const originalStyle = firstInvalid.style.cssText;
+                    
+                    // Temporarily position the input near the container
+                    firstInvalid.style.position = 'fixed';
+                    firstInvalid.style.top = (rect.top + rect.height / 2) + 'px';
+                    firstInvalid.style.left = (rect.left + rect.width / 2) + 'px';
+                    firstInvalid.style.width = '1px';
+                    firstInvalid.style.height = '1px';
+                    firstInvalid.style.opacity = '0.01';
+                    firstInvalid.style.zIndex = '10000';
+                    
+                    // Show validation
+                    firstInvalid.reportValidity();
+                    
+                    // Restore original style after validation message appears
+                    setTimeout(() => {
+                        firstInvalid.style.cssText = originalStyle;
+                    }, 100);
+                } else {
+                    firstInvalid.reportValidity();
+                }
+            } else {
+                // For visible fields like username, show validation normally
+                firstInvalid.reportValidity();
+            }
+        }
+        // Reset button (keep as Generate, don't change text)
         const searchButton = document.getElementById('searchButton');
         if (searchButton) {
             searchButton.disabled = false;
-            searchButton.textContent = 'Search All Platforms';
+            // Keep button text as "Generate" - don't change it
         }
-        return false; // Prevent form submission - username required
+        return false;
+    }
+    
+    // Additional custom validation for username length
+    const usernameInput = document.getElementById('username');
+    const username = usernameInput ? usernameInput.value.trim() : '';
+    
+    if (username.length < 2) {
+        usernameInput.setCustomValidity('Please enter a username (minimum 2 characters).');
+        usernameInput.reportValidity();
+        // Reset button (keep as Generate)
+        const searchButton = document.getElementById('searchButton');
+        if (searchButton) {
+            searchButton.disabled = false;
+            // Keep button text as "Generate" - don't change it
+        }
+        return false;
+    } else {
+        usernameInput.setCustomValidity('');
     }
     
     const notification = document.getElementById('existingDataNotification');
@@ -383,11 +988,11 @@ async function checkBeforeSearch(event) {
         if (platformStatus) {
             platformStatus.style.display = 'none';
         }
-        // Reset button
+        // Reset button (keep as Generate)
         const searchButton = document.getElementById('searchButton');
         if (searchButton) {
             searchButton.disabled = false;
-            searchButton.textContent = 'Search All Platforms';
+            // Keep button text as "Generate" - don't change it
         }
         return false; // Prevent form submission - user must choose from notification first
     }
@@ -426,100 +1031,174 @@ async function checkBeforeSearch(event) {
         return false;
     }
     
-    // If no previous data or user chose to search again, show platform selection modal
+    // If no previous data or user chose to search again, proceed directly with search
     // Reset the flag since this is a normal search (not from "Search Again")
     modalOpenedFromSearchAgain = false;
-    openPlatformSelectionModal();
+    
+    // Get selected platforms from inline checkboxes
+    updateSelectedPlatformsFromInline();
+    
+    // Clear any displayed platform data from right panel before starting analysis
+    clearPlatformDataFromRightPanel();
+    
+    // Store the selected analysis type
+    const selectedType = document.querySelector('input[name="inlineAnalysisType"]:checked')?.value;
+    window.selectedAnalysisTypeForAnalysis = selectedType;
+    selectedAnalysisTypeInModal = selectedType;
+    
+    // Check if we already have platform data (from previous search or use existing data)
+    const hasPlatformData = window.searchResultsData && window.searchResultsData.platforms;
+    const hasFoundPlatforms = hasPlatformData && Object.values(window.searchResultsData.platforms).some(p => p.found);
+    
+    // If we have platform data and analysis type, start analysis directly
+    if (hasFoundPlatforms && selectedType) {
+        // Clear any displayed platform data from right panel before starting analysis
+        clearPlatformDataFromRightPanel();
+        
+        // Set up analysis data
+        if (window.searchResultsData && window.searchResultsData.platforms) {
+            currentAnalysisData = {};
+            Object.keys(window.searchResultsData.platforms).forEach(p => {
+                currentAnalysisData[p] = {
+                    found: window.searchResultsData.platforms[p].found || false,
+                    data: window.searchResultsData.platforms[p].data || null,
+                    error: window.searchResultsData.platforms[p].error || null
+                };
+            });
+        }
+        
+        // Show prompt details and progress
+        showPromptDetails();
+        showAnalysisProgress();
+        
+        // Start analysis
+        startAnalysis(selectedType);
+        return false;
+    }
+    
+    // For new usernames: if analysis type is selected, show progress modal and prompt details before search
+    if (selectedType && !hasFoundPlatforms) {
+        // Clear any displayed platform data from right panel before starting search/analysis
+        clearPlatformDataFromRightPanel();
+        
+        // Show prompt details with username and platforms (before search completes)
+        const username = document.getElementById('username').value.trim();
+        const platformNames = {
+            'facebook': 'Facebook',
+            'instagram': 'Instagram',
+            'tiktok': 'TikTok',
+            'twitter': 'X (Twitter)'
+        };
+        
+        // Hide search section
+        const searchSection = document.getElementById('searchSection');
+        if (searchSection) {
+            searchSection.style.display = 'none';
+        }
+        
+        // Hide Analyze Profile header, show Analysis Input Details header
+        const sidebarHeader = document.getElementById('sidebarHeader');
+        if (sidebarHeader) {
+            sidebarHeader.style.display = 'none';
+        }
+        
+        // Hide floating submit button
+        const floatingSubmitContainer = document.getElementById('floatingSubmitContainer');
+        if (floatingSubmitContainer) {
+            floatingSubmitContainer.style.display = 'none';
+        }
+        
+        // Show prompt details with selected platforms
+        const promptDetailsHeader = document.getElementById('promptDetailsHeader');
+        const promptDetailsCard = document.getElementById('promptDetailsCard');
+        if (promptDetailsHeader && promptDetailsCard) {
+            promptDetailsHeader.style.display = 'block';
+            promptDetailsCard.style.display = 'block';
+            
+            const promptDetailsContent = document.getElementById('promptDetailsContent');
+            if (promptDetailsContent) {
+                const analysisTypeName = selectedType === 'professional' ? 'Professional' : 'Political';
+                
+                let detailsHtml = `
+                    <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                        <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Username</div>
+                        <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500; margin-bottom: 12px;">${username}</div>
+                        <div style="border-bottom: 1px solid #e5e7eb; margin-bottom: 12px; padding-bottom: 12px;"></div>
+                        <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 12px;">Platforms</div>
+                        <div id="promptDetailsPlatforms" style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500; margin-top: 8px;">
+                `;
+                
+                // Display platforms as comma-separated text
+                const platformNamesList = selectedPlatforms.map(platformKey => platformNames[platformKey] || platformKey).join(', ');
+                detailsHtml += platformNamesList;
+                
+                detailsHtml += `
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                        <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Analysis Type</div>
+                        <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${analysisTypeName}</div>
+                    </div>
+                `;
+                
+                promptDetailsContent.innerHTML = detailsHtml;
+            }
+        }
+        
+        // Hide platform status section (we'll show progress modal instead)
+        const platformStatus = document.getElementById('platformStatus');
+        if (platformStatus) {
+            platformStatus.style.display = 'none';
+        }
+        
+        // Show progress modal (will show during both search and analysis)
+        showAnalysisProgress();
+    }
+    
+    // All validations passed - proceed with search
+    proceedWithSearchFlag = true;
+    performSearch();
     return false; // Prevent form submission
 }
 
 // Open platform selection modal
-function openPlatformSelectionModal() {
-    const modal = document.getElementById('platformSelectionModal');
-    const platformList = document.getElementById('platformSelectionList');
+// Select analysis type in modal
+function selectAnalysisTypeInModal(type) {
+    selectedAnalysisTypeInModal = type;
     
-    if (!modal || !platformList) return;
+    const professionalDiv = document.getElementById('modalAnalysisTypeProfessional');
+    const politicalDiv = document.getElementById('modalAnalysisTypePolitical');
+    const professionalRadio = document.getElementById('modalAnalysisType_professional');
+    const politicalRadio = document.getElementById('modalAnalysisType_political');
     
-    // Reset selection to empty each time modal opens
-    selectedPlatforms = [];
-    
-    // Define platforms with their display names and icons
-    const platforms = [
-        { key: 'facebook', name: 'Facebook', icon: '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' },
-        { key: 'instagram', name: 'Instagram', icon: '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px;"><defs><linearGradient id="instagram-gradient-modal-select" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-modal-select)"/></svg>' },
-        { key: 'tiktok', name: 'TikTok', icon: '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>' },
-        { key: 'twitter', name: 'X (Twitter)', icon: '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' }
-    ];
-    
-    // Clear previous content
-    platformList.innerHTML = '';
-    
-    // Create checkboxes for each platform
-    platforms.forEach(platform => {
-        const isChecked = selectedPlatforms.includes(platform.key);
-        const platformItem = document.createElement('div');
-        platformItem.style.cssText = 'padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;';
-        platformItem.onmouseover = function() {
-            this.style.borderColor = '#667eea';
-            this.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.1)';
-        };
-        platformItem.onmouseout = function() {
-            if (!isChecked) {
-                this.style.borderColor = '#e2e8f0';
-                this.style.boxShadow = 'none';
-            }
-        };
-        platformItem.onclick = function() {
-            togglePlatformSelection(platform.key);
-        };
-        
-        platformItem.innerHTML = `
-            <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                <input type="checkbox" id="platform_check_${platform.key}" ${isChecked ? 'checked' : ''} 
-                       onchange="togglePlatformSelection('${platform.key}')" 
-                       style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
-                <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">${platform.icon}</div>
-                <span style="font-weight: 600; color: #1e293b; font-size: 15px; flex: 1;">${platform.name}</span>
-            </label>
-        `;
-        
-        if (isChecked) {
-            platformItem.style.borderColor = '#667eea';
-            platformItem.style.background = '#f8faff';
+    if (type === 'professional') {
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#667eea';
+            professionalDiv.style.background = '#f8faff';
         }
-        
-        platformList.appendChild(platformItem);
-    });
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#e2e8f0';
+            politicalDiv.style.background = '#ffffff';
+        }
+        if (professionalRadio) professionalRadio.checked = true;
+        if (politicalRadio) politicalRadio.checked = false;
+    } else {
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#e2e8f0';
+            professionalDiv.style.background = '#ffffff';
+        }
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#667eea';
+            politicalDiv.style.background = '#f8faff';
+        }
+        if (professionalRadio) professionalRadio.checked = false;
+        if (politicalRadio) politicalRadio.checked = true;
+    }
     
-    // Show modal
-    modal.style.display = 'flex';
     updateProceedButtonState();
 }
 
-// Close platform selection modal
-function closePlatformSelectionModal() {
-    const modal = document.getElementById('platformSelectionModal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
-    
-    // If modal was opened from "Search Again" and user clicked Cancel, clear the username field
-    if (modalOpenedFromSearchAgain) {
-        const usernameInput = document.getElementById('username');
-        if (usernameInput) {
-            usernameInput.value = '';
-            // Also hide the existing data notification if it's still visible
-            const notification = document.getElementById('existingDataNotification');
-            if (notification) {
-                notification.style.display = 'none';
-            }
-            // Reset existing data info
-            existingDataInfo = null;
-        }
-        // Reset the flag
-        modalOpenedFromSearchAgain = false;
-    }
-}
+// Modal functions removed - using inline selections now
 
 // Show username validation modal
 function showUsernameValidationModal() {
@@ -539,9 +1218,173 @@ function closeUsernameValidationModal() {
     }
 }
 
-// Toggle platform selection
-function togglePlatformSelection(platformKey) {
-    const checkbox = document.getElementById(`platform_check_${platformKey}`);
+// Select analysis type in modal
+function selectAnalysisTypeInModal(type) {
+    selectedAnalysisTypeInModal = type;
+    
+    const professionalDiv = document.getElementById('modalAnalysisTypeProfessional');
+    const politicalDiv = document.getElementById('modalAnalysisTypePolitical');
+    const professionalRadio = document.getElementById('modalAnalysisType_professional');
+    const politicalRadio = document.getElementById('modalAnalysisType_political');
+    
+    if (type === 'professional') {
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#667eea';
+            professionalDiv.style.background = '#f8faff';
+        }
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#e2e8f0';
+            politicalDiv.style.background = '#ffffff';
+        }
+        if (professionalRadio) professionalRadio.checked = true;
+        if (politicalRadio) politicalRadio.checked = false;
+    } else {
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#e2e8f0';
+            professionalDiv.style.background = '#ffffff';
+        }
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#667eea';
+            politicalDiv.style.background = '#f8faff';
+        }
+        if (professionalRadio) professionalRadio.checked = false;
+        if (politicalRadio) politicalRadio.checked = true;
+    }
+    
+    updateProceedButtonState();
+}
+
+// Initialize inline platform selection on page load
+let platformInitializationInProgress = false;
+function initializeInlinePlatformSelection() {
+    // Prevent multiple simultaneous initializations
+    if (platformInitializationInProgress) {
+        return;
+    }
+    
+    const platformContainer = document.getElementById('inlinePlatformSelection');
+    if (!platformContainer) {
+        console.log('Platform container not found, retrying...');
+        // Retry after a short delay in case DOM isn't ready
+        setTimeout(function() {
+            const retryContainer = document.getElementById('inlinePlatformSelection');
+            if (retryContainer && !platformInitializationInProgress) {
+                initializeInlinePlatformSelection();
+            }
+        }, 100);
+        return;
+    }
+    
+    // Check if already initialized (has children)
+    if (platformContainer.children.length > 0) {
+        console.log('Platforms already initialized');
+        return;
+    }
+    
+    platformInitializationInProgress = true;
+    
+    const platforms = [
+        { key: 'facebook', name: 'Facebook', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' },
+        { key: 'instagram', name: 'Instagram', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><defs><linearGradient id="instagram-gradient-inline" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-inline)"/></svg>' },
+        { key: 'tiktok', name: 'TikTok', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>' },
+        { key: 'twitter', name: 'X (Twitter)', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' }
+    ];
+    
+    platformContainer.innerHTML = '';
+    selectedPlatforms = [];
+    
+    // Create checkboxes for each platform (all checked by default)
+    platforms.forEach(platform => {
+        const platformItem = document.createElement('div');
+        platformItem.style.cssText = 'padding: 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;';
+        platformItem.onmouseover = function() {
+            if (!this.querySelector('input').checked) {
+            this.style.borderColor = '#667eea';
+                this.style.background = '#f8faff';
+            }
+        };
+        platformItem.onmouseout = function() {
+            if (!this.querySelector('input').checked) {
+                this.style.borderColor = '#e5e7eb';
+                this.style.background = '#ffffff';
+            }
+        };
+        platformItem.onclick = function(e) {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = this.querySelector('input');
+                checkbox.checked = !checkbox.checked;
+                toggleInlinePlatformSelection(platform.key);
+            }
+        };
+        
+        platformItem.innerHTML = `
+            <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="inline_platform_${platform.key}" value="${platform.key}" onchange="toggleInlinePlatformSelection('${platform.key}')" 
+                       style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
+                <div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex-shrink: 0;">${platform.icon}</div>
+                <span style="font-weight: 600; color: #1e293b; font-size: 12px; flex: 1;">${platform.name}</span>
+            </label>
+        `;
+        
+        platformItem.style.borderColor = '#e5e7eb';
+        platformItem.style.background = '#ffffff';
+        
+        platformContainer.appendChild(platformItem);
+    });
+    
+    platformInitializationInProgress = false;
+    
+    // Re-attach tooltip listeners after platforms are initialized
+    setTimeout(function() {
+        if (typeof window.attachTooltipListeners === 'function') {
+            window.attachTooltipListeners();
+        }
+    }, 50);
+    
+    console.log('Platform selection initialized successfully');
+}
+
+// Select analysis type inline
+function selectAnalysisTypeInline(type) {
+    selectedAnalysisTypeInModal = type;
+    window.selectedAnalysisTypeForAnalysis = type;
+    
+    const professionalDiv = document.getElementById('inlineAnalysisTypeProfessional');
+    const politicalDiv = document.getElementById('inlineAnalysisTypePolitical');
+    const professionalRadio = document.getElementById('inlineAnalysisType_professional');
+    const politicalRadio = document.getElementById('inlineAnalysisType_political');
+    
+    if (type === 'professional') {
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#667eea';
+            professionalDiv.style.background = '#f8faff';
+        }
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#e2e8f0';
+            politicalDiv.style.background = '#ffffff';
+        }
+        if (professionalRadio) professionalRadio.checked = true;
+        if (politicalRadio) politicalRadio.checked = false;
+    } else {
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#e2e8f0';
+            professionalDiv.style.background = '#ffffff';
+        }
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#667eea';
+            politicalDiv.style.background = '#f8faff';
+        }
+        if (professionalRadio) professionalRadio.checked = false;
+        if (politicalRadio) politicalRadio.checked = true;
+    }
+    
+    // Validate analysis type when selection changes (this will clear red styling)
+    validateAnalysisType();
+}
+
+// Toggle inline platform selection
+function toggleInlinePlatformSelection(platformKey) {
+    const checkbox = document.getElementById(`inline_platform_${platformKey}`);
     if (!checkbox) return;
     
     if (checkbox.checked) {
@@ -552,19 +1395,22 @@ function togglePlatformSelection(platformKey) {
         selectedPlatforms = selectedPlatforms.filter(p => p !== platformKey);
     }
     
-    // Update visual state
+    // Validate platforms when selection changes (this will clear red styling if valid)
+    validatePlatforms();
+    
+    // Update visual state (only if validation passed, otherwise validatePlatforms handles it)
+    if (selectedPlatforms && selectedPlatforms.length > 0) {
     const platformItem = checkbox.closest('div');
     if (platformItem) {
         if (checkbox.checked) {
             platformItem.style.borderColor = '#667eea';
             platformItem.style.background = '#f8faff';
         } else {
-            platformItem.style.borderColor = '#e2e8f0';
+            platformItem.style.borderColor = '#e5e7eb';
             platformItem.style.background = '#ffffff';
+            }
         }
     }
-    
-    updateProceedButtonState();
 }
 
 // Update proceed button state
@@ -580,28 +1426,620 @@ function updateProceedButtonState() {
             proceedButton.disabled = false;
             proceedButton.style.opacity = '1';
             proceedButton.style.cursor = 'pointer';
-            proceedButton.textContent = `Search ${selectedPlatforms.length} Platform${selectedPlatforms.length > 1 ? 's' : ''}`;
+            const analysisTypeLabel = selectedAnalysisTypeInModal === 'professional' ? 'Professional' : 'Political';
+            proceedButton.textContent = `Start ${analysisTypeLabel} Analysis`;
         }
     }
 }
 
-// Proceed with selected platforms
-function proceedWithSelectedPlatforms() {
-    if (selectedPlatforms.length === 0) {
-        alert('Please select at least one platform to search.');
-        return;
+// Store the selected analysis type globally for use in analysis
+window.selectedAnalysisTypeForAnalysis = null;
+
+// Function to show prompt details in left panel
+function showPromptDetails() {
+    const formCard = document.getElementById('searchSection');
+    const promptDetailsCard = document.getElementById('promptDetailsCard');
+    const promptDetailsContent = document.getElementById('promptDetailsContent');
+    
+    if (!formCard || !promptDetailsCard) return;
+    
+    // Hide form, show prompt details
+    formCard.style.display = 'none';
+    promptDetailsCard.style.display = 'block';
+    
+    // Hide Analyze Profile header, show Analysis Input Details header
+    const sidebarHeader = document.getElementById('sidebarHeader');
+    if (sidebarHeader) {
+        sidebarHeader.style.display = 'none';
+    }
+    const promptDetailsHeader = document.getElementById('promptDetailsHeader');
+    if (promptDetailsHeader) {
+        promptDetailsHeader.style.display = 'block';
     }
     
-    // Reset the flag since user is proceeding with search
-    modalOpenedFromSearchAgain = false;
+    // Hide floating submit button
+    const floatingSubmitContainer = document.getElementById('floatingSubmitContainer');
+    if (floatingSubmitContainer) {
+        floatingSubmitContainer.style.display = 'none';
+    }
     
-    // Close modal
-    closePlatformSelectionModal();
+    // Hide prompt details action buttons during analysis (show them after analysis completes)
+    const promptDetailsActions = document.getElementById('promptDetailsActions');
+    if (promptDetailsActions) {
+        promptDetailsActions.style.display = 'none';
+    }
     
-    // Proceed with search using selected platforms
-    proceedWithSearchFlag = true;
-    performSearch();
+    // Get form values
+    const username = document.getElementById('username')?.value.trim() || 'N/A';
+    const selectedType = document.querySelector('input[name="inlineAnalysisType"]:checked')?.value || 'N/A';
+    const analysisTypeLabel = selectedType === 'professional' ? 'Professional' : selectedType === 'political' ? 'Political' : 'N/A';
+    
+    // Get platform data
+    const platformData = window.searchResultsData?.platforms || {};
+    const foundPlatforms = Object.keys(platformData).filter(p => platformData[p]?.found);
+    
+    // Build prompt details HTML
+    const platformNames = {
+        'facebook': 'Facebook',
+        'instagram': 'Instagram',
+        'tiktok': 'TikTok',
+        'twitter': 'X (Twitter)'
+    };
+    
+    const platformIcons = {
+        'facebook': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+        'instagram': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><defs><linearGradient id="instagram-gradient-details" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-details)"/></svg>',
+        'tiktok': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>',
+        'twitter': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>'
+    };
+    
+    let detailsHtml = `
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Username</div>
+            <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500; margin-bottom: ${foundPlatforms.length > 0 ? '12px' : '0'};">${username}</div>
+            ${foundPlatforms.length > 0 ? `
+                <div style="border-bottom: 1px solid #e5e7eb; margin-bottom: 12px; padding-bottom: 12px;"></div>
+                <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; margin-top: 12px;">Platforms</div>
+                <div id="promptDetailsPlatforms" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <!-- Platform boxes will be populated here -->
+                </div>
+            ` : ''}
+        </div>
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Analysis Type</div>
+            <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${analysisTypeLabel}</div>
+        </div>
+    `;
+    
+    if (promptDetailsContent) {
+        promptDetailsContent.innerHTML = detailsHtml;
+        
+        // Create platform boxes if there are found platforms
+        if (foundPlatforms.length > 0) {
+            const platformsContainer = document.getElementById('promptDetailsPlatforms');
+            if (platformsContainer) {
+                // Check if analysis failed - if so, display as plain text
+                if (window.analysisFailed) {
+                    // Display platforms as plain text (comma-separated)
+                    const platformText = foundPlatforms.map(key => platformNames[key] || key).join(', ');
+                    platformsContainer.style.display = 'block';
+                    platformsContainer.style.gridTemplateColumns = 'none';
+                    platformsContainer.style.gap = '0';
+                    platformsContainer.innerHTML = `<div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${platformText}</div>`;
+                } else {
+                    // Display platforms as clickable boxes (normal flow)
+                    const platformIcons = {
+                        'facebook': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+                        'instagram': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><defs><linearGradient id="instagram-gradient-details" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-details)"/></svg>',
+                        'tiktok': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>',
+                        'twitter': '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>'
+                    };
+                    
+                    foundPlatforms.forEach(platformKey => {
+                        const platformItem = document.createElement('div');
+                        platformItem.id = `prompt-platform-${platformKey}`;
+                        platformItem.style.cssText = 'padding: 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;';
+                        
+                        platformItem.onclick = function() {
+                            togglePlatformViewInAnalysis(platformKey, this);
+                        };
+                        
+                        platformItem.onmouseover = function() {
+                            if (!this.classList.contains('active')) {
+                                this.style.borderColor = '#667eea';
+                                this.style.background = '#f8faff';
+                            }
+                        };
+                        
+                        platformItem.onmouseout = function() {
+                            if (!this.classList.contains('active')) {
+                                this.style.borderColor = '#86efac';
+                                this.style.background = '#f0fdf4';
+                            }
+                        };
+                        
+                        platformItem.innerHTML = `
+                            <div style="display: flex; align-items: center; margin: 0;">
+                                <div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex-shrink: 0;">${platformIcons[platformKey] || ''}</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #1e293b; font-size: 12px;">${platformNames[platformKey] || platformKey}</div>
+                                    <div style="color: #059669; font-size: 11px; margin-top: 2px;">Click to view</div>
+                                </div>
+                            </div>
+                        `;
+                        
+                        platformsContainer.appendChild(platformItem);
+                    });
+                }
+                
+                // If analysis is in progress, disable the platform boxes immediately
+                const progressCard = document.getElementById('progressCard');
+                if (progressCard && progressCard.style.display !== 'none') {
+                    setPlatformBoxesEnabled(false);
+                }
+            }
+        }
+    }
 }
+
+// Function to disable/enable platform boxes in Analysis Input Details
+function setPlatformBoxesEnabled(enabled) {
+    const allPlatformBoxes = document.querySelectorAll('#promptDetailsPlatforms > div');
+    allPlatformBoxes.forEach(box => {
+        if (enabled) {
+            box.style.cursor = 'pointer';
+            box.style.opacity = '1';
+            box.style.pointerEvents = 'auto';
+            // Restore hover effects
+            const platformKey = box.id.replace('prompt-platform-', '');
+            box.onmouseover = function() {
+                if (!this.classList.contains('active')) {
+                    this.style.borderColor = '#667eea';
+                    this.style.background = '#f8faff';
+                }
+            };
+            box.onmouseout = function() {
+                if (!this.classList.contains('active')) {
+                    this.style.borderColor = '#86efac';
+                    this.style.background = '#f0fdf4';
+                }
+            };
+        } else {
+            box.style.cursor = 'not-allowed';
+            box.style.opacity = '0.6';
+            box.style.pointerEvents = 'none';
+            // Remove hover effects
+            box.onmouseover = null;
+            box.onmouseout = null;
+            // Reset to default styling if not active
+            if (!box.classList.contains('active')) {
+                box.style.borderColor = '#86efac';
+                box.style.background = '#f0fdf4';
+            }
+        }
+    });
+}
+
+// Function to show analysis progress in right panel
+function showAnalysisProgress() {
+    const progressCard = document.getElementById('progressCard');
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
+    
+    if (!progressCard || !didYouKnowSection) return;
+    
+    // Convert platform boxes to plain text during loading
+    const platformsContainer = document.getElementById('promptDetailsPlatforms');
+    if (platformsContainer && window.searchResultsData && window.searchResultsData.platforms) {
+        const platformNames = {
+            'facebook': 'Facebook',
+            'instagram': 'Instagram',
+            'tiktok': 'TikTok',
+            'twitter': 'X (Twitter)'
+        };
+        const foundPlatforms = Object.keys(window.searchResultsData.platforms).filter(key => 
+            window.searchResultsData.platforms[key] && window.searchResultsData.platforms[key].found
+        );
+        if (foundPlatforms.length > 0) {
+            const platformText = foundPlatforms.map(key => platformNames[key] || key).join(', ');
+            platformsContainer.style.display = 'block';
+            platformsContainer.style.gridTemplateColumns = 'none';
+            platformsContainer.style.gap = '0';
+            platformsContainer.innerHTML = `<div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${platformText}</div>`;
+        }
+    }
+    
+    // Disable platform boxes during analysis (if they still exist)
+    setPlatformBoxesEnabled(false);
+    
+    // Hide animated background
+    const animatedBackground = document.getElementById('animatedBackground');
+    if (animatedBackground) {
+        animatedBackground.style.display = 'none';
+    }
+    
+    // Set main panel background to white
+    const mainPanel = document.querySelector('.cursor-main');
+    if (mainPanel) {
+        mainPanel.style.background = '#ffffff';
+        mainPanel.classList.remove('animated-ai-background');
+    }
+    
+    // Ensure cursor-main-content is centered for progress display
+    const mainContent = document.querySelector('.cursor-main-content');
+    if (mainContent) {
+        mainContent.style.display = 'flex';
+        mainContent.style.alignItems = 'center';
+        mainContent.style.justifyContent = 'center';
+        mainContent.style.padding = '24px';
+        mainContent.style.minHeight = '100%';
+        mainContent.style.background = '#ffffff';
+    }
+    
+    // Hide did you know section, show progress
+    didYouKnowSection.style.display = 'none';
+    progressCard.style.display = 'block';
+    
+    // Status messages sequence
+    const statusSequence = [
+        { text: 'Processing your request...', progress: 10 },
+        { text: 'Analyzing profile data...', progress: 25 },
+        { text: 'Extracting insights from platforms...', progress: 40 },
+        { text: 'Analyzing with NUJUM AI...', progress: 60 },
+        { text: 'Generating analysis...', progress: 75 },
+        { text: 'Finalizing results...', progress: 90 },
+        { text: 'Almost done...', progress: 95 }
+    ];
+    
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+    const progressStatus = document.getElementById('progressStatus');
+    
+    if (!progressBar || !progressText || !progressStatus) return;
+    
+    let currentStatusIndex = 0;
+    let currentProgress = 0;
+    
+    // Simulate progress
+    let progressUpdateInterval = setInterval(() => {
+        if (currentProgress < 95) {
+            currentProgress += 0.3;
+            progressBar.style.width = currentProgress + '%';
+            progressText.textContent = Math.round(currentProgress) + '%';
+        }
+    }, 500);
+    
+    // Update status messages
+    const statusMessages = document.getElementById('statusMessages');
+    const statusInterval = setInterval(() => {
+        if (currentStatusIndex < statusSequence.length) {
+            const status = statusSequence[currentStatusIndex];
+            currentProgress = status.progress;
+            
+            // Update progress bar to match status
+            progressBar.style.width = currentProgress + '%';
+            progressText.textContent = currentProgress + '%';
+            progressStatus.textContent = status.text;
+            
+            // Status messages are not displayed in the progress card (matching analyze prediction page)
+            
+            currentStatusIndex++;
+        } else {
+            // Slow down near completion
+            if (currentProgress < 98) {
+                currentProgress += 0.2;
+                progressBar.style.width = currentProgress + '%';
+                progressText.textContent = Math.round(currentProgress) + '%';
+            }
+        }
+    }, 20000);
+    
+    // Store interval IDs for cleanup
+    progressCard.dataset.progressInterval = progressUpdateInterval;
+    progressCard.dataset.statusInterval = statusInterval;
+}
+
+// Initialize platform status grid (matching platform selection design)
+function initializePlatformStatusGrid(platformData = null, showOnlyFound = false) {
+    const platformStatusGrid = document.getElementById('platformStatusGrid');
+    if (!platformStatusGrid) return;
+    
+    // Clear existing content
+    platformStatusGrid.innerHTML = '';
+    
+    const platforms = [
+        { key: 'facebook', name: 'Facebook', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>' },
+        { key: 'instagram', name: 'Instagram', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><defs><linearGradient id="instagram-gradient-status" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#833AB4;stop-opacity:1" /><stop offset="50%" style="stop-color:#FD1D1D;stop-opacity:1" /><stop offset="100%" style="stop-color:#FCAF45;stop-opacity:1" /></linearGradient></defs><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" fill="url(#instagram-gradient-status)"/></svg>' },
+        { key: 'tiktok', name: 'TikTok', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>' },
+        { key: 'twitter', name: 'X (Twitter)', icon: '<svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #000000;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>' }
+    ];
+    
+    platforms.forEach(platform => {
+        const data = platformData ? platformData[platform.key] : null;
+        const isFound = data && data.found;
+        
+        // If showOnlyFound is true, skip platforms that are not found
+        if (showOnlyFound && !isFound) {
+            return;
+        }
+        
+        const platformItem = document.createElement('div');
+        platformItem.id = `status-${platform.key}`;
+        platformItem.style.cssText = 'padding: 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;';
+        
+        if (isFound) {
+            platformItem.style.borderColor = '#86efac';
+            platformItem.style.background = '#f0fdf4';
+            platformItem.onclick = () => showPlatformResults(platform.key);
+        } else {
+            platformItem.style.borderColor = '#fecaca';
+            platformItem.style.background = '#fef2f2';
+            platformItem.style.cursor = 'not-allowed';
+        }
+        
+        platformItem.onmouseover = function() {
+            if (isFound) {
+                this.style.borderColor = '#667eea';
+                this.style.background = '#f8faff';
+            }
+        };
+        platformItem.onmouseout = function() {
+            if (isFound) {
+                this.style.borderColor = '#86efac';
+                this.style.background = '#f0fdf4';
+            }
+        };
+        
+        // Show status text for both found and not found platforms
+        const statusText = isFound ? 'Click to view' : 'Not Found';
+        const statusColor = isFound ? '#059669' : '#dc2626';
+        
+        platformItem.innerHTML = `
+            <div style="display: flex; align-items: center; margin: 0;">
+                <div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex-shrink: 0;">${platform.icon}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; color: #1e293b; font-size: 12px;">${platform.name}</div>
+                    <div style="color: ${statusColor}; font-size: 11px; margin-top: 2px;">${statusText}</div>
+                </div>
+            </div>
+        `;
+        
+        platformStatusGrid.appendChild(platformItem);
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded fired');
+    
+    // Ensure platform section is visible on page load
+    const platformSection = document.getElementById('platformSelectionSection');
+    if (platformSection) {
+        platformSection.style.display = 'block';
+        console.log('Platform section made visible');
+    } else {
+        console.error('Platform section not found!');
+    }
+    
+    // Ensure analysis type section is visible on page load
+    const analysisTypeSection = document.getElementById('analysisTypeSection');
+    if (analysisTypeSection) {
+        analysisTypeSection.style.display = 'block';
+    }
+    
+    // Check if platform container exists
+    const platformContainer = document.getElementById('inlinePlatformSelection');
+    if (!platformContainer) {
+        console.error('Platform container not found in DOMContentLoaded!');
+    } else {
+        console.log('Platform container found, initializing...');
+    }
+    
+    // Initialize platform selection first
+    if (typeof initializeInlinePlatformSelection === 'function') {
+        console.log('Calling initializeInlinePlatformSelection');
+    initializeInlinePlatformSelection();
+    } else {
+        console.error('initializeInlinePlatformSelection function not found!');
+    }
+    
+    // Attach tooltip listeners after platforms are initialized
+    setTimeout(function() {
+        if (typeof window.attachTooltipListeners === 'function') {
+            window.attachTooltipListeners();
+        }
+    }, 100);
+    
+    // Dynamic tooltip positioning with fixed positioning - Matching Create Predictions Page
+    let tooltipElement = null;
+    let tooltipArrow = null;
+    
+    function createTooltipElements() {
+        if (!tooltipElement) {
+            tooltipElement = document.createElement('div');
+            tooltipElement.className = 'info-tooltip-tooltip';
+            document.body.appendChild(tooltipElement);
+        }
+        if (!tooltipArrow) {
+            tooltipArrow = document.createElement('div');
+            tooltipArrow.className = 'info-tooltip-arrow';
+            document.body.appendChild(tooltipArrow);
+        }
+    }
+    
+    window.showTooltip = function(element, text) {
+        createTooltipElements();
+        
+        const rect = element.getBoundingClientRect();
+        const isInSidebar = element.closest('.cursor-sidebar');
+        const tooltipWidth = 280;
+        const arrowSize = 6;
+        const spacing = 12;
+        
+        // Set tooltip content first to calculate height
+        tooltipElement.textContent = text;
+        tooltipElement.style.width = tooltipWidth + 'px';
+        tooltipElement.style.visibility = 'hidden';
+        tooltipElement.style.display = 'block';
+        const tooltipHeight = tooltipElement.offsetHeight;
+        tooltipElement.style.display = '';
+        tooltipElement.style.visibility = '';
+        
+        let tooltipLeft, tooltipTop, arrowLeft, arrowTop;
+        let arrowDirection = 'top';
+        
+        if (isInSidebar) {
+            // Show tooltip to the left (towards center)
+            tooltipLeft = rect.left - tooltipWidth - spacing;
+            tooltipTop = rect.top + (rect.height / 2) - (tooltipHeight / 2);
+            
+            // Arrow pointing right
+            arrowLeft = rect.left - spacing;
+            arrowTop = rect.top + (rect.height / 2);
+            arrowDirection = 'right';
+            
+            // Ensure tooltip doesn't go off screen
+            if (tooltipLeft < 10) {
+                tooltipLeft = rect.right + spacing;
+                arrowLeft = rect.right;
+                arrowDirection = 'left';
+            }
+        } else {
+            // Show tooltip above
+            tooltipLeft = rect.left + (rect.width / 2) - (tooltipWidth / 2);
+            tooltipTop = rect.top - tooltipHeight - spacing;
+            
+            // Arrow pointing down
+            arrowLeft = rect.left + (rect.width / 2);
+            arrowTop = rect.top - spacing;
+            arrowDirection = 'top';
+            
+            // Ensure tooltip doesn't go off screen
+            if (tooltipTop < 10) {
+                tooltipTop = rect.bottom + spacing;
+                arrowTop = rect.bottom;
+                arrowDirection = 'bottom';
+            }
+            if (tooltipLeft < 10) {
+                tooltipLeft = 10;
+            }
+            if (tooltipLeft + tooltipWidth > window.innerWidth - 10) {
+                tooltipLeft = window.innerWidth - tooltipWidth - 10;
+            }
+        }
+        
+        // Set tooltip position
+        tooltipElement.style.left = tooltipLeft + 'px';
+        tooltipElement.style.top = tooltipTop + 'px';
+        tooltipElement.classList.add('show');
+        
+        // Set arrow position and direction
+        tooltipArrow.style.left = arrowLeft + 'px';
+        tooltipArrow.style.top = arrowTop + 'px';
+        tooltipArrow.style.transform = 'translate(-50%, -50%)';
+        
+        // Set arrow direction
+        tooltipArrow.style.borderTopColor = arrowDirection === 'top' ? '#1f2937' : 'transparent';
+        tooltipArrow.style.borderBottomColor = arrowDirection === 'bottom' ? '#1f2937' : 'transparent';
+        tooltipArrow.style.borderLeftColor = arrowDirection === 'left' ? '#1f2937' : 'transparent';
+        tooltipArrow.style.borderRightColor = arrowDirection === 'right' ? '#1f2937' : 'transparent';
+        
+        tooltipArrow.classList.add('show');
+    };
+    
+    window.hideTooltip = function() {
+        if (tooltipElement) {
+            tooltipElement.classList.remove('show');
+        }
+        if (tooltipArrow) {
+            tooltipArrow.classList.remove('show');
+        }
+    };
+    
+    // Function to attach tooltip event listeners (make it globally accessible)
+    window.attachTooltipListeners = function() {
+    const tooltips = document.querySelectorAll('.info-tooltip');
+    tooltips.forEach(tooltip => {
+            const tooltipText = tooltip.getAttribute('data-tooltip');
+            
+            // Remove existing listeners by cloning (if any were added before)
+            const newTooltip = tooltip.cloneNode(true);
+            tooltip.parentNode.replaceChild(newTooltip, tooltip);
+        });
+        
+        // Re-query after cloning to get fresh elements
+        const freshTooltips = document.querySelectorAll('.info-tooltip');
+        freshTooltips.forEach(tooltip => {
+        const tooltipText = tooltip.getAttribute('data-tooltip');
+        
+        tooltip.addEventListener('mouseenter', function(e) {
+                if (tooltipText && typeof window.showTooltip === 'function') {
+                    window.showTooltip(this, tooltipText);
+            }
+        });
+        
+        tooltip.addEventListener('mouseleave', function() {
+                if (typeof window.hideTooltip === 'function') {
+                    window.hideTooltip();
+                }
+        });
+        
+        // Mobile click support
+        tooltip.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isActive = this.classList.contains('active');
+                    freshTooltips.forEach(t => t.classList.remove('active'));
+                    if (!isActive && tooltipText && typeof window.showTooltip === 'function') {
+                    this.classList.add('active');
+                        window.showTooltip(this, tooltipText);
+                } else {
+                        if (typeof window.hideTooltip === 'function') {
+                            window.hideTooltip();
+                        }
+                }
+            }
+        });
+    });
+    };
+    
+    // Attach tooltip listeners after a small delay to ensure DOM is ready
+    setTimeout(function() {
+        if (typeof window.attachTooltipListeners === 'function') {
+            window.attachTooltipListeners();
+        }
+    }, 200);
+    
+    // Also ensure platforms are initialized after tooltips
+    setTimeout(function() {
+        if (typeof initializeInlinePlatformSelection === 'function') {
+            const container = document.getElementById('inlinePlatformSelection');
+            if (container && container.children.length === 0) {
+                initializeInlinePlatformSelection();
+            }
+        }
+        // Re-attach tooltips after platforms are initialized
+        if (typeof window.attachTooltipListeners === 'function') {
+            window.attachTooltipListeners();
+            }
+    }, 300);
+    
+    // Close tooltips when clicking outside
+    document.addEventListener('click', function(e) {
+        if (window.innerWidth <= 768) {
+            if (!e.target.closest('.info-tooltip')) {
+                const allTooltips = document.querySelectorAll('.info-tooltip');
+                allTooltips.forEach(t => t.classList.remove('active'));
+                if (typeof window.hideTooltip === 'function') {
+                    window.hideTooltip();
+                }
+            }
+        }
+    });
+    
+    // Hide tooltip on scroll
+    window.addEventListener('scroll', hideTooltip, true);
+});
 
 // Check for existing data when user types (with debounce)
 function checkExistingData(username) {
@@ -628,12 +2066,63 @@ function checkExistingData(username) {
     }
 
     if (!username || username.length < 2) {
-        // Only hide if notification is currently visible and username is being cleared
-        if (isNotificationVisible) {
+        // Reset form when username is cleared
             document.getElementById('existingDataNotification').style.display = 'none';
             existingDataInfo = null;
-            
-            // Show search button again
+        useExistingDataFlag = false;
+        proceedWithSearchFlag = false;
+        
+        // Hide platform status section
+        const platformStatus = document.getElementById('platformStatus');
+        if (platformStatus) {
+            platformStatus.style.display = 'none';
+        }
+        
+        // Show search section
+        const searchSection = document.getElementById('searchSection');
+        if (searchSection) {
+            searchSection.style.display = 'block';
+        }
+        
+        // Hide results container
+        const resultsContainer = document.getElementById('resultsContainer');
+        if (resultsContainer) {
+            resultsContainer.style.display = 'none';
+        }
+        
+        // Show "Did You Know" section again in right panel
+        const didYouKnowSection = document.getElementById('didYouKnowSection');
+        if (didYouKnowSection) {
+            didYouKnowSection.style.display = 'block';
+        }
+        
+        // Remove platform results from right panel
+        const rightPanelContent = document.querySelector('.cursor-main-content');
+        const rightPanelMain = document.querySelector('.cursor-main');
+        const animatedBackground = document.getElementById('animatedBackground');
+        
+        if (rightPanelContent) {
+            const platformResultsContainer = rightPanelContent.querySelector('#platformResultsContainer');
+            if (platformResultsContainer) {
+                platformResultsContainer.remove();
+            }
+            // Reset right panel layout to centered
+            rightPanelContent.style.alignItems = 'center';
+            rightPanelContent.style.justifyContent = 'center';
+            rightPanelContent.classList.remove('scrollable');
+        }
+        
+        // Show animated background again
+        if (rightPanelMain) {
+            rightPanelMain.classList.add('animated-ai-background');
+        }
+        if (animatedBackground) {
+            animatedBackground.style.display = 'block';
+        }
+        
+        currentDisplayedPlatform = null;
+        
+        // Show search button
             const searchBtn = document.getElementById('searchButton');
             if (searchBtn) {
                 searchBtn.style.display = 'block';
@@ -644,6 +2133,56 @@ function checkExistingData(username) {
             if (platformTextEl) {
                 platformTextEl.style.display = 'block';
             }
+        
+        // Show Platforms and Analysis Type sections
+        const platformSection = document.getElementById('platformSelectionSection');
+        if (platformSection) {
+            platformSection.style.display = 'block';
+        }
+        
+        const analysisTypeSection = document.getElementById('analysisTypeSection');
+        if (analysisTypeSection) {
+            analysisTypeSection.style.display = 'block';
+        }
+        
+        // Clear search results data
+        window.searchResultsData = null;
+        
+        // Restore required attribute for platforms-required when username is cleared
+        const platformsRequired = document.getElementById('platforms-required');
+        if (platformsRequired) {
+            platformsRequired.setAttribute('required', 'required');
+            platformsRequired.setCustomValidity('');
+            platformsRequired.value = '';
+        }
+        
+        // Reset platform selections
+        selectedPlatforms = [];
+        const platformCheckboxes = document.querySelectorAll('input[id^="inline_platform_"]');
+        platformCheckboxes.forEach(checkbox => {
+            checkbox.checked = false;
+            const platformItem = checkbox.closest('div');
+            if (platformItem) {
+                platformItem.style.borderColor = '#e5e7eb';
+                platformItem.style.background = '#ffffff';
+            }
+        });
+        
+        // Reset analysis type
+        window.selectedAnalysisTypeForAnalysis = null;
+        const analysisTypeRadios = document.querySelectorAll('input[name="inlineAnalysisType"]');
+        analysisTypeRadios.forEach(radio => {
+            radio.checked = false;
+        });
+        const professionalDiv = document.getElementById('inlineAnalysisTypeProfessional');
+        const politicalDiv = document.getElementById('inlineAnalysisTypePolitical');
+        if (professionalDiv) {
+            professionalDiv.style.borderColor = '#e2e8f0';
+            professionalDiv.style.background = '#ffffff';
+        }
+        if (politicalDiv) {
+            politicalDiv.style.borderColor = '#e2e8f0';
+            politicalDiv.style.background = '#ffffff';
         }
         
         return;
@@ -681,16 +2220,21 @@ function checkExistingData(username) {
                     platformTextEl.style.display = 'none';
                 }
                 
+                // Hide Platforms and Analysis Type sections when notification appears
+                const platformSection = document.getElementById('platformSelectionSection');
+                if (platformSection) {
+                    platformSection.style.display = 'none';
+                }
+                
+                const analysisTypeSection = document.getElementById('analysisTypeSection');
+                if (analysisTypeSection) {
+                    analysisTypeSection.style.display = 'none';
+                }
+                
                 // IMPORTANT: Hide platform status section when notification appears
                 const platformStatus = document.getElementById('platformStatus');
                 if (platformStatus) {
                     platformStatus.style.display = 'none';
-                }
-                
-                // Hide analysis button
-                const analysisButtonContainer = document.getElementById('analysisButtonContainer');
-                if (analysisButtonContainer) {
-                    analysisButtonContainer.style.display = 'none';
                 }
                 
                 // Update notification with date info
@@ -712,6 +2256,17 @@ function checkExistingData(username) {
                     const searchBtn = document.getElementById('searchButton');
                     if (searchBtn) {
                         searchBtn.style.display = 'block';
+                    }
+                    
+                    // Show Platforms and Analysis Type sections again
+                    const platformSection = document.getElementById('platformSelectionSection');
+                    if (platformSection) {
+                        platformSection.style.display = 'block';
+                    }
+                    
+                    const analysisTypeSection = document.getElementById('analysisTypeSection');
+                    if (analysisTypeSection) {
+                        analysisTypeSection.style.display = 'block';
                     }
                     
                     // Show platform text again
@@ -751,55 +2306,47 @@ function useExistingData() {
     // Hide the notification
     document.getElementById('existingDataNotification').style.display = 'none';
     
+    // Show the form again (return to usual form)
+    const searchSection = document.getElementById('searchSection');
+    if (searchSection) {
+        searchSection.style.display = 'block';
+    }
+
+    // Keep Platforms section hidden (no need to search again when using previous data)
+    const platformSection = document.getElementById('platformSelectionSection');
+    if (platformSection) {
+        platformSection.style.display = 'none';
+    }
+    
+    // Show Analysis Type section (user still needs to select analysis type)
+    const analysisTypeSection = document.getElementById('analysisTypeSection');
+    if (analysisTypeSection) {
+        analysisTypeSection.style.display = 'block';
+        }
+    
+    // Show Generate button
+    const searchBtn = document.getElementById('searchButton');
+    if (searchBtn) {
+        searchBtn.style.display = 'block';
+    }
+    
     // Show platform status section
     const platformStatus = document.getElementById('platformStatus');
     if (platformStatus) {
         platformStatus.style.display = 'block';
     }
 
-    // Update platform statuses
-    ['facebook', 'instagram', 'tiktok', 'twitter'].forEach(platform => {
-        const statusEl = document.getElementById(`status-${platform}`);
-        const platformData = existingDataInfo.platform_data[platform];
-        
-        if (platformData && platformData.found) {
-            statusEl.querySelector('.status-text').textContent = 'Found - Click to view';
-            statusEl.style.background = '#f0fdf4';
-            statusEl.style.borderColor = '#86efac';
-            statusEl.style.cursor = 'pointer';
-            statusEl.setAttribute('onclick', `showPlatformResults('${platform}')`);
-        } else {
-            statusEl.querySelector('.status-text').textContent = 'Not Found';
-            statusEl.style.background = '#fef2f2';
-            statusEl.style.borderColor = '#fecaca';
-            statusEl.style.cursor = 'not-allowed';
-            statusEl.removeAttribute('onclick');
-        }
-    });
+    // Initialize and update platform status grid (show only found platforms)
+    initializePlatformStatusGrid(existingDataInfo.platform_data, true);
     
-    // Hide search section
-    const searchSection = document.getElementById('searchSection');
-    if (searchSection) {
-        searchSection.style.display = 'none';
+    // Remove required validation from platforms-required since we're using existing data
+    const platformsRequired = document.getElementById('platforms-required');
+    if (platformsRequired) {
+        platformsRequired.removeAttribute('required');
+        platformsRequired.setCustomValidity('');
+        platformsRequired.value = 'selected';
     }
     
-    // Show analysis button if at least one platform is found
-    const analysisButtonContainer = document.getElementById('analysisButtonContainer');
-    if (analysisButtonContainer) {
-        const hasFoundPlatform = Object.values(existingDataInfo.platform_data).some(p => p.found);
-        if (hasFoundPlatform) {
-            analysisButtonContainer.style.display = 'block';
-        } else {
-            analysisButtonContainer.style.display = 'none';
-        }
-    }
-    
-    // Always show clear button container (even if no platforms found)
-    // This allows users to clear and search again
-    const clearButtonContainer = document.getElementById('clearButtonContainer');
-    if (clearButtonContainer) {
-        clearButtonContainer.style.display = 'block';
-    }
 }
 
 // Search again (ignore existing data)
@@ -809,6 +2356,17 @@ function searchAgain() {
     existingDataInfo = null;
     modalOpenedFromSearchAgain = true; // Mark that modal is being opened from "Search Again"
     document.getElementById('existingDataNotification').style.display = 'none';
+    
+    // Show Platforms and Analysis Type sections again
+    const platformSection = document.getElementById('platformSelectionSection');
+    if (platformSection) {
+        platformSection.style.display = 'block';
+    }
+    
+    const analysisTypeSection = document.getElementById('analysisTypeSection');
+    if (analysisTypeSection) {
+        analysisTypeSection.style.display = 'block';
+    }
     
     // Show search button again
     const searchBtn = document.getElementById('searchButton');
@@ -822,19 +2380,14 @@ function searchAgain() {
         platformTextEl.style.display = 'block';
     }
     
-    // Reset platform status
-    ['facebook', 'instagram', 'tiktok', 'twitter'].forEach(platform => {
-        const statusEl = document.getElementById(`status-${platform}`);
-        if (statusEl) {
-            statusEl.querySelector('.status-text').textContent = 'Searching...';
-            statusEl.style.background = '#f8fafc';
-            statusEl.style.borderColor = '#e2e8f0';
-            statusEl.style.cursor = 'default';
+    // Reset platform status grid
+    const platformStatus = document.getElementById('platformStatus');
+    if (platformStatus) {
+        platformStatus.style.display = 'none';
         }
-    });
     
-    // Show platform selection modal after hiding notification
-    openPlatformSelectionModal();
+    // Reset and show inline selections
+    initializeInlinePlatformSelection();
 }
 
 async function performSearch() {
@@ -855,32 +2408,34 @@ async function performSearch() {
         return; // Don't make backend call
     }
 
+    // Hide "Did You Know" section when search starts
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
+    if (didYouKnowSection) {
+        didYouKnowSection.style.display = 'none';
+    }
+
     const searchButton = document.getElementById('searchButton');
     const platformStatus = document.getElementById('platformStatus');
     const resultsContainer = document.getElementById('resultsContainer');
     
-    // Show platform status and initialize only selected platforms
-    if (platformStatus) {
+    // Only show platform status if progress modal is not already showing (for new usernames with analysis type)
+    const progressCard = document.getElementById('progressCard');
+    const isProgressModalShowing = progressCard && progressCard.style.display === 'block';
+    
+    if (!isProgressModalShowing && platformStatus) {
         platformStatus.style.display = 'block';
-        
-        // Show only selected platforms, hide others
-        const allPlatforms = ['facebook', 'instagram', 'tiktok', 'twitter'];
-        allPlatforms.forEach(platform => {
-            const statusEl = document.getElementById(`status-${platform}`);
-            if (statusEl) {
-                if (selectedPlatforms.includes(platform)) {
-                    statusEl.style.display = 'flex';
-                    statusEl.querySelector('.status-text').textContent = 'Searching...';
-                    statusEl.style.background = '#f8fafc';
-                    statusEl.style.borderColor = '#e2e8f0';
-                } else {
-                    statusEl.style.display = 'none';
-                }
-            }
-        });
+        // Initialize with empty data (will show "Searching..." state)
+        initializePlatformStatusGrid({});
+    } else if (platformStatus) {
+        // Hide platform status if progress modal is showing
+        platformStatus.style.display = 'none';
     }
     
     console.log('performSearch: Making backend call to search-all with platforms:', selectedPlatforms);
+    let errorToastShown = false; // Flag to prevent duplicate toast notifications
+    // Reset global second toast flag at start of function
+    window.secondToastShown = false;
+    
     try {
         const response = await fetch('{{ route("social-media.search-all") }}', {
             method: 'POST',
@@ -896,66 +2451,193 @@ async function performSearch() {
 
         const data = await response.json();
         
-        // Store search results globally for platform card clicks
-        window.searchResultsData = data;
-
-        // Update platform statuses and check if any platform is found
-        // Only show status for selected platforms
-        let hasFoundPlatform = false;
-        const allPlatforms = ['facebook', 'instagram', 'tiktok', 'twitter'];
+        // Collect all error messages from data and platforms
+        let allErrorMessages = [];
+        if (data.error) allErrorMessages.push(data.error);
+        if (data.message) allErrorMessages.push(data.message);
+        if (data.platforms) {
+            Object.values(data.platforms).forEach(p => {
+                if (p.error) allErrorMessages.push(p.error);
+                if (p.message) allErrorMessages.push(p.message);
+            });
+        }
+        const combinedErrorText = allErrorMessages.join(' ').toLowerCase();
         
-        allPlatforms.forEach(platform => {
-            const statusEl = document.getElementById(`status-${platform}`);
-            if (!statusEl) return;
+        // Check if search failed - only fail if NO platforms were found
+        // If at least one platform is found, proceed with analysis even if some platforms failed
+        const hasFoundPlatforms = data.platforms && Object.values(data.platforms).some(p => p && p.found === true);
+        const hasPlatforms = data.platforms && Object.keys(data.platforms).length > 0;
+        
+        // Only fail if:
+        // 1. No platforms exist at all, OR
+        // 2. Platforms exist but NONE were found (all platforms failed)
+        const searchFailed = !hasPlatforms || (hasPlatforms && !hasFoundPlatforms);
+        
+        if (searchFailed) {
+            // Stop progress modal
+            const progressCard = document.getElementById('progressCard');
+            if (progressCard) {
+                progressCard.style.display = 'none';
+                // Clear progress intervals
+                if (progressCard.dataset.progressInterval) {
+                    clearInterval(parseInt(progressCard.dataset.progressInterval));
+                }
+                if (progressCard.dataset.statusInterval) {
+                    clearInterval(parseInt(progressCard.dataset.statusInterval));
+                }
+            }
             
-            // Hide platforms that weren't selected
-            if (!selectedPlatforms.includes(platform)) {
-                statusEl.style.display = 'none';
+            // Show error message in right panel for 10 seconds
+            const mainContent = document.querySelector('.cursor-main-content');
+            if (mainContent) {
+                mainContent.style.display = 'flex';
+                mainContent.style.alignItems = 'center';
+                mainContent.style.justifyContent = 'center';
+                mainContent.style.padding = '24px';
+                mainContent.style.background = '#ffffff';
+                
+                // Determine specific error message based on error type
+                let errorMessage = data.error || data.message || '';
+                let errorTitle = 'Search Failed';
+                let errorSubtext = 'Please try again with a different username or check your platform selections.';
+                
+                // Check if it's an Apify API error (monthly usage limit, API issues, etc.)
+                // Use combined error text from all sources (data.error, data.message, platform errors)
+                const errorLower = combinedErrorText || errorMessage.toLowerCase();
+                const isApifyError = errorLower.includes('apify') || 
+                                   errorLower.includes('monthly') || 
+                                   errorLower.includes('usage limit') || 
+                                   errorLower.includes('quota') || 
+                                   errorLower.includes('rate limit') ||
+                                   errorLower.includes('api token') ||
+                                   errorLower.includes('authentication') ||
+                                   errorLower.includes('exceeded') ||
+                                   (data.error_code && (data.error_code === 429 || data.error_code === 402));
+                
+                if (isApifyError) {
+                    // Type 1: Apify API error (monthly usage limit, authentication, etc.)
+                    errorTitle = 'Service Unavailable';
+                    errorMessage = 'The service is not available now. Please try again.';
+                    errorSubtext = 'We are experiencing technical difficulties. Please try again later.';
+            } else {
+                    // Type 2: Username not found (default for all non-Apify errors)
+                    errorTitle = 'Search Failed';
+                    errorMessage = 'The search failed. No platforms were found for this username.';
+                    errorSubtext = 'Please try again with a different username or check your platform selections.';
+            }
+                
+                mainContent.innerHTML = `
+                    <div style="max-width: 500px; width: 100%; text-align: center; padding: 40px 24px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                        <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">${errorTitle}</h2>
+                        <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">${errorMessage}</p>
+                        <p style="font-size: 14px; color: #94a3b8;">${errorSubtext}</p>
+                    </div>
+                `;
+        }
+        
+            // Show toast notification immediately (only once)
+            if (!errorToastShown) {
+                // Use the same error message logic for toast
+                // Use combined error text from all sources
+                let toastMessage = data.error || data.message || '';
+                const errorLower = combinedErrorText || toastMessage.toLowerCase();
+                const isApifyError = errorLower.includes('apify') || 
+                                   errorLower.includes('monthly') || 
+                                   errorLower.includes('usage limit') || 
+                                   errorLower.includes('quota') || 
+                                   errorLower.includes('rate limit') ||
+                                   errorLower.includes('api token') ||
+                                   errorLower.includes('authentication') ||
+                                   (data.error_code && (data.error_code === 429 || data.error_code === 402));
+                
+                if (isApifyError) {
+                    // Type 1: Apify API error
+                    toastMessage = 'The service is not available now. Please try again.';
+            } else {
+                    // Type 2: Username not found
+                    toastMessage = 'Search failed. No platforms were found for this username.';
+                }
+                
+                if (typeof showToast === 'function') {
+                    showToast(toastMessage, 'error');
+                    errorToastShown = true;
+                }
+            }
+            
+            // Show second toast message after first toast (with delay to allow first toast to be visible)
+            // Use global flag to prevent duplicate second toast
+            if (!window.secondToastShown) {
+                window.secondToastShown = true; // Set flag immediately to prevent duplicates
+                setTimeout(() => {
+                    // Reset the toast flag to allow second toast
+                    isToastShowing = false;
+                    if (typeof showToast === 'function') {
+                        showToast('Page will redirect in 5 seconds...', 'error');
+                        
+                        // After second toast appears, wait 5 seconds then refresh page
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 5000); // 5 seconds after second toast appears
+                    }
+                }, 1500); // 1.5 seconds delay to let first toast be visible first
+            }
+            
+            // Don't proceed with AI analysis
                 return;
             }
             
-            // Show platforms that were selected
-            statusEl.style.display = 'flex';
-            
-            const platformData = data.platforms[platform];
-            
-            if (platformData && platformData.found) {
-                hasFoundPlatform = true;
-                statusEl.querySelector('.status-text').textContent = 'Found - Click to view';
-                statusEl.style.background = '#f0fdf4';
-                statusEl.style.borderColor = '#86efac';
-                statusEl.style.cursor = 'pointer';
-            } else {
-                statusEl.querySelector('.status-text').textContent = 'Not Found';
-                statusEl.style.background = '#fef2f2';
-                statusEl.style.borderColor = '#fecaca';
-                statusEl.style.cursor = 'not-allowed';
-                statusEl.title = '';
-                statusEl.removeAttribute('onclick');
+        // Store search results globally for platform card clicks
+        window.searchResultsData = data;
+
+        // Update platform status grid with search results
+        // Filter to only show selected platforms
+        const filteredPlatformData = {};
+        selectedPlatforms.forEach(platform => {
+            if (data.platforms[platform]) {
+                filteredPlatformData[platform] = data.platforms[platform];
             }
         });
-
-        // Hide search section after search completes
+        
+        initializePlatformStatusGrid(filteredPlatformData);
+            
+        // Check if analysis type is selected and we have found platforms - if so, start analysis
+        // Note: hasFoundPlatforms is already declared above (line 2451), reuse it
+        const selectedType = document.querySelector('input[name="inlineAnalysisType"]:checked')?.value || window.selectedAnalysisTypeForAnalysis;
+            
+        if (selectedType && hasFoundPlatforms) {
+            // Set up analysis data
+            if (!currentAnalysisData) {
+                currentAnalysisData = {};
+            }
+            Object.keys(data.platforms).forEach(p => {
+                currentAnalysisData[p] = {
+                    found: data.platforms[p].found || false,
+                    data: data.platforms[p].data || null,
+                    error: data.platforms[p].error || null
+                };
+            });
+            
+            // Update prompt details with found platforms (if not already shown)
+            const promptDetailsCard = document.getElementById('promptDetailsCard');
+            if (promptDetailsCard && promptDetailsCard.style.display === 'block') {
+                // Prompt details already shown, just update with found platforms
+                showPromptDetails();
+            } else {
+                // Show prompt details and progress (if not already shown)
+                showPromptDetails();
+                showAnalysisProgress();
+            }
+            
+            // Start analysis automatically (progress modal should already be showing)
+            window.selectedAnalysisTypeForAnalysis = selectedType;
+            startAnalysis(selectedType);
+        } else {
+            // Hide search section after search completes (only if not starting analysis)
         const searchSection = document.getElementById('searchSection');
         if (searchSection) {
             searchSection.style.display = 'none';
         }
-        
-        // Show analysis button if at least one platform is found
-        const analysisButtonContainer = document.getElementById('analysisButtonContainer');
-        if (analysisButtonContainer) {
-            if (hasFoundPlatform) {
-                analysisButtonContainer.style.display = 'block';
-            } else {
-                analysisButtonContainer.style.display = 'none';
-            }
-        }
-        
-        // Always show clear button after search completes (even if no platforms found)
-        // This allows users to clear and search again
-        const clearButtonContainer = document.getElementById('clearButtonContainer');
-        if (clearButtonContainer) {
-            clearButtonContainer.style.display = 'block';
         }
 
         // Don't automatically show results - wait for platform card clicks
@@ -966,16 +2648,114 @@ async function performSearch() {
 
     } catch (error) {
         console.error('Error:', error);
-        alert('An error occurred while searching. Please try again.');
+        
+        // Stop progress modal
+        const progressCard = document.getElementById('progressCard');
+        if (progressCard) {
+            progressCard.style.display = 'none';
+            // Clear progress intervals
+            if (progressCard.dataset.progressInterval) {
+                clearInterval(parseInt(progressCard.dataset.progressInterval));
+            }
+            if (progressCard.dataset.statusInterval) {
+                clearInterval(parseInt(progressCard.dataset.statusInterval));
+            }
+        }
+        
+        // Show error message in right panel for 10 seconds
+        const mainContent = document.querySelector('.cursor-main-content');
+        if (mainContent) {
+            mainContent.style.display = 'flex';
+            mainContent.style.alignItems = 'center';
+            mainContent.style.justifyContent = 'center';
+            mainContent.style.padding = '24px';
+            mainContent.style.background = '#ffffff';
+            
+            // Determine specific error message based on error type
+            let errorMessage = error.message || 'An error occurred while searching. Please try again.';
+            let errorTitle = 'Search Failed';
+            let errorSubtext = 'Please check your connection and try again.';
+            
+            // Check if it's an Apify API error
+            const errorLower = errorMessage.toLowerCase();
+            const isApifyError = errorLower.includes('apify') || 
+                               errorLower.includes('monthly') || 
+                               errorLower.includes('usage limit') || 
+                               errorLower.includes('quota') || 
+                               errorLower.includes('rate limit') ||
+                               errorLower.includes('api token') ||
+                               errorLower.includes('authentication');
+            
+            if (isApifyError) {
+                // Type 1: Apify API error (monthly usage limit, authentication, etc.)
+                errorTitle = 'Service Unavailable';
+                errorMessage = 'The service is not available now. Please try again.';
+                errorSubtext = 'We are experiencing technical difficulties. Please try again later.';
+            } else {
+                // Type 2: Username not found (default for all non-Apify errors)
+                errorTitle = 'Search Failed';
+                errorMessage = 'The search failed. No platforms were found for this username.';
+                errorSubtext = 'Please try again with a different username or check your platform selections.';
+            }
+            
+            mainContent.innerHTML = `
+                <div style="max-width: 500px; width: 100%; text-align: center; padding: 40px 24px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                    <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">${errorTitle}</h2>
+                    <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">${errorMessage}</p>
+                    <p style="font-size: 14px; color: #94a3b8;">${errorSubtext}</p>
+                </div>
+            `;
+        }
+        
+        // Show toast notification immediately (only once)
+        if (!errorToastShown) {
+            // Use the same error message logic for toast
+            let toastMessage = error.message || 'An error occurred while searching. Please try again.';
+            const errorLower = toastMessage.toLowerCase();
+            const isApifyError = errorLower.includes('apify') || 
+                               errorLower.includes('monthly') || 
+                               errorLower.includes('usage limit') || 
+                               errorLower.includes('quota') || 
+                               errorLower.includes('rate limit') ||
+                               errorLower.includes('api token') ||
+                               errorLower.includes('authentication');
+            
+            if (isApifyError) {
+                // Type 1: Apify API error
+                toastMessage = 'The service is not available now. Please try again.';
+            } else {
+                // Type 2: Username not found
+                toastMessage = 'Search failed. No platforms were found for this username.';
+            }
+            
+            if (typeof showToast === 'function') {
+                showToast(toastMessage, 'error');
+                errorToastShown = true;
+            }
+        }
+        
+        // Show second toast message after first toast (with delay to allow first toast to be visible)
+        // Use global flag to prevent duplicate second toast
+        if (!window.secondToastShown) {
+            window.secondToastShown = true; // Set flag immediately to prevent duplicates
+            setTimeout(() => {
+                // Reset the toast flag to allow second toast
+                isToastShowing = false;
+                if (typeof showToast === 'function') {
+                    showToast('Page will redirect in 5 seconds...', 'error');
+                    
+                    // After second toast appears, wait 5 seconds then refresh page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 5000); // 5 seconds after second toast appears
+                }
+            }, 1500); // 1.5 seconds delay to let first toast be visible first
+        }
     } finally {
         if (searchButton) {
             searchButton.disabled = false;
-            searchButton.textContent = 'Search All Platforms';
-        }
-        // Show clear button container after search is done
-        const clearButtonContainer = document.getElementById('clearButtonContainer');
-        if (clearButtonContainer) {
-            clearButtonContainer.style.display = 'block';
+            searchButton.textContent = 'Generate';
         }
         // Reset proceed flag after search completes
         proceedWithSearchFlag = false;
@@ -1010,15 +2790,10 @@ document.getElementById('searchForm').addEventListener('submit', async function(
         if (platformStatus) {
             platformStatus.style.display = 'none';
         }
-        // Hide analysis button
-        const analysisButtonContainer = document.getElementById('analysisButtonContainer');
-        if (analysisButtonContainer) {
-            analysisButtonContainer.style.display = 'none';
-        }
         // Reset button state
         if (searchButton) {
             searchButton.disabled = false;
-            searchButton.textContent = 'Search All Platforms';
+            searchButton.textContent = 'Generate';
         }
         // Stop here - don't proceed, don't make backend call
         return false; // Stop execution completely - NO BACKEND CALL
@@ -1030,16 +2805,11 @@ document.getElementById('searchForm').addEventListener('submit', async function(
         // Reset button state
         if (searchButton) {
             searchButton.disabled = false;
-            searchButton.textContent = 'Search All Platforms';
+            searchButton.textContent = 'Generate';
         }
         // Make sure platform status is hidden
         if (platformStatus) {
             platformStatus.style.display = 'none';
-        }
-        // Hide analysis button
-        const analysisButtonContainer = document.getElementById('analysisButtonContainer');
-        if (analysisButtonContainer) {
-            analysisButtonContainer.style.display = 'none';
         }
         return false; // Stop execution completely - NO BACKEND CALL
     }
@@ -1102,31 +2872,220 @@ document.getElementById('searchForm').addEventListener('submit', async function(
 
 // Store current displayed platform
 let currentDisplayedPlatform = null;
+// Store analysis result HTML to restore when toggling back
+window.storedAnalysisResultHtml = null;
 
-function showPlatformResults(platform) {
+// Function to clear platform data from right panel
+function clearPlatformDataFromRightPanel() {
+    const rightPanelContent = document.querySelector('.cursor-main-content');
+    const rightPanelMain = document.querySelector('.cursor-main');
+    const animatedBackground = document.getElementById('animatedBackground');
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
+    const resultsContainer = document.getElementById('analysisResultsContainer');
+    
+    // Clear platform results container (for "Use Previous Data" scenario)
+    if (rightPanelContent) {
+        const platformResultsContainer = rightPanelContent.querySelector('#platformResultsContainer');
+        if (platformResultsContainer) {
+            platformResultsContainer.remove();
+        }
+    }
+    
+    // Restore analysis results if they were replaced with platform data
+    if (resultsContainer && window.storedAnalysisResultHtml) {
+        resultsContainer.innerHTML = window.storedAnalysisResultHtml;
+    }
+    
+    // Reset right panel layout
+    if (rightPanelContent) {
+        rightPanelContent.style.alignItems = 'center';
+        rightPanelContent.style.justifyContent = 'center';
+        rightPanelContent.classList.remove('scrollable');
+    }
+    
+    // Show animated background again (if not in analysis progress)
+    const progressCard = document.getElementById('progressCard');
+    if (progressCard && progressCard.style.display === 'none') {
+        if (rightPanelMain) {
+            rightPanelMain.classList.add('animated-ai-background');
+        }
+        if (animatedBackground) {
+            animatedBackground.style.display = 'block';
+        }
+        if (didYouKnowSection) {
+            didYouKnowSection.style.display = 'block';
+        }
+    }
+    
+    // Reset current displayed platform
+    currentDisplayedPlatform = null;
+    
+    // Remove active styling from platform boxes in Analysis Input Details
+    const allPlatformBoxes = document.querySelectorAll('#promptDetailsPlatforms > div');
+    allPlatformBoxes.forEach(box => {
+        box.classList.remove('active');
+        if (!box.style.pointerEvents || box.style.pointerEvents === 'auto') {
+            box.style.borderColor = '#86efac';
+            box.style.background = '#f0fdf4';
+        }
+    });
+}
+
+// Toggle platform view in Analysis Input Details
+function togglePlatformViewInAnalysis(platformKey, platformElement) {
+    const resultsContainer = document.getElementById('analysisResultsContainer');
+    if (!resultsContainer) return;
+    
+    // Check if this platform is already active
+    const isActive = platformElement.classList.contains('active');
+    
+    // Remove active state from all platform boxes
+    const allPlatformBoxes = document.querySelectorAll('#promptDetailsPlatforms > div');
+    allPlatformBoxes.forEach(box => {
+        box.classList.remove('active');
+        box.style.borderColor = '#86efac';
+        box.style.background = '#f0fdf4';
+    });
+    
+    if (isActive) {
+        // Restore analysis result
+        if (window.storedAnalysisResultHtml) {
+            resultsContainer.innerHTML = window.storedAnalysisResultHtml;
+            // Re-initialize tooltips for radar charts
+            setTimeout(() => {
+                if (typeof initializeAllRadarChartTooltips === 'function') {
+                    initializeAllRadarChartTooltips();
+                }
+            }, 100);
+        }
+        currentDisplayedPlatform = null;
+    } else {
+        // Store current analysis result HTML if not already stored
+        if (!window.storedAnalysisResultHtml) {
+            window.storedAnalysisResultHtml = resultsContainer.innerHTML;
+        }
+        
+        // Show platform data
+        showPlatformResults(platformKey, true);
+        
+        // Mark this platform as active
+        platformElement.classList.add('active');
+        platformElement.style.borderColor = '#667eea';
+        platformElement.style.background = '#f8faff';
+    }
+}
+
+function showPlatformResults(platform, isInAnalysisDetails = false) {
     if (!window.searchResultsData) {
         return;
     }
     
     const data = window.searchResultsData;
     const platformData = data.platforms[platform];
-    const resultsContainer = document.getElementById('resultsContainer');
+    const rightPanelContent = document.querySelector('.cursor-main-content');
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
     
     // Don't show results if platform not found
     if (!platformData || !platformData.found) {
         return;
     }
     
-    // If clicking the same platform, toggle it off
-    if (currentDisplayedPlatform === platform && resultsContainer.style.display === 'block') {
-        resultsContainer.style.display = 'none';
-        resultsContainer.innerHTML = '';
+    // Get the right panel main container
+    const rightPanelMain = document.querySelector('.cursor-main');
+    const animatedBackground = document.getElementById('animatedBackground');
+    
+    // If in Analysis Input Details mode, handle differently
+    if (isInAnalysisDetails) {
+        const resultsContainer = document.getElementById('analysisResultsContainer');
+        if (resultsContainer) {
+            // Generate platform card HTML
+            const platformNames = {
+                'facebook': 'Facebook',
+                'instagram': 'Instagram',
+                'tiktok': 'TikTok',
+                'twitter': 'X (Twitter)'
+            };
+            
+            let html = '';
+            if (platformData.data) {
+                html = generatePlatformCard(platformNames[platform] || platform, platform, platformData.data, platform);
+            }
+            
+            resultsContainer.innerHTML = html;
+            
+            // Re-initialize tooltips after displaying platform data
+            setTimeout(() => {
+                if (typeof window.attachTooltipListeners === 'function') {
+                    window.attachTooltipListeners();
+                }
+            }, 100);
+        }
+        currentDisplayedPlatform = platform;
+        return;
+    }
+    
+    // Original behavior for non-Analysis Details mode
+    // If clicking the same platform, toggle it off (show "Did You Know" again)
+    if (currentDisplayedPlatform === platform && didYouKnowSection && didYouKnowSection.style.display === 'none') {
+        didYouKnowSection.style.display = 'block';
+        // Remove results container if it exists
+        const resultsContainer = rightPanelContent.querySelector('#platformResultsContainer');
+        if (resultsContainer) {
+            resultsContainer.remove();
+        }
+        // Reset right panel layout to centered
+        if (rightPanelContent) {
+            rightPanelContent.style.alignItems = 'center';
+            rightPanelContent.style.justifyContent = 'center';
+            rightPanelContent.classList.remove('scrollable');
+        }
+        // Show animated background again
+        if (rightPanelMain) {
+            rightPanelMain.classList.add('animated-ai-background');
+        }
+        if (animatedBackground) {
+            animatedBackground.style.display = 'block';
+        }
         currentDisplayedPlatform = null;
         return;
     }
     
-    // Show platform results
-    let html = '<h3 style="font-size: 18px; font-weight: 600; color: #374151; margin-bottom: 20px;">Results for: <strong>' + data.username + '</strong></h3>';
+    // Hide "Did You Know" section
+    if (didYouKnowSection) {
+        didYouKnowSection.style.display = 'none';
+    }
+    
+    // Hide animated background
+    if (rightPanelMain) {
+        rightPanelMain.classList.remove('animated-ai-background');
+        rightPanelMain.style.background = '#ffffff';
+    }
+    if (animatedBackground) {
+        animatedBackground.style.display = 'none';
+    }
+    
+    // Remove existing results container if it exists
+    const existingResults = rightPanelContent.querySelector('#platformResultsContainer');
+    if (existingResults) {
+        existingResults.remove();
+    }
+    
+    // Update right panel to show platform results
+    if (rightPanelContent) {
+        // Make right panel scrollable
+        rightPanelContent.classList.add('scrollable');
+        
+        // Change layout for results display
+        rightPanelContent.style.alignItems = 'flex-start';
+        rightPanelContent.style.justifyContent = 'flex-start';
+        
+        // Create results container
+        const resultsContainer = document.createElement('div');
+        resultsContainer.id = 'platformResultsContainer';
+        resultsContainer.style.cssText = 'width: 100%; max-width: 100%;';
+        
+        // Show platform results (without "Results for:" text)
+        let html = '';
     
     const platformNames = {
         'facebook': 'Facebook',
@@ -1140,14 +3099,17 @@ function showPlatformResults(platform) {
     }
     
     resultsContainer.innerHTML = html;
-    resultsContainer.style.display = 'block';
+        rightPanelContent.appendChild(resultsContainer);
     currentDisplayedPlatform = platform;
     
     // Initialize tooltips after results are displayed
-    setTimeout(initTooltips, 100);
-    
-    // Scroll to results
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Re-attach tooltip listeners after dynamic content is loaded
+        setTimeout(function() {
+            if (typeof window.attachTooltipListeners === 'function') {
+                window.attachTooltipListeners();
+            }
+        }, 100);
+    }
 }
 
 function displayResults(data) {
@@ -1190,7 +3152,7 @@ function getPlatformIcon(platformType) {
 }
 
 function generatePlatformCard(platformName, platformType, data, type) {
-    let html = `<div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">`;
+    let html = `<div style="margin-bottom: 20px;">`;
     html += `<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0;">`;
     html += `<div style="display: flex; align-items: center; justify-content: center;">${getPlatformIcon(platformType)}</div>`;
     html += `<div style="flex: 1;"><h2 style="font-size: 20px; font-weight: 700; color: #1e293b; margin: 0;">${platformName}</h2>`;
@@ -1267,21 +3229,16 @@ function generatePlatformCard(platformName, platformType, data, type) {
         
         html += `</div>`;
         
-        // Add posts inside engagement metrics section with pagination
+        // Add posts inside engagement metrics section - scrollable, no pagination
         const posts = data.recent_posts || data.recent_media || data.recent_videos || [];
         if (posts.length > 0) {
-            const postsPerPage = 5;
-            const totalPages = Math.ceil(posts.length / postsPerPage);
-            const uniqueId = 'posts-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-            
             html += `<div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.2);">`;
             html += `<h4 style="font-size: 16px; font-weight: 600; margin: 0 0 16px 0; color: white;">Recent Posts (${posts.length} total)</h4>`;
-            html += `<div id="${uniqueId}-container" style="display: grid; gap: 12px;">`;
+            html += `<div style="max-height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 8px;">`;
             
-            // Render all posts but hide them initially (we'll show first page)
-            posts.forEach((post, index) => {
-                const isVisible = index < postsPerPage ? '' : 'display: none;';
-                html += `<div class="post-item-${uniqueId}" style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 8px; backdrop-filter: blur(10px); ${isVisible}">`;
+            // Render all posts in a scrollable container
+            posts.forEach((post) => {
+                html += `<div style="background: rgba(255,255,255,0.15); padding: 16px; border-radius: 8px; backdrop-filter: blur(10px); flex-shrink: 0;">`;
                 
                 if (post.message || post.text || post.caption || post.description) {
                     const content = post.message || post.text || post.caption || post.description;
@@ -1321,19 +3278,6 @@ function generatePlatformCard(platformName, platformType, data, type) {
             });
             
             html += `</div>`;
-            
-            // Pagination controls
-            if (totalPages > 1) {
-                html += `<div id="${uniqueId}-pagination" style="margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap;">`;
-                html += `<button onclick="changePostsPage('${uniqueId}', 0, ${postsPerPage}, ${posts.length})" id="${uniqueId}-prev" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;" disabled onmouseover="this.style.background='rgba(255,255,255,0.3)';" onmouseout="this.style.background='rgba(255,255,255,0.2)';">Previous</button>`;
-                html += `<span style="color: white; font-size: 14px; padding: 0 12px;">Page <span id="${uniqueId}-current">1</span> of ${totalPages}</span>`;
-                html += `<button onclick="changePostsPage('${uniqueId}', 1, ${postsPerPage}, ${posts.length})" id="${uniqueId}-next" style="padding: 8px 16px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s;" ${totalPages === 1 ? 'disabled' : ''} onmouseover="if(!this.disabled) this.style.background='rgba(255,255,255,0.3)';" onmouseout="if(!this.disabled) this.style.background='rgba(255,255,255,0.2)';">Next</button>`;
-                html += `</div>`;
-                
-                // Store pagination state
-                window[`${uniqueId}_page`] = 1;
-            }
-            
             html += `</div>`;
         }
         
@@ -1408,6 +3352,36 @@ function clearResults() {
         resultsContainer.style.display = 'none';
     }
     
+    // Show "Did You Know" section again in right panel
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
+    if (didYouKnowSection) {
+        didYouKnowSection.style.display = 'block';
+    }
+    
+    // Remove platform results from right panel
+    const rightPanelContent = document.querySelector('.cursor-main-content');
+    const rightPanelMain = document.querySelector('.cursor-main');
+    const animatedBackground = document.getElementById('animatedBackground');
+    
+    if (rightPanelContent) {
+        const platformResultsContainer = rightPanelContent.querySelector('#platformResultsContainer');
+        if (platformResultsContainer) {
+            platformResultsContainer.remove();
+        }
+        // Reset right panel layout to centered
+        rightPanelContent.style.alignItems = 'center';
+        rightPanelContent.style.justifyContent = 'center';
+        rightPanelContent.classList.remove('scrollable');
+    }
+    
+    // Show animated background again
+    if (rightPanelMain) {
+        rightPanelMain.classList.add('animated-ai-background');
+    }
+    if (animatedBackground) {
+        animatedBackground.style.display = 'block';
+    }
+    
     // Clear stored search results
     window.searchResultsData = null;
     currentDisplayedPlatform = null;
@@ -1424,12 +3398,6 @@ function clearResults() {
     const platformStatus = document.getElementById('platformStatus');
     if (platformStatus) {
         platformStatus.style.display = 'none';
-    }
-    
-    // Hide analysis button container
-    const analysisButtonContainer = document.getElementById('analysisButtonContainer');
-    if (analysisButtonContainer) {
-        analysisButtonContainer.style.display = 'none';
     }
     
     // Reset platform statuses
@@ -1451,12 +3419,6 @@ function clearResults() {
         usernameInput.value = '';
     }
     
-    // Hide clear button container
-    const clearButtonContainer = document.getElementById('clearButtonContainer');
-    if (clearButtonContainer) {
-        clearButtonContainer.style.display = 'none';
-    }
-    
     // Show search section again
     const searchSection = document.getElementById('searchSection');
     if (searchSection) {
@@ -1468,7 +3430,7 @@ function clearResults() {
     if (searchButton) {
         searchButton.style.display = 'block';
         searchButton.disabled = false;
-        searchButton.textContent = 'Search All Platforms';
+        searchButton.textContent = 'Generate';
     }
     
     // Make sure platform text is visible
@@ -1562,18 +3524,8 @@ function initTooltips() {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    initTooltips();
-    
-    // Close tooltips when clicking outside
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth <= 768) {
-            if (!e.target.closest('.info-tooltip')) {
-                document.querySelectorAll('.info-tooltip').forEach(t => t.classList.remove('active'));
-            }
-        }
-    });
-});
+// Note: Tooltip initialization is now handled in the main DOMContentLoaded handler above
+// This prevents duplicate event listeners and ensures hover functionality works correctly
 
 // Analysis Modal Functions
 let currentAnalysisData = null;
@@ -1608,7 +3560,13 @@ function openAnalysisModal(platform, dataIdOrData) {
         currentAnalysisData = { [platform]: { found: true, data: platformData } };
     }
     
-    // Show modal with platform selection
+    // If analysis type is already selected, start analysis directly
+    if (window.selectedAnalysisTypeForAnalysis) {
+        startAnalysis(window.selectedAnalysisTypeForAnalysis);
+        return;
+    }
+    
+    // Show modal with platform selection (fallback for old flow)
     const modal = document.getElementById('analysisModal');
     if (modal) {
         modal.style.display = 'flex';
@@ -1886,10 +3844,38 @@ function closeAnalysisModal() {
     selectedPlatforms = {};
 }
 
+// Start analysis directly with stored analysis type
+function startAnalysisDirectly() {
+    // Ensure we have the analysis data
+    if (!currentAnalysisData && window.searchResultsData && window.searchResultsData.platforms) {
+        currentAnalysisData = {};
+        Object.keys(window.searchResultsData.platforms).forEach(p => {
+            currentAnalysisData[p] = {
+                found: window.searchResultsData.platforms[p].found || false,
+                data: window.searchResultsData.platforms[p].data || null,
+                error: window.searchResultsData.platforms[p].error || null
+            };
+        });
+    }
+    
+    if (!currentAnalysisData) {
+        alert('No platform data available for analysis. Please search platforms first.');
+        return;
+    }
+    
+    const analysisType = window.selectedAnalysisTypeForAnalysis || 'professional';
+    startAnalysis(analysisType);
+}
+
 async function startAnalysis(analysisType = 'professional') {
     if (!currentAnalysisData) {
         return;
     }
+    
+    // Reset toast flags for new analysis
+    window.analysisSecondToastShown = false;
+    // Reset analysis failed flag for new analysis
+    window.analysisFailed = false;
     
     // Get username from search results
     const username = window.searchResultsData?.username || document.getElementById('username')?.value.trim() || 'unknown';
@@ -1942,6 +3928,25 @@ async function startAnalysis(analysisType = 'professional') {
                         });
                         const htmlResult = await htmlResponse.json();
                         if (htmlResult.success && htmlResult.html) {
+                            // Update progress to 100%
+                            const progressBar = document.getElementById('progressBar');
+                            const progressText = document.getElementById('progressText');
+                            const progressStatus = document.getElementById('progressStatus');
+                            if (progressBar) progressBar.style.width = '100%';
+                            if (progressText) progressText.textContent = '100%';
+                            if (progressStatus) progressStatus.textContent = 'Analysis complete!';
+                            
+                            // Clear progress intervals
+                            const progressCard = document.getElementById('progressCard');
+                            if (progressCard) {
+                                if (progressCard.dataset.progressInterval) {
+                                    clearInterval(parseInt(progressCard.dataset.progressInterval));
+                                }
+                                if (progressCard.dataset.statusInterval) {
+                                    clearInterval(parseInt(progressCard.dataset.statusInterval));
+                                }
+                            }
+                            
                             displayAnalysisResultHtml(htmlResult.html, result.analysis_id);
                         } else {
                             // Fallback: retry after a longer delay
@@ -2144,24 +4149,508 @@ function generateSection(title, data) {
 }
 
 function displayAnalysisResultHtml(html, analysisId) {
-    const modalContent = document.getElementById('analysisModalContent');
-    if (!modalContent) return;
-    
-    // Wrap the HTML in a scrollable container
-    let fullHtml = '<div style="max-height: 80vh; overflow-y: auto; padding-right: 8px;">' + html;
-    
-    // Add button to view full analysis page at the bottom
-    if (analysisId) {
-        const analysisUrl = `${APP_BASE_PATH}/social-media/${analysisId}`;
-        fullHtml += `<div style="text-align: center; margin-top: 32px; padding-top: 24px; border-top: 2px solid #e2e8f0;">`;
-        fullHtml += `<a href="${analysisUrl}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white !important; border: none; border-radius: 8px; font-weight: 700; font-size: 16px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5); cursor: pointer;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 24px rgba(102, 126, 234, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(102, 126, 234, 0.5)';" onclick="closeAnalysisModal();">View Full Analysis Page</a>`;
-        fullHtml += `<p style="margin-top: 12px; color: #64748b; font-size: 13px;">Open in a new page for better viewing and PDF export</p>`;
-        fullHtml += `</div>`;
+    // Hide progress card
+    const progressCard = document.getElementById('progressCard');
+    if (progressCard) {
+        progressCard.style.display = 'none';
     }
     
-    fullHtml += '</div>';
+    // Get main content element
+    const mainContent = document.querySelector('.cursor-main-content');
     
-    modalContent.innerHTML = fullHtml;
+    // Check if this is a fallback/error response BEFORE setting up the layout
+    const isFallbackResponse = html.includes('Analysis Failed') && 
+                               (html.includes('Fallback Response') || 
+                                html.includes('Due to technical difficulties') ||
+                                html.includes('comprehensive analysis could not be generated'));
+    
+    // Set global flag to indicate analysis failed
+    window.analysisFailed = isFallbackResponse;
+    
+    // If analysis succeeded, restore platform boxes (they were converted to text during loading)
+    if (!isFallbackResponse) {
+        // Recreate platform boxes by calling showPromptDetails again
+        // This will restore the clickable boxes since window.analysisFailed is now false
+        const selectedType = document.querySelector('input[name="inlineAnalysisType"]:checked')?.value || window.selectedAnalysisTypeForAnalysis;
+        if (selectedType) {
+            showPromptDetails();
+        }
+    }
+    
+    // Re-enable platform boxes after analysis completes (only if not failed)
+    if (!isFallbackResponse) {
+        setPlatformBoxesEnabled(true);
+    }
+    
+    // Update platform display in Analysis Input Details if analysis failed
+    if (isFallbackResponse) {
+        const platformsContainer = document.getElementById('promptDetailsPlatforms');
+        if (platformsContainer && window.searchResultsData && window.searchResultsData.platforms) {
+            const platformNames = {
+                'facebook': 'Facebook',
+                'instagram': 'Instagram',
+                'tiktok': 'TikTok',
+                'twitter': 'X (Twitter)'
+            };
+            const foundPlatforms = Object.keys(window.searchResultsData.platforms).filter(key => 
+                window.searchResultsData.platforms[key] && window.searchResultsData.platforms[key].found
+            );
+            if (foundPlatforms.length > 0) {
+                const platformText = foundPlatforms.map(key => platformNames[key] || key).join(', ');
+                platformsContainer.style.display = 'block';
+                platformsContainer.style.gridTemplateColumns = 'none';
+                platformsContainer.style.gap = '0';
+                platformsContainer.innerHTML = `<div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${platformText}</div>`;
+            }
+        }
+    }
+    
+    if (isFallbackResponse) {
+        // Center the right panel for error display (matching search error style)
+        if (mainContent) {
+            mainContent.style.display = 'flex';
+            mainContent.style.alignItems = 'center';
+            mainContent.style.justifyContent = 'center';
+            mainContent.style.padding = '24px';
+            mainContent.style.background = '#ffffff';
+            mainContent.classList.remove('scrollable');
+        }
+        
+        // Make main panel not scrollable for error
+        const mainPanel = document.querySelector('.cursor-main');
+        if (mainPanel) {
+            mainPanel.classList.remove('scrollable');
+        }
+        
+        // Hide prompt details action buttons for error
+        const promptDetailsActions = document.getElementById('promptDetailsActions');
+        if (promptDetailsActions) {
+            promptDetailsActions.style.display = 'none';
+        }
+        
+        // Display simple error message directly in mainContent (matching search error style)
+        mainContent.innerHTML = `
+            <div style="max-width: 500px; width: 100%; text-align: center; padding: 40px 24px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">Service Unavailable</h2>
+                <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">The service is not available now. Please try again.</p>
+                <p style="font-size: 14px; color: #94a3b8;">We are experiencing technical difficulties. Please try again later.</p>
+            </div>
+        `;
+        
+        // Show toast notification immediately (only once)
+        let analysisErrorToastShown = false;
+        if (!analysisErrorToastShown) {
+            const toastMessage = 'The service is not available now. Please try again.';
+            if (typeof showToast === 'function') {
+                showToast(toastMessage, 'error');
+                analysisErrorToastShown = true;
+            }
+        }
+        
+        // Show second toast message after first toast (with delay to allow first toast to be visible)
+        // Use global flag to prevent duplicate second toast
+        if (!window.analysisSecondToastShown) {
+            window.analysisSecondToastShown = true; // Set flag immediately to prevent duplicates
+            setTimeout(() => {
+                // Check flag again inside setTimeout to prevent race conditions
+                if (window.analysisSecondToastShown) {
+                    // Remove any existing toast first to allow second toast to show
+                    const existingToast = document.querySelector('.toast-notification');
+                    if (existingToast) {
+                        existingToast.style.opacity = '0';
+                        existingToast.style.transform = 'translateX(100%)';
+                        setTimeout(() => {
+                            if (existingToast.parentNode) {
+                                existingToast.parentNode.removeChild(existingToast);
+                            }
+                        }, 300);
+                    }
+                    // Reset the global toast flag to allow second toast
+                    isToastShowing = false;
+                    
+                    // Wait a bit for the first toast to be removed, then show second toast
+                    setTimeout(() => {
+                        if (typeof showToast === 'function') {
+                            showToast('Page will redirect in 5 seconds...', 'error');
+                            
+                            // After second toast appears, wait 5 seconds then refresh page
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 5000); // 5 seconds after second toast appears
+                        }
+                    }, 350); // Wait for toast removal animation to complete
+                }
+            }, 1500); // 1.5 seconds delay to let first toast be visible first
+        }
+    } else {
+        // Update right panel to show results (normal flow)
+        if (mainContent) {
+            mainContent.style.alignItems = 'flex-start';
+            mainContent.style.justifyContent = 'flex-start';
+            mainContent.style.padding = '24px';
+            mainContent.classList.add('scrollable');
+        }
+        
+        // Make main panel scrollable
+        const mainPanel = document.querySelector('.cursor-main');
+        if (mainPanel) {
+            mainPanel.classList.add('scrollable');
+        }
+        
+        // Show prompt details action buttons after analysis completes
+        const promptDetailsActions = document.getElementById('promptDetailsActions');
+        if (promptDetailsActions) {
+            promptDetailsActions.style.display = 'block';
+        }
+        
+        // Store analysis ID for export
+    if (analysisId) {
+            window.lastAnalysisId = analysisId;
+        }
+        
+        // Create results container
+        let resultsContainer = document.getElementById('analysisResultsContainer');
+        if (!resultsContainer) {
+            resultsContainer = document.createElement('div');
+            resultsContainer.id = 'analysisResultsContainer';
+            resultsContainer.style.cssText = 'width: 100%; max-width: 100%;';
+            if (mainContent) {
+                mainContent.appendChild(resultsContainer);
+            }
+        }
+        
+        // Display the HTML directly (no button)
+        resultsContainer.innerHTML = html;
+    }
+    
+    // Execute all script tags in the inserted HTML to initialize tooltips
+    // Scripts wrapped in DOMContentLoaded won't execute, so we need to run them manually
+    setTimeout(() => {
+        const scripts = resultsContainer.querySelectorAll('script');
+        const extractedData = {}; // Store extracted data for tooltips
+        
+        scripts.forEach(oldScript => {
+            // First, try to extract dimensions/traits data from the script
+            const scriptContent = oldScript.innerHTML;
+            
+            // Look for const dimensions or const traits pattern
+            // The json data will have been rendered as actual JSON
+            const dataPattern = new RegExp('const\\s+(dimensions|traits)\\s*=\\s*(\\{[\\s\\S]*?\\});');
+            const dataMatch = scriptContent.match(dataPattern);
+            if (dataMatch) {
+                try {
+                    const dataType = dataMatch[1];
+                    const jsonString = dataMatch[2];
+                    const parsedData = JSON.parse(jsonString);
+                    
+                    // Store in a way we can access it later
+                    // Use the tooltip ID to map the data
+                    const tooltipIdPattern = new RegExp('getElementById\\([\'"]([^\'"]+-tooltip)[\'"]');
+                    const tooltipIdMatch = scriptContent.match(tooltipIdPattern);
+                    if (tooltipIdMatch) {
+                        const tooltipId = tooltipIdMatch[1];
+                        extractedData[tooltipId] = parsedData;
+                    }
+                } catch (e) {
+                    console.log('Could not parse data from script:', e);
+                }
+            }
+            
+            // Create a new script element to execute
+            const newScript = document.createElement('script');
+            
+            // Extract script content, removing DOMContentLoaded wrapper if present
+            let modifiedContent = scriptContent;
+            
+            // Remove DOMContentLoaded wrapper - handle both single-line and multi-line patterns
+            modifiedContent = modifiedContent.replace(
+                /document\.addEventListener\(['"]DOMContentLoaded['"],\s*function\(\)\s*\{([\s\S]*?)\}\);?/g,
+                '$1'
+            );
+            
+            newScript.innerHTML = modifiedContent;
+            
+            // Replace old script with new one to execute
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+        
+        // Store extracted data globally for tooltip initialization
+        window.extractedRadarChartData = extractedData;
+        
+        // Also manually initialize tooltips for all radar charts to ensure they work
+        // This is a fallback in case script execution doesn't work properly
+        setTimeout(() => {
+            initializeAllRadarChartTooltips();
+        }, 150);
+    }, 50);
+}
+
+// Function to manually initialize all radar chart tooltips after dynamic insertion
+function initializeAllRadarChartTooltips() {
+    const resultsContainer = document.getElementById('analysisResultsContainer');
+    if (!resultsContainer) return;
+    
+    // Find all SVG elements (radar charts) in the results container
+    const svgCharts = resultsContainer.querySelectorAll('svg.radar-chart-svg');
+    
+    svgCharts.forEach(svg => {
+        // Find the tooltip element for this chart section
+        // Check parent containers to find the tooltip
+        let tooltip = null;
+        let tooltipId = null;
+        let pointSelector = null;
+        let labelSelector = null;
+        let dataAttribute = 'data-dimension';
+        
+        // Find the tooltip element by checking the section containing this SVG
+        // Each chart section should have its tooltip nearby
+        const chartContainer = svg.closest('.radar-chart-container') || svg.closest('div');
+        const sectionContainer = chartContainer ? chartContainer.closest('div') : null;
+        
+        // Try to find tooltip by common IDs - search within the results container
+        const possibleIds = [
+            'radar-tooltip',
+            'personality-tooltip',
+            'cultural-fit-tooltip',
+            'professional-growth-tooltip',
+            'political-engagement-tooltip',
+            'political-alignment-tooltip',
+            'political-growth-tooltip',
+            'political-communication-tooltip'
+        ];
+        
+        // First, try to find tooltip in the same section as the SVG
+        if (sectionContainer) {
+            for (let id of possibleIds) {
+                const tooltipEl = document.getElementById(id);
+                if (tooltipEl) {
+                    // Check if tooltip is in the same section (within reasonable distance in DOM)
+                    const tooltipParent = tooltipEl.parentElement;
+                    if (sectionContainer.contains(tooltipEl) || 
+                        (tooltipParent && (sectionContainer.contains(tooltipParent) || 
+                         tooltipParent.contains(sectionContainer)))) {
+                        tooltip = tooltipEl;
+                        tooltipId = id;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // If not found, search globally within results container
+        if (!tooltip) {
+            for (let id of possibleIds) {
+                const tooltipEl = document.getElementById(id);
+                if (tooltipEl && resultsContainer.contains(tooltipEl)) {
+                    tooltip = tooltipEl;
+                    tooltipId = id;
+                    break;
+                }
+            }
+        }
+        
+        // Last resort: find any tooltip in results container
+        if (!tooltip) {
+            const allTooltips = resultsContainer.querySelectorAll('[id$="-tooltip"]');
+            if (allTooltips.length > 0) {
+                // Use the first one found, but this is not ideal
+                tooltip = allTooltips[0];
+                tooltipId = tooltip.id;
+            }
+        }
+        
+        if (!tooltip) return;
+        
+        // Determine selectors and data based on tooltip ID
+        if (tooltipId === 'personality-tooltip') {
+            pointSelector = '.personality-point';
+            labelSelector = '.personality-label';
+            dataAttribute = 'data-trait';
+        } else {
+            pointSelector = '.radar-point';
+            labelSelector = '.radar-label';
+            dataAttribute = 'data-dimension';
+        }
+        
+        // Get data from script tags - try to extract full data first
+        let data = null;
+        
+        // First, try to get data from the extracted data we stored earlier
+        if (window.extractedRadarChartData && window.extractedRadarChartData[tooltipId]) {
+            data = window.extractedRadarChartData[tooltipId];
+        }
+        
+        // If not found, try to extract from script tags directly
+        if (!data) {
+            const scripts = resultsContainer.querySelectorAll('script');
+            for (let script of scripts) {
+                if (script.innerHTML.includes(tooltipId)) {
+                    // Look for const dimensions or const traits pattern
+                    const dataPattern = new RegExp('const\\s+(dimensions|traits)\\s*=\\s*(\\{[\\s\\S]*?\\});');
+                    const dataMatch = script.innerHTML.match(dataPattern);
+                    if (dataMatch) {
+                        try {
+                            const jsonString = dataMatch[2];
+                            data = JSON.parse(jsonString);
+                            break;
+                        } catch (e) {
+                            console.log('Could not parse data from script:', e);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // If still no data, build minimal data from labels as fallback
+        if (!data || Object.keys(data).length === 0) {
+            const chartLabels = svg.querySelectorAll(labelSelector);
+            if (chartLabels.length > 0) {
+                data = {};
+                chartLabels.forEach(label => {
+                    const key = label.getAttribute(dataAttribute);
+                    if (key) {
+                        const labelText = label.textContent.trim();
+                        data[key] = {
+                            label: labelText,
+                            description: 'Hover to see details',
+                            score: 0
+                        };
+                    }
+                });
+            }
+        }
+        
+        if (!data || Object.keys(data).length === 0) return;
+        
+        // Initialize tooltip handlers
+        const points = svg.querySelectorAll(pointSelector);
+        const chartLabels3 = svg.querySelectorAll(labelSelector);
+        
+        function showTooltip(event, key) {
+            if (!data || !data[key]) return;
+            
+            const item = data[key];
+            const tooltipText = (item.label || key) + '\n\n' + (item.description || '') + '\n\nScore: ' + (item.score || 'N/A') + '/100';
+            tooltip.textContent = tooltipText;
+            
+            tooltip.style.opacity = '0';
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.display = 'block';
+            
+            let x, y;
+            if (event && event.target) {
+                const target = event.target;
+                
+                if (target.tagName === 'circle' || (target.parentElement && target.parentElement.classList.contains(pointSelector.replace('.', '')))) {
+                    const circle = target.tagName === 'circle' ? target : target.querySelector('circle');
+                    if (circle && svg) {
+                        const svgRect = svg.getBoundingClientRect();
+                        const scaleX = svgRect.width / 500;
+                        const scaleY = svgRect.height / 500;
+                        const cx = parseFloat(circle.getAttribute('cx'));
+                        const cy = parseFloat(circle.getAttribute('cy'));
+                        x = svgRect.left + (cx * scaleX);
+                        y = svgRect.top + (cy * scaleY);
+                    } else {
+                        x = event.clientX || event.pageX;
+                        y = event.clientY || event.pageY;
+                    }
+                } else if (target.tagName === 'text' || target.classList.contains(labelSelector.replace('.', ''))) {
+                    if (event.clientX && event.clientY) {
+                        x = event.clientX;
+                        y = event.clientY;
+                    } else {
+                        const textRect = target.getBoundingClientRect();
+                        x = textRect.left + (textRect.width / 2);
+                        y = textRect.top + (textRect.height / 2);
+                    }
+                } else {
+                    x = event.clientX || event.pageX;
+                    y = event.clientY || event.pageY;
+                }
+            } else {
+                x = event.clientX || event.pageX;
+                y = event.clientY || event.pageY;
+            }
+            
+            const tooltipWidth = 280;
+            const tooltipHeight = tooltip.offsetHeight || 150;
+            let left = x - (tooltipWidth / 2);
+            let top = y + 20;
+            
+            if (left < 10) left = 10;
+            if (left + tooltipWidth > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipWidth - 10;
+            }
+            if (top < 10) top = y + 20;
+            if (top + tooltipHeight > window.innerHeight - 10) {
+                top = window.innerHeight - tooltipHeight - 10;
+            }
+            
+            tooltip.style.left = left + 'px';
+            tooltip.style.top = top + 'px';
+            tooltip.style.visibility = 'visible';
+            tooltip.style.opacity = '1';
+        }
+        
+        function hideTooltip() {
+            tooltip.style.opacity = '0';
+            setTimeout(() => {
+                tooltip.style.visibility = 'hidden';
+            }, 200);
+        }
+        
+        // Attach handlers to points
+        points.forEach(point => {
+            const key = point.getAttribute(dataAttribute) || point.closest(`[${dataAttribute}]`)?.getAttribute(dataAttribute);
+            if (key && data[key]) {
+                // Remove old handlers
+                point.removeEventListener('mouseenter', point._showTooltip);
+                point.removeEventListener('mouseleave', point._hideTooltip);
+                point.removeEventListener('mousemove', point._moveTooltip);
+                
+                // Add new handlers
+                point._showTooltip = (e) => showTooltip(e, key);
+                point._hideTooltip = hideTooltip;
+                point._moveTooltip = (e) => {
+                    if (tooltip.style.opacity === '1') {
+                        showTooltip(e, key);
+    }
+                };
+                
+                point.addEventListener('mouseenter', point._showTooltip);
+                point.addEventListener('mouseleave', point._hideTooltip);
+                point.addEventListener('mousemove', point._moveTooltip);
+                point.style.cursor = 'help';
+            }
+        });
+        
+        // Attach handlers to labels
+        chartLabels3.forEach(label => {
+            const key = label.getAttribute(dataAttribute);
+            if (key && data[key]) {
+                // Remove old handlers
+                label.removeEventListener('mouseenter', label._showTooltip);
+                label.removeEventListener('mouseleave', label._hideTooltip);
+                label.removeEventListener('mousemove', label._moveTooltip);
+                
+                // Add new handlers
+                label._showTooltip = (e) => showTooltip(e, key);
+                label._hideTooltip = hideTooltip;
+                label._moveTooltip = (e) => {
+                    if (tooltip.style.opacity === '1') {
+                        showTooltip(e, key);
+                    }
+                };
+                
+                label.addEventListener('mouseenter', label._showTooltip);
+                label.addEventListener('mouseleave', label._hideTooltip);
+                label.addEventListener('mousemove', label._moveTooltip);
+                label.style.cursor = 'help';
+            }
+        });
+    });
 }
 
 function displayAnalysisSummary(analysis, analysisId) {
@@ -2302,6 +4791,8 @@ function displayAnalysisError(error) {
 </div>
 
 <style>
+    /* Info Tooltip Styles - Matching Create Predictions Page */
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -2318,4 +4809,357 @@ function displayAnalysisError(error) {
     }
 }
 </style>
+
+<script>
+// Typing Facts for Social Media Analysis
+document.addEventListener('DOMContentLoaded', function() {
+    const typingText = document.getElementById('typingText');
+    const typingCursor = document.getElementById('typingCursor');
+    const didYouKnowSection = document.getElementById('didYouKnowSection');
+    
+    if (!typingText || !typingCursor) return;
+    
+    const socialMediaFacts = [
+        "Social media analysis can reveal professional patterns, communication styles, and cultural fit indicators that traditional resumes don't show.",
+        "Platform-specific behaviors matter: LinkedIn shows professional networking, while Instagram reveals creative expression and lifestyle choices.",
+        "Consistent posting patterns indicate reliability and engagement, while sudden activity changes may signal life transitions or career shifts.",
+        "Content themes across platforms can reveal authentic interests, values, and professional focus areas that complement formal qualifications.",
+        "Social media presence analysis helps assess digital footprint, online reputation, and how candidates present themselves professionally.",
+        "Cross-platform consistency in messaging and branding shows attention to detail and professional awareness of personal brand management.",
+        "Engagement patterns with industry leaders and professional content indicate active learning and professional development interests.",
+        "Analysis of communication style, tone, and content quality provides insights into written communication skills and professionalism."
+    ];
+    
+    let currentFactIndex = 0;
+    let currentCharIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 50;
+    
+    function typeFact() {
+        const currentFact = socialMediaFacts[currentFactIndex];
+        
+        if (!isDeleting && currentCharIndex < currentFact.length) {
+            typingText.textContent = currentFact.substring(0, currentCharIndex + 1);
+            currentCharIndex++;
+            typingSpeed = 50;
+        } else if (isDeleting && currentCharIndex > 0) {
+            typingText.textContent = currentFact.substring(0, currentCharIndex - 1);
+            currentCharIndex--;
+            typingSpeed = 30;
+        } else if (!isDeleting && currentCharIndex === currentFact.length) {
+            // Pause at end of fact
+            typingSpeed = 2000;
+            isDeleting = true;
+        } else if (isDeleting && currentCharIndex === 0) {
+            // Move to next fact
+            isDeleting = false;
+            currentFactIndex = (currentFactIndex + 1) % socialMediaFacts.length;
+            typingSpeed = 500;
+        }
+        
+        setTimeout(typeFact, typingSpeed);
+    }
+    
+    // Start typing animation
+    typeFact();
+    
+    // Hide "Did You Know" section when search starts
+    const originalPerformSearch = window.performSearch;
+    if (originalPerformSearch) {
+        window.performSearch = function() {
+            if (didYouKnowSection) {
+                didYouKnowSection.style.display = 'none';
+            }
+            return originalPerformSearch.apply(this, arguments);
+        };
+    }
+});
+
+// Toast notification function
+// Global flag to prevent duplicate toast notifications
+let isToastShowing = false;
+let toastTimeout = null;
+let secondToastShown = false; // Global flag to prevent duplicate second toast
+
+function showToast(message, type = 'success') {
+    // Prevent duplicate toasts - if flag is set and toast exists, return early
+    if (isToastShowing) {
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            return; // Don't show duplicate toast
+        } else {
+            // Toast was removed but flag wasn't reset, reset it
+            isToastShowing = false;
+        }
+    }
+    
+    // Set flag immediately to prevent duplicates
+    isToastShowing = true;
+    
+    // Remove existing toasts with animation (if any exist)
+    const existingToasts = document.querySelectorAll('.toast-notification');
+    existingToasts.forEach(toast => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
+    });
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : '#ef4444'};
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 300px;
+        max-width: 400px;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    `;
+    
+    // Add icon
+    const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+    toast.innerHTML = `
+        <i class="bi ${icon}" style="font-size: 20px;"></i>
+        <span>${message}</span>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(0)';
+        });
+    });
+    
+    // Auto remove after duration (longer for error toasts)
+    const displayDuration = type === 'error' ? 6000 : 4000; // 6 seconds for errors, 4 seconds for success
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+            // Reset flag after toast is removed
+            isToastShowing = false;
+        }, 300);
+    }, displayDuration);
+}
+
+// Export function for social media analysis
+let currentExportId = null;
+
+window.confirmExportFromSocialMedia = function() {
+    // Get analysis ID from global variable
+    const analysisId = window.lastAnalysisId;
+    
+    if (!analysisId) {
+        showToast('Analysis ID not available. Please wait for the analysis to complete.', 'error');
+        return;
+    }
+    
+    // Get username from the form
+    const username = document.getElementById('username')?.value.trim() || 'Social Media Analysis';
+    
+    // Store the analysis ID for export
+    currentExportId = analysisId;
+    
+    const exportTopicElement = document.getElementById('exportTopic');
+    if (exportTopicElement) {
+        exportTopicElement.textContent = username.length > 50 ? username.substring(0, 50) + '...' : username;
+    }
+    const exportModal = document.getElementById('exportModal');
+    if (exportModal) {
+        exportModal.style.display = 'flex';
+        
+        // Ensure button is set up when modal is shown
+        const confirmExportBtn = document.getElementById('confirmExportBtn');
+        if (confirmExportBtn && !confirmExportBtn.onclick) {
+            confirmExportBtn.onclick = exportSocialMediaAnalysis;
+        }
+    }
+};
+
+window.closeExportModal = function() {
+    const exportModal = document.getElementById('exportModal');
+    if (exportModal) {
+        exportModal.style.display = 'none';
+    }
+    currentExportId = null;
+};
+
+window.exportSocialMediaAnalysis = function() {
+    // Use currentExportId if available, otherwise try window.lastAnalysisId
+    const analysisId = currentExportId || window.lastAnalysisId;
+    
+    if (!analysisId || analysisId === 'null' || analysisId === null || analysisId === 'undefined') {
+        showToast('Error: Analysis ID not found', 'error');
+        closeExportModal();
+        return;
+    }
+    
+    // Validate analysis ID is a valid number
+    const analysisIdNum = parseInt(analysisId);
+    if (isNaN(analysisIdNum) || analysisIdNum <= 0) {
+        console.error('Invalid analysis ID for export:', analysisId);
+        showToast('Error: Invalid analysis ID', 'error');
+        closeExportModal();
+        return;
+    }
+    
+    // Store the ID before closing the modal
+    const analysisIdToExport = analysisIdNum;
+    
+    // Close the modal first
+    closeExportModal();
+    
+    // Show loading message
+    showToast('Exporting PDF...', 'success');
+    
+    // Generate absolute URL to handle subdirectory deployments (cPanel)
+    const baseUrl = '{{ url("/") }}';
+    const exportUrl = `${baseUrl}/social-media/${analysisIdToExport}/export`;
+    
+    // Redirect to the export route
+    // The download will start automatically
+    // Show success message after a short delay (optimistic)
+    setTimeout(() => {
+        showToast('PDF exported successfully!', 'success');
+    }, 1000);
+    
+    window.location.href = exportUrl;
+};
+
+// Set up the confirm export button and modal handlers
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmExportBtn = document.getElementById('confirmExportBtn');
+    if (confirmExportBtn) {
+        confirmExportBtn.onclick = exportSocialMediaAnalysis;
+    }
+    
+    // Close export modal when clicking outside
+    const exportModal = document.getElementById('exportModal');
+    if (exportModal) {
+        exportModal.onclick = function(e) {
+            if (e.target === this) {
+                closeExportModal();
+            }
+        };
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const exportModal = document.getElementById('exportModal');
+            if (exportModal && exportModal.style.display === 'flex') {
+                closeExportModal();
+            }
+        }
+    });
+});
+</script>
+
+<!-- Export Confirmation Modal -->
+<div id="exportModal" class="export-modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="export-modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div style="margin-bottom: 24px;">
+            <span style="font-size: 48px; color: #10b981;">📄</span>
+        </div>
+        <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Export PDF Report</h3>
+        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you ready to export this social media analysis as a PDF report?</p>
+        <p id="exportTopic" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all analysis details and NUJUM insights.</p>
+        
+        <div style="display: flex; gap: 16px; justify-content: center;">
+            <button onclick="closeExportModal()" 
+                    style="padding: 12px 24px; background: transparent; color: #64748b; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="confirmExportBtn" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                Export PDF
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Export Modal Styles */
+    .export-modal-overlay {
+        display: flex;
+    }
+    
+    .export-modal-content {
+        animation: modalFadeIn 0.3s ease-out;
+    }
+    
+    @keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .export-modal-overlay {
+            padding: 16px !important;
+            align-items: flex-start !important;
+            padding-top: 20vh !important;
+        }
+        
+        .export-modal-content {
+            padding: 24px 20px !important;
+            max-width: 100% !important;
+        }
+        
+        .export-modal-content h3 {
+            font-size: 18px !important;
+        }
+        
+        .export-modal-content p {
+            font-size: 14px !important;
+        }
+        
+        .export-modal-content button {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            min-height: 44px !important;
+        }
+        
+        .export-modal-content div[style*="display: flex; gap: 16px"] {
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+        
+        .export-modal-content div[style*="display: flex; gap: 16px"] button {
+            width: 100% !important;
+        }
+    }
+</style>
+
 @endsection
+
+

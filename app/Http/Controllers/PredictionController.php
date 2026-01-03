@@ -219,7 +219,45 @@ class PredictionController extends Controller
 
             // Check if we have valid analysis results from Gemini API
             if (isset($result['title']) && is_array($result) && !empty($result) && !isset($result['raw_response'])) {
-                // We have a properly structured response
+                // Check if this is a fallback response (failed analysis)
+                $isFallbackResponse = (
+                    isset($result['title']) && 
+                    $result['title'] === 'Analysis Failed - Fallback Response'
+                ) || (
+                    isset($result['executive_summary']) && 
+                    strpos($result['executive_summary'], 'Due to technical difficulties') !== false &&
+                    strpos($result['executive_summary'], 'comprehensive analysis could not be generated') !== false
+                );
+                
+                if ($isFallbackResponse) {
+                    // Delete the prediction record entirely - don't save AI API failures
+                    // Preserve analytics by setting prediction_id to null before deleting
+                    // This allows tracking user usage even for failed predictions
+                    $predictionId = $prediction->id;
+                    
+                    // Update all associated analytics to set prediction_id to null
+                    \App\Models\AnalysisAnalytics::where('prediction_id', $predictionId)
+                        ->update(['prediction_id' => null]);
+                    
+                    $prediction->delete();
+                    
+                    $errorMessage = 'Analysis failed due to technical difficulties. Please try again.';
+                    
+                    // Return JSON for AJAX requests
+                    if ($request->ajax() || $request->wantsJson()) {
+                        return response()->json([
+                            'success' => false,
+                            'error' => $errorMessage,
+                            'prediction_id' => null // No prediction ID since it was deleted
+                        ], 500);
+                    }
+                    
+                    return redirect()->back()
+                        ->with('error', $errorMessage)
+                        ->withInput();
+                }
+                
+                // We have a properly structured response (not a fallback)
                 $confidenceScore = $this->extractConfidenceScore($result, 'prediction-analysis');
                 
                 // Try to get API timing from the result metadata if available
@@ -391,6 +429,8 @@ class PredictionController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->get('status'));
         }
+        // Note: Failed predictions (non-AI API failures) are shown in history
+        // AI API failures are not saved to database, so they won't appear anyway
         
         // Date filter
         if ($request->filled('date_from')) {
@@ -832,11 +872,18 @@ class PredictionController extends Controller
         }
 
         try {
+            // Preserve analytics by setting prediction_id to null before deleting
+            // This allows tracking user usage even after prediction is deleted
+            $predictionId = $prediction->id;
+            \App\Models\AnalysisAnalytics::where('prediction_id', $predictionId)
+                ->update(['prediction_id' => null]);
+            
             $prediction->delete();
             
             \Log::info('Prediction deleted successfully', [
-                'prediction_id' => $prediction->id,
-                'user_id' => Auth::id()
+                'prediction_id' => $predictionId,
+                'user_id' => Auth::id(),
+                'analytics_preserved' => true
             ]);
             
             if (request()->expectsJson()) {
