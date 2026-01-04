@@ -62,6 +62,11 @@ class User extends Authenticatable
         return $this->hasMany(SocialMediaAnalysis::class);
     }
 
+    public function dataAnalyses()
+    {
+        return $this->hasMany(DataAnalysis::class);
+    }
+
     /**
      * Get messages sent by this user
      */

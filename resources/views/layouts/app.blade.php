@@ -1147,6 +1147,20 @@
                             </a>
                         </div>
                     </div>
+                    
+                    <div class="nav-dropdown {{ request()->routeIs('data-analysis.*') ? 'has-active-child' : '' }}" id="dataAnalysisDropdown">
+                        <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('dataAnalysisDropdown');">
+                        Data Analysis
+                    </a>
+                        <div class="nav-dropdown-menu">
+                            <a href="{{ route('data-analysis.index') }}" class="nav-dropdown-item {{ request()->routeIs('data-analysis.index') ? 'active' : '' }}">
+                                Analyze Data
+                            </a>
+                            <a href="{{ route('data-analysis.history') }}" class="nav-dropdown-item {{ request()->routeIs('data-analysis.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                        </div>
+                    </div>
                 </div>
                 
                 <div style="display: flex; align-items: center; gap: 12px; justify-self: end;">
@@ -1211,6 +1225,21 @@
                                 Analyze Profile
                     </a>
                             <a href="{{ route('social-media.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="mobile-nav-section {{ request()->routeIs('data-analysis.*') ? 'active has-active-child' : '' }}" id="mobileDataAnalysisSection">
+                        <div class="mobile-nav-section-header" onclick="toggleMobileDropdown('mobileDataAnalysisDropdown', 'mobileDataAnalysisSection')">
+                        Data Analysis
+                            <span class="mobile-nav-arrow">▼</span>
+                        </div>
+                        <div class="mobile-nav-section-content" id="mobileDataAnalysisDropdown" style="display: {{ request()->routeIs('data-analysis.*') ? 'block' : 'none' }};">
+                            <a href="{{ route('data-analysis.index') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('data-analysis.index') ? 'active' : '' }}">
+                                Analyze Data
+                    </a>
+                            <a href="{{ route('data-analysis.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('data-analysis.history') ? 'active' : '' }}">
                                 History
                             </a>
                         </div>
@@ -1370,6 +1399,7 @@
         document.addEventListener('click', function(event) {
             const predictionsDropdown = document.getElementById('predictionsDropdown');
             const socialMediaDropdown = document.getElementById('socialMediaDropdown');
+            const dataAnalysisDropdown = document.getElementById('dataAnalysisDropdown');
             
             if (predictionsDropdown && !predictionsDropdown.contains(event.target)) {
                 // Only remove 'active' class, keep 'has-active-child' for highlighting
@@ -1379,6 +1409,11 @@
             if (socialMediaDropdown && !socialMediaDropdown.contains(event.target)) {
                 // Only remove 'active' class, keep 'has-active-child' for highlighting
                 socialMediaDropdown.classList.remove('active');
+            }
+            
+            if (dataAnalysisDropdown && !dataAnalysisDropdown.contains(event.target)) {
+                // Only remove 'active' class, keep 'has-active-child' for highlighting
+                dataAnalysisDropdown.classList.remove('active');
             }
         });
         
@@ -1398,6 +1433,13 @@
                 if (socialMediaDropdown) {
                     socialMediaDropdown.classList.add('has-active-child');
                     // Don't auto-open, just keep it highlighted
+                }
+            @endif
+            
+            @if(request()->routeIs('data-analysis.*'))
+                const dataAnalysisDropdown = document.getElementById('dataAnalysisDropdown');
+                if (dataAnalysisDropdown) {
+                    dataAnalysisDropdown.classList.add('has-active-child');
                 }
             @endif
         });

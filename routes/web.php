@@ -8,6 +8,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\SocialMediaController;
+use App\Http\Controllers\DataAnalysisController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
@@ -156,6 +157,15 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/social-media/facebook', [SocialMediaController::class, 'getFacebookInfo'])->name('social-media.facebook');
     Route::post('/social-media/instagram', [SocialMediaController::class, 'getInstagramInfo'])->name('social-media.instagram');
     Route::post('/social-media/instagram-from-page', [SocialMediaController::class, 'getInstagramFromFacebookPage'])->name('social-media.instagram-from-page');
+    
+    // Data Analysis routes
+    Route::get('/data-analysis', [DataAnalysisController::class, 'index'])->name('data-analysis.index');
+    Route::get('/data-analysis/history', [DataAnalysisController::class, 'history'])->name('data-analysis.history');
+    Route::post('/data-analysis/upload', [DataAnalysisController::class, 'upload'])->name('data-analysis.upload');
+    Route::get('/data-analysis/{dataAnalysis}/analysis-html', [DataAnalysisController::class, 'getAnalysisHtml'])->name('data-analysis.analysis-html');
+    Route::get('/data-analysis/{dataAnalysis}/excel-preview', [DataAnalysisController::class, 'excelPreview'])->name('data-analysis.excel-preview');
+    Route::get('/data-analysis/{dataAnalysis}', [DataAnalysisController::class, 'show'])->name('data-analysis.show');
+    Route::delete('/data-analysis/{dataAnalysis}', [DataAnalysisController::class, 'destroy'])->name('data-analysis.destroy');
     
     // Parameterized routes must come LAST
     Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');

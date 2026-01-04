@@ -102,6 +102,9 @@ class GeminiService implements AIServiceInterface
                 'auth_method' => 'x-goog-api-key header'
             ]);
             
+            // Increase output tokens for data-analysis to handle large datasets and multiple charts
+            $maxOutputTokens = ($analysisType === 'data-analysis') ? 32768 : 16384;
+            
             $response = Http::timeout(300)->withOptions([
                 'verify' => $this->sslVerify, // Use the configured SSL verification option
                 'curl' => [
@@ -125,7 +128,7 @@ class GeminiService implements AIServiceInterface
                     'temperature' => 0.7,
                     'topK' => 40,
                     'topP' => 0.95,
-                    'maxOutputTokens' => 16384, // Increased for comprehensive political/professional analysis
+                    'maxOutputTokens' => $maxOutputTokens,
                 ],
                 'safetySettings' => [
                     [
