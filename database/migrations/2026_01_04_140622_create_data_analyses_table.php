@@ -13,6 +13,17 @@ return new class extends Migration
     {
         Schema::create('data_analyses', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('file_name');
+            $table->string('file_path')->nullable();
+            $table->json('excel_data')->nullable();
+            $table->json('ai_insights')->nullable();
+            $table->json('chart_configs')->nullable();
+            $table->string('model_used')->default('gemini-2.5-flash');
+            $table->decimal('processing_time', 10, 3)->nullable();
+            $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
+            $table->text('error_message')->nullable();
+            $table->text('custom_insights')->nullable();
             $table->timestamps();
         });
     }
