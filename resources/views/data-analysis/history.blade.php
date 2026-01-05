@@ -334,6 +334,12 @@
                             <i class="bi bi-three-dots analysis-tile-menu" 
                                onclick="event.stopPropagation(); toggleContextMenu(event, {{ $analysis->id }}, '{{ Str::limit($analysis->file_name, 50) }}', {{ $analysis->status === 'completed' ? 'true' : 'false' }})"></i>
                             <div class="analysis-tile-context-menu" id="contextMenu{{ $analysis->id }}">
+                                @if($analysis->status === 'completed')
+                                <div class="analysis-tile-context-menu-item" onclick="event.stopPropagation(); closeContextMenu(); loadDashboardView({{ $analysis->id }}, this.closest('.analysis-tile-wrapper').querySelector('.analysis-tile'))">
+                                    <i class="bi bi-speedometer2"></i>
+                                    <span>Dashboard View</span>
+                                </div>
+                                @endif
                                 <div class="analysis-tile-context-menu-item" onclick="event.stopPropagation(); closeContextMenu(); previewExcelData({{ $analysis->id }}, this.closest('.analysis-tile-wrapper').querySelector('.analysis-tile'))">
                                     <i class="bi bi-file-earmark-spreadsheet"></i>
                                     <span>Raw Data</span>
@@ -985,6 +991,153 @@ function toggleContextMenu(event, analysisId, fileName, isCompleted) {
 function closeContextMenu() {
     document.querySelectorAll('.analysis-tile-context-menu').forEach(menu => {
         menu.classList.remove('show');
+    });
+}
+
+// Load Dashboard View
+function loadDashboardView(analysisId, tileElement) {
+    // Check if this tile is already active and displaying dashboard - if so, switch to analysis
+    if (tileElement && tileElement.classList.contains('active') && currentDisplayedAnalysisId === analysisId && currentViewType === 'dashboard') {
+        // Switch to analysis view
+        loadAnalysisResults(analysisId, tileElement);
+        return;
+    }
+    
+    // Set active tile
+    setActiveTile(tileElement);
+    
+    // Update current displayed analysis ID and view type
+    currentDisplayedAnalysisId = analysisId;
+    currentViewType = 'dashboard';
+    
+    // Show loading state in right panel
+    const resultsContent = document.getElementById('analysisResultsContent');
+    const resultsEmpty = document.getElementById('analysisResultsEmpty');
+    
+    resultsEmpty.style.display = 'none';
+    resultsContent.style.display = 'flex';
+    resultsContent.style.alignItems = 'center';
+    resultsContent.style.justifyContent = 'center';
+    resultsContent.style.minHeight = '100%';
+    resultsContent.innerHTML = '<div style="text-align: center; color: #64748b;"><i class="bi bi-hourglass-split" style="font-size: 48px; display: block; margin-bottom: 16px; animation: spin 1s linear infinite;"></i><p>Loading dashboard...</p></div>';
+    
+    // Destroy any existing charts before loading new dashboard
+    if (window.dashboardChartInstances) {
+        Object.keys(window.dashboardChartInstances).forEach(key => {
+            const chart = window.dashboardChartInstances[key];
+            if (chart && typeof chart.destroy === 'function') {
+                try {
+                    chart.destroy();
+                } catch (e) {
+                    console.warn('Error destroying chart:', e);
+                }
+            }
+        });
+        window.dashboardChartInstances = {};
+    }
+    
+    if (window.dashboardMapInstances) {
+        Object.keys(window.dashboardMapInstances).forEach(key => {
+            const map = window.dashboardMapInstances[key];
+            if (map && typeof map.remove === 'function') {
+                try {
+                    map.remove();
+                } catch (e) {
+                    console.warn('Error destroying map:', e);
+                }
+            }
+        });
+        window.dashboardMapInstances = {};
+    }
+
+    // Fetch dashboard view
+    fetch('{{ url("/data-analysis") }}/' + analysisId + '/dashboard', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'text/html',
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to load dashboard');
+        }
+        return response.text();
+    })
+    .then(html => {
+        resultsContent.style.display = 'block';
+        resultsContent.style.width = '100%';
+        resultsContent.style.minHeight = 'auto';
+        resultsContent.innerHTML = html;
+        
+        // Set HTML first
+        resultsContent.innerHTML = html;
+        
+        // Extract and execute script tags from the loaded HTML
+        const scripts = resultsContent.querySelectorAll('script');
+        
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            
+            if (oldScript.src) {
+                // External script - load it
+                newScript.onload = function() {};
+                newScript.onerror = function() {};
+                document.head.appendChild(newScript);
+            } else {
+                // Inline script - execute it in global scope
+                newScript.textContent = oldScript.textContent;
+                try {
+                    // Execute in global scope
+                    (function() {
+                        eval(newScript.textContent);
+                    })();
+                } catch (e) {
+                    console.error('Error executing script:', e);
+                }
+            }
+            
+            // Remove old script
+            oldScript.parentNode.removeChild(oldScript);
+        });
+        
+        // Wait a bit for scripts to execute, then ensure functions are available
+        setTimeout(() => {
+            // Re-attach event listeners if needed
+            const categorySelect = resultsContent.querySelector('#filterCategory');
+            const datasetSelect = resultsContent.querySelector('#filterDataset');
+            const chartTypeSelect = resultsContent.querySelector('#filterChartType');
+            const clearBtn = resultsContent.querySelector('#clearFiltersBtn');
+            
+            if (categorySelect && typeof window.applyFilters === 'function') {
+                categorySelect.addEventListener('change', window.applyFilters);
+            }
+            if (datasetSelect && typeof window.applyFilters === 'function') {
+                datasetSelect.addEventListener('change', window.applyFilters);
+            }
+            if (chartTypeSelect && typeof window.applyFilters === 'function') {
+                chartTypeSelect.addEventListener('change', window.applyFilters);
+            }
+            if (clearBtn && typeof window.clearFilters === 'function') {
+                clearBtn.addEventListener('click', window.clearFilters);
+            }
+            
+            // Initialize dashboard charts if function exists
+            if (typeof window.initializeDashboardCharts === 'function') {
+                window.initializeDashboardCharts();
+            }
+        }, 300);
+    })
+    .catch(error => {
+        console.error('Error loading dashboard:', error);
+        resultsContent.style.display = 'flex';
+        resultsContent.style.alignItems = 'center';
+        resultsContent.style.justifyContent = 'center';
+        resultsContent.style.minHeight = '100%';
+        resultsContent.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 48px;"><i class="bi bi-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 16px;"></i><p>Failed to load dashboard</p><p style="font-size: 12px; color: #9ca3af; margin-top: 8px;">' + error.message + '</p></div>';
     });
 }
 </script>

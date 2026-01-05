@@ -300,6 +300,146 @@ class DataAnalysisController extends Controller
     }
 
     /**
+     * Show dashboard view for data analysis
+     */
+    public function dashboard(DataAnalysis $dataAnalysis)
+    {
+        // Check ownership
+        if ((int)Auth::id() !== (int)$dataAnalysis->user_id) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Unauthorized access',
+                ], 403);
+            }
+            abort(403, 'Unauthorized access');
+        }
+
+        // Check if analysis is completed
+        if ($dataAnalysis->status !== DataAnalysis::STATUS_COMPLETED) {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Analysis not completed yet',
+                ], 400);
+            }
+            abort(400, 'Analysis not completed yet');
+        }
+
+        try {
+            // Extract dashboard data from AI insights and chart configs
+            $dashboardData = $this->prepareDashboardDataFromInsights($dataAnalysis);
+            
+            // If AJAX request, return just the dashboard HTML
+            if (request()->ajax() || request()->wantsJson()) {
+                $html = view('data-analysis.dashboard', compact('dataAnalysis', 'dashboardData'))->render();
+                return response($html)->header('Content-Type', 'text/html');
+            }
+
+            return view('data-analysis.dashboard', compact('dataAnalysis', 'dashboardData'));
+        } catch (\Exception $e) {
+            Log::error('Error generating dashboard: ' . $e->getMessage());
+            if (request()->ajax() || request()->wantsJson()) {
+                return response('<div style="text-align: center; color: #ef4444; padding: 48px;"><i class="bi bi-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 16px;"></i><p>Failed to load dashboard</p></div>', 500)
+                    ->header('Content-Type', 'text/html');
+            }
+            return back()->with('error', 'Failed to load dashboard: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Prepare dashboard data from AI insights and chart configs
+     */
+    protected function prepareDashboardDataFromInsights(DataAnalysis $dataAnalysis): array
+    {
+        $aiInsights = $dataAnalysis->ai_insights ?? [];
+        $chartConfigs = $dataAnalysis->chart_configs ?? [];
+        
+        $dashboardData = [
+            'insights' => $aiInsights,
+            'chart_configs' => $chartConfigs,
+            'summary' => $aiInsights['summary'] ?? '',
+            'key_findings' => $aiInsights['key_findings'] ?? [],
+            'metrics' => $this->extractMetricsFromCharts($chartConfigs),
+            'filter_options' => $this->extractFilterOptionsFromCharts($chartConfigs),
+        ];
+
+        return $dashboardData;
+    }
+
+    /**
+     * Extract metrics from chart configs
+     */
+    protected function extractMetricsFromCharts(array $chartConfigs): array
+    {
+        $metrics = [];
+        
+        foreach ($chartConfigs as $chart) {
+            $chartData = $chart['data'] ?? [];
+            $labels = $chartData['labels'] ?? [];
+            $datasets = $chartData['datasets'] ?? [];
+            
+            // Extract totals from datasets
+            foreach ($datasets as $dataset) {
+                $data = $dataset['data'] ?? [];
+                if (is_array($data) && count($data) > 0) {
+                    $total = array_sum(array_filter($data, function($val) {
+                        return is_numeric($val);
+                    }));
+                    
+                    $chartTitle = $chart['title'] ?? '';
+                    if (!empty($chartTitle)) {
+                        $metrics[$chartTitle] = $total;
+                    }
+                }
+            }
+        }
+        
+        return $metrics;
+    }
+
+    /**
+     * Extract filter options from chart configs
+     */
+    protected function extractFilterOptionsFromCharts(array $chartConfigs): array
+    {
+        $filters = [
+            'categories' => [],
+            'labels' => [],
+            'datasets' => [],
+        ];
+        
+        foreach ($chartConfigs as $chart) {
+            $chartData = $chart['data'] ?? [];
+            $labels = $chartData['labels'] ?? [];
+            $datasets = $chartData['datasets'] ?? [];
+            
+            // Collect unique labels
+            foreach ($labels as $label) {
+                if (!in_array($label, $filters['labels'])) {
+                    $filters['labels'][] = $label;
+                }
+            }
+            
+            // Collect dataset names
+            foreach ($datasets as $dataset) {
+                $label = $dataset['label'] ?? '';
+                if (!empty($label) && !in_array($label, $filters['datasets'])) {
+                    $filters['datasets'][] = $label;
+                }
+            }
+            
+            // Collect chart categories/types
+            $chartType = $chart['type'] ?? '';
+            if (!empty($chartType) && !in_array($chartType, $filters['categories'])) {
+                $filters['categories'][] = $chartType;
+            }
+        }
+        
+        return $filters;
+    }
+
+    /**
      * Get Excel data preview
      */
     public function excelPreview(DataAnalysis $dataAnalysis)
