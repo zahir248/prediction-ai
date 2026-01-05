@@ -56,6 +56,15 @@
                     Sign In
                 </button>
             </form>
+            
+            <!-- Homepage Link -->
+            <div style="text-align: center; margin-top: 16px;">
+                <a href="{{ route('home') }}" 
+                   class="homepage-link"
+                   style="color: #374151; text-decoration: underline; font-size: 14px; font-weight: 500; transition: all 0.3s ease;">
+                    Back to Home
+                </a>
+            </div>
         </div>
 
         <!-- Footer -->
@@ -355,6 +364,11 @@
     
     a:hover {
         color: #5a67d8 !important;
+    }
+    
+    /* Homepage link hover effect */
+    .homepage-link:hover {
+        color: #1f2937 !important;
     }
     
     /* Smooth transitions */
