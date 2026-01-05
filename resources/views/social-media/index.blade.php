@@ -521,8 +521,13 @@
                 id="searchButton"
                 onclick="return checkBeforeSearch(event);"
                 class="floating-submit-btn"
+                @guest disabled @endguest
             >
-                Generate
+                @auth
+                    Generate
+                @else
+                    Login to Generate
+                @endauth
             </button>
         </div>
     </div>
@@ -733,12 +738,19 @@
         justify-content: center;
     }
     
-    .floating-submit-btn:hover {
+    .floating-submit-btn:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
     }
     
-    .floating-submit-btn:active {
+    .floating-submit-btn:disabled {
+        background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        cursor: not-allowed;
+        opacity: 0.7;
+        box-shadow: none;
+    }
+    
+    .floating-submit-btn:active:not(:disabled) {
         transform: translateY(0);
     }
     

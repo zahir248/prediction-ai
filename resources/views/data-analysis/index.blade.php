@@ -352,12 +352,19 @@
         justify-content: center;
     }
     
-    .floating-submit-btn:hover {
+    .floating-submit-btn:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
     }
     
-    .floating-submit-btn:active {
+    .floating-submit-btn:disabled {
+        background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        cursor: not-allowed;
+        opacity: 0.7;
+        box-shadow: none;
+    }
+    
+    .floating-submit-btn:active:not(:disabled) {
         transform: translateY(0);
     }
     
@@ -592,8 +599,8 @@ Number of Manufacturers by State (Negeri)"
         
         <!-- Floating Submit Button -->
         <div class="floating-submit-container" id="floatingSubmitContainer">
-            <button type="submit" form="uploadForm" class="floating-submit-btn" id="submitBtn" onclick="return checkBeforeSubmit(event);">
-                <span id="submitText">Generate</span>
+            <button type="submit" form="uploadForm" class="floating-submit-btn" id="submitBtn" onclick="return checkBeforeSubmit(event);" @guest disabled @endguest>
+                <span id="submitText">@auth Generate @else Login to Generate @endauth</span>
                 <span id="submitLoader" style="display: none;">⏳ Processing...</span>
             </button>
         </div>

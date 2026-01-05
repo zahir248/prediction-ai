@@ -14,7 +14,7 @@ use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('dashboard');
 })->name('home');
 
 // Simple health check route (no auth required)
@@ -33,6 +33,11 @@ Route::get('/responsive-test', function () {
 
 // Documentation download route (no auth required)
 Route::get('/documentation', [DocumentationController::class, 'download'])->name('documentation.download');
+
+// Analyze pages (accessible without auth, but buttons disabled if not logged in)
+Route::get('/predictions/create', [PredictionController::class, 'create'])->name('predictions.create');
+Route::get('/social-media', [SocialMediaController::class, 'index'])->name('social-media.index');
+Route::get('/data-analysis', [DataAnalysisController::class, 'index'])->name('data-analysis.index');
 
 // Authentication routes
 Route::middleware(['auth'])->group(function () {
@@ -94,7 +99,6 @@ Route::middleware(['auth'])->group(function () {
     
     // Prediction routes - ALL specific routes must come BEFORE parameterized routes
     Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
-    Route::get('/predictions/create', [PredictionController::class, 'create'])->name('predictions.create');
     Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
     Route::get('/predictions/history', [PredictionController::class, 'history'])->name('predictions.history');
     Route::get('/predictions/analytics', [PredictionController::class, 'analytics'])->name('predictions.analytics');
@@ -143,7 +147,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/test-url-validation', [PredictionController::class, 'testUrlValidation'])->name('predictions.test-url-validation');
     
     // Social Media Analysis routes
-    Route::get('/social-media', [SocialMediaController::class, 'index'])->name('social-media.index');
     Route::get('/social-media/history', [SocialMediaController::class, 'history'])->name('social-media.history');
     Route::get('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'show'])->name('social-media.show');
     Route::get('/social-media/{socialMediaAnalysis}/export', [SocialMediaController::class, 'export'])->name('social-media.export');
@@ -159,7 +162,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/social-media/instagram-from-page', [SocialMediaController::class, 'getInstagramFromFacebookPage'])->name('social-media.instagram-from-page');
     
     // Data Analysis routes
-    Route::get('/data-analysis', [DataAnalysisController::class, 'index'])->name('data-analysis.index');
     Route::get('/data-analysis/history', [DataAnalysisController::class, 'history'])->name('data-analysis.history');
     Route::post('/data-analysis/upload', [DataAnalysisController::class, 'upload'])->name('data-analysis.upload');
     Route::get('/data-analysis/{dataAnalysis}/analysis-html', [DataAnalysisController::class, 'getAnalysisHtml'])->name('data-analysis.analysis-html');

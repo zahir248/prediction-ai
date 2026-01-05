@@ -1109,13 +1109,13 @@
         <nav class="nav">
             <div class="nav-content">
                 <div class="nav-brand">
-                    <a href="{{ route('dashboard') }}" class="nav-brand" style="display: flex; align-items: center;">
+                    <a href="{{ route('home') }}" class="nav-brand" style="display: flex; align-items: center;">
                         <img src="{{ asset('image/logo2.png') }}" alt="NUJUM Logo" style="width: 40px; height: 40px; object-fit: contain;">
                     </a>
                 </div>
                 
                 <div class="nav-links hidden-mobile">
-                    <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
                         Home
                     </a>
                     <div class="nav-dropdown {{ request()->routeIs('predictions.*') ? 'has-active-child' : '' }}" id="predictionsDropdown">
@@ -1126,12 +1126,14 @@
                             <a href="{{ route('predictions.create') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
                                 Analyze Prediction
                             </a>
+                            @auth
                             <a href="{{ route('predictions.history') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
                                 History
                             </a>
                             <a href="{{ route('predictions.analytics') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
                                 Analytics
                             </a>
+                            @endauth
                         </div>
                     </div>
                     <div class="nav-dropdown {{ request()->routeIs('social-media.*') ? 'has-active-child' : '' }}" id="socialMediaDropdown">
@@ -1142,9 +1144,11 @@
                             <a href="{{ route('social-media.index') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.index') ? 'active' : '' }}">
                                 Analyze Profile
                             </a>
+                            @auth
                             <a href="{{ route('social-media.history') }}" class="nav-dropdown-item {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
                                 History
                             </a>
+                            @endauth
                         </div>
                     </div>
                     
@@ -1156,9 +1160,11 @@
                             <a href="{{ route('data-analysis.index') }}" class="nav-dropdown-item {{ request()->routeIs('data-analysis.index') ? 'active' : '' }}">
                                 Analyze Data
                             </a>
+                            @auth
                             <a href="{{ route('data-analysis.history') }}" class="nav-dropdown-item {{ request()->routeIs('data-analysis.history') ? 'active' : '' }}">
                                 History
                             </a>
+                            @endauth
                         </div>
                     </div>
                 </div>
@@ -1195,7 +1201,7 @@
             <!-- Mobile navigation menu -->
             <div class="mobile-nav" id="mobileNav">
                 <div class="mobile-nav-links">
-                    <a href="{{ route('dashboard') }}" class="mobile-nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <a href="{{ route('home') }}" class="mobile-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
                         Home
                     </a>
                     <div class="mobile-nav-section {{ request()->routeIs('predictions.*') ? 'active has-active-child' : '' }}" id="mobilePredictionsSection">
@@ -1207,12 +1213,14 @@
                             <a href="{{ route('predictions.create') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.create') ? 'active' : '' }}">
                                 Analyze Prediction
                             </a>
+                            @auth
                             <a href="{{ route('predictions.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
                                 History
                             </a>
                             <a href="{{ route('predictions.analytics') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
                                 Analytics
                             </a>
+                            @endauth
                         </div>
                     </div>
                     <div class="mobile-nav-section {{ request()->routeIs('social-media.*') ? 'active has-active-child' : '' }}" id="mobileSocialMediaSection">
@@ -1224,9 +1232,11 @@
                             <a href="{{ route('social-media.index') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('social-media.index') ? 'active' : '' }}">
                                 Analyze Profile
                     </a>
+                            @auth
                             <a href="{{ route('social-media.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
                                 History
                             </a>
+                            @endauth
                         </div>
                     </div>
                     
@@ -1239,9 +1249,11 @@
                             <a href="{{ route('data-analysis.index') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('data-analysis.index') ? 'active' : '' }}">
                                 Analyze Data
                     </a>
+                            @auth
                             <a href="{{ route('data-analysis.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('data-analysis.history') ? 'active' : '' }}">
                                 History
                             </a>
+                            @endauth
                         </div>
                     </div>
                     @auth
