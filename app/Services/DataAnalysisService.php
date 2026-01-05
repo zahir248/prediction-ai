@@ -92,7 +92,7 @@ class DataAnalysisService
     /**
      * Analyze data using AI (Gemini)
      */
-    public function analyzeData(array $excelData, string $customInsights = '', bool $useSummary = false): array
+    public function analyzeData(array $excelData, string $customInsights = '', bool $useSummary = false, $analytics = null): array
     {
         try {
             $startTime = microtime(true);
@@ -103,13 +103,13 @@ class DataAnalysisService
             // Create prompt for AI analysis
             $prompt = $this->createAnalysisPrompt($dataSummary, $customInsights, $useSummary);
             
-            // Call AI service
+            // Call AI service (pass analytics for tracking)
             $aiResponse = $this->aiService->analyzeText(
                 $prompt,
                 'data-analysis',
                 null,
                 null,
-                null,
+                $analytics,
                 null
             );
             

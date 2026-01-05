@@ -33,13 +33,20 @@ class SocialMediaAnalysis extends Model
         'model_used',
         'processing_time',
         'user_id',
-        'status'
+        'status',
+        'apify_calls_count',
+        'apify_usage_details',
+        'apify_total_cost',
+        'apify_total_response_time'
     ];
 
     protected $casts = [
         'platform_data' => 'array',
         'ai_analysis' => 'array',
         'processing_time' => 'float',
+        'apify_usage_details' => 'array',
+        'apify_total_cost' => 'float',
+        'apify_total_response_time' => 'float',
     ];
 
     // Ensure processing_time is always a float

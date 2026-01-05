@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DataAnalysis;
 use App\Services\DataAnalysisService;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -12,10 +13,12 @@ use Illuminate\Support\Facades\Storage;
 class DataAnalysisController extends Controller
 {
     protected $dataAnalysisService;
+    protected $analyticsService;
 
-    public function __construct(DataAnalysisService $dataAnalysisService)
+    public function __construct(DataAnalysisService $dataAnalysisService, AnalyticsService $analyticsService)
     {
         $this->dataAnalysisService = $dataAnalysisService;
+        $this->analyticsService = $analyticsService;
     }
 
     /**
@@ -111,9 +114,35 @@ class DataAnalysisController extends Controller
             $useSummary = $request->has('use_summary') && $request->input('use_summary') == '1';
             $customInsights = $useSummary ? '' : $request->input('custom_insights', '');
             
+            // Prepare text for analytics (summary of data)
+            $dataSummaryText = '';
+            if (isset($processedData['sheets']) && is_array($processedData['sheets'])) {
+                foreach ($processedData['sheets'] as $sheet) {
+                    if (isset($sheet['data']) && is_array($sheet['data'])) {
+                        $dataSummaryText .= json_encode($sheet['data']) . "\n";
+                    }
+                }
+            }
+            
+            // Start analytics tracking
+            $analytics = $this->analyticsService->startAnalysisWithoutPrediction(Auth::id(), [
+                'text' => $dataSummaryText,
+                'uploaded_files' => [['size' => $file->getSize() ?? 0]],
+                'analysis_type' => 'data-analysis',
+            ]);
+            
             try {
-                $analysisResult = $this->dataAnalysisService->analyzeData($processedData, $customInsights, $useSummary);
+                // Pass analytics to the service (we'll need to update the service method)
+                $analysisResult = $this->dataAnalysisService->analyzeData($processedData, $customInsights, $useSummary, $analytics);
                 $processingTime = round(microtime(true) - $startTime, 3);
+                
+                // Complete analytics tracking
+                if ($analytics) {
+                    $this->analyticsService->completeAnalysis($analytics, [
+                        'total_processing_time' => $processingTime,
+                        'api_error_message' => (isset($analysisResult['insights']) && !empty($analysisResult['insights'])) ? null : 'Analysis failed'
+                    ]);
+                }
                 
                 // Check if we have valid analysis results with charts
                 $hasValidInsights = isset($analysisResult['insights']) && is_array($analysisResult['insights']) && !empty($analysisResult['insights']);
@@ -177,6 +206,15 @@ class DataAnalysisController extends Controller
                 } else {
                     // Invalid response or no charts generated - delete the record (don't save to database)
                     // This will show the same "Service Unavailable" UI as other AI API failures
+                    
+                    // Complete analytics tracking before deleting (track the failure)
+                    if (isset($analytics) && $analytics) {
+                        $this->analyticsService->completeAnalysis($analytics, [
+                            'total_processing_time' => $processingTime,
+                            'api_error_message' => 'Analysis failed: Invalid response or no charts generated'
+                        ]);
+                    }
+                    
                     $dataAnalysis->delete();
                     
                     // Use consistent error message for all AI API failures (triggers Service Unavailable UI)
@@ -198,6 +236,14 @@ class DataAnalysisController extends Controller
             } catch (\Exception $e) {
                 // Calculate processing time even for exceptions
                 $processingTime = round(microtime(true) - $startTime, 3);
+                
+                // Complete analytics tracking with error
+                if (isset($analytics) && $analytics) {
+                    $this->analyticsService->completeAnalysis($analytics, [
+                        'total_processing_time' => $processingTime,
+                        'api_error_message' => 'Analysis failed: ' . $e->getMessage()
+                    ]);
+                }
                 
                 Log::error('AI analysis failed: ' . $e->getMessage(), [
                     'exception' => $e,
@@ -487,7 +533,27 @@ class DataAnalysisController extends Controller
             Storage::disk('public')->delete($dataAnalysis->file_path);
         }
 
+        $analysisId = $dataAnalysis->id;
+        $createdAt = $dataAnalysis->created_at;
+        $updatedAt = $dataAnalysis->updated_at;
+        
+        // Preserve analytics by finding and keeping analytics records
+        // Analytics records are independent (no foreign key), so they remain automatically
+        // But we log this for clarity
+        $analyticsCount = \App\Models\AnalysisAnalytics::where('user_id', Auth::id())
+            ->where('analysis_type', 'data-analysis')
+            ->where('created_at', '>=', $createdAt->subMinutes(5))
+            ->where('created_at', '<=', $updatedAt->addMinutes(5))
+            ->count();
+        
         $dataAnalysis->delete();
+        
+        Log::info('Data analysis deleted', [
+            'user_id' => Auth::id(),
+            'analysis_id' => $analysisId,
+            'analytics_preserved' => $analyticsCount > 0,
+            'analytics_count' => $analyticsCount
+        ]);
 
         // Return JSON for AJAX requests
         if (request()->ajax() || request()->wantsJson()) {

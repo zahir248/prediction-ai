@@ -5,13 +5,15 @@ namespace App\Services;
 use App\Models\AnalysisAnalytics;
 use App\Models\Prediction;
 use App\Models\User;
+use App\Models\SocialMediaAnalysis;
+use App\Models\DataAnalysis;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Log;
 
 class AnalyticsService
 {
     /**
-     * Start tracking an analysis
+     * Start tracking an analysis (for predictions)
      */
     public function startAnalysis(Prediction $prediction, array $inputData = [])
     {
@@ -41,6 +43,84 @@ class AnalyticsService
         } catch (\Exception $e) {
             Log::error('Failed to start analysis tracking', [
                 'prediction_id' => $prediction->id,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Start tracking an analysis without a Prediction model (for social media and data analysis)
+     */
+    public function startAnalysisWithoutPrediction(int $userId, array $inputData = [])
+    {
+        try {
+            // Get Apify usage if this is a social media analysis
+            $apifyCallsCount = 0;
+            $apifyPlatformsUsed = null;
+            $apifyTotalCost = 0.00;
+            $apifyTotalResponseTime = 0.00;
+            $apifySuccessfulCalls = 0;
+            $apifyFailedCalls = 0;
+            
+            if (isset($inputData['social_media_analysis_id'])) {
+                $socialMediaAnalysis = \App\Models\SocialMediaAnalysis::find($inputData['social_media_analysis_id']);
+                if ($socialMediaAnalysis) {
+                    $apifyCallsCount = $socialMediaAnalysis->apify_calls_count ?? 0;
+                    $apifyUsageDetails = $socialMediaAnalysis->apify_usage_details ?? [];
+                    $apifyTotalCost = $socialMediaAnalysis->apify_total_cost ?? 0.00;
+                    $apifyTotalResponseTime = $socialMediaAnalysis->apify_total_response_time ?? 0.00;
+                    
+                    // Extract platforms used
+                    $platforms = [];
+                    foreach ($apifyUsageDetails as $usage) {
+                        if (isset($usage['platform'])) {
+                            $platforms[] = $usage['platform'];
+                        }
+                        if (isset($usage['success'])) {
+                            if ($usage['success']) {
+                                $apifySuccessfulCalls++;
+                            } else {
+                                $apifyFailedCalls++;
+                            }
+                        }
+                    }
+                    $apifyPlatformsUsed = !empty($platforms) ? json_encode(array_unique($platforms)) : null;
+                }
+            }
+            
+            $analytics = AnalysisAnalytics::create([
+                'prediction_id' => null,
+                'user_id' => $userId,
+                'input_text_length' => strlen($inputData['text'] ?? ''),
+                'scraped_urls_count' => count($inputData['source_urls'] ?? []),
+                'uploaded_files_count' => count($inputData['uploaded_files'] ?? []),
+                'total_file_size_bytes' => $this->calculateTotalFileSize($inputData['uploaded_files'] ?? []),
+                'user_agent' => Request::userAgent(),
+                'ip_address' => Request::ip(),
+                'analysis_type' => $inputData['analysis_type'] ?? 'unknown',
+                'prediction_horizon' => null,
+                'analysis_started_at' => now(),
+                'api_endpoint' => config('services.gemini.base_url', 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'),
+                'apify_calls_count' => $apifyCallsCount,
+                'apify_platforms_used' => $apifyPlatformsUsed,
+                'apify_total_cost' => round($apifyTotalCost, 6),
+                'apify_total_response_time' => round($apifyTotalResponseTime, 4),
+                'apify_successful_calls' => $apifySuccessfulCalls,
+                'apify_failed_calls' => $apifyFailedCalls,
+            ]);
+
+            Log::info('Analysis tracking started (without prediction)', [
+                'analytics_id' => $analytics->id,
+                'user_id' => $userId,
+                'analysis_type' => $inputData['analysis_type'] ?? 'unknown',
+                'apify_calls' => $apifyCallsCount
+            ]);
+
+            return $analytics;
+        } catch (\Exception $e) {
+            Log::error('Failed to start analysis tracking (without prediction)', [
+                'user_id' => $userId,
                 'error' => $e->getMessage()
             ]);
             return null;
@@ -126,27 +206,114 @@ class AnalyticsService
      */
     public function getUserAnalytics(User $user, $startDate = null, $endDate = null)
     {
-        $startDate = $startDate ?? now()->subMonth();
-        $endDate = $endDate ?? now();
+        // Get analytics from analysis_analytics table (tracks all statuses) for token/cost metrics
+        $analyticsBreakdown = $this->getAnalysisTypeBreakdown($user->id, $startDate, $endDate);
+        
+        // Count directly from actual analysis tables to match history page counts
+        // This ensures we show the same counts as the history pages and includes all historical data
+        $socialMediaQuery = SocialMediaAnalysis::where('user_id', $user->id);
+        if ($startDate && $endDate) {
+            $socialMediaQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $socialMediaCountFromTable = $socialMediaQuery->count(); // Count all statuses: pending, processing, completed, failed
+            
+        $dataAnalysisQuery = DataAnalysis::where('user_id', $user->id);
+        if ($startDate && $endDate) {
+            $dataAnalysisQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $dataAnalysisCountFromTable = $dataAnalysisQuery->count(); // Count all statuses: pending, processing, completed, failed
+        
+        // Get predictions count - prefer analytics table if available, otherwise count from table
+        $predictionsCountFromAnalytics = $analyticsBreakdown['prediction-analysis'] ?? 0;
+        $predictionsQuery = Prediction::where('user_id', $user->id);
+        if ($startDate && $endDate) {
+            $predictionsQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $predictionsCountFromTable = $predictionsQuery->count(); // Count all statuses
+        
+        // Use counts from actual tables to match history page behavior
+        // This ensures consistency between analytics page and history pages
+        $analyticsBreakdown['social-media-analysis'] = $socialMediaCountFromTable;
+        $analyticsBreakdown['data-analysis'] = $dataAnalysisCountFromTable;
+        $analyticsBreakdown['prediction-analysis'] = $predictionsCountFromTable > 0 ? $predictionsCountFromTable : $predictionsCountFromAnalytics;
+
+        // Calculate total analyses from all sources (all statuses included)
+        $totalAnalyses = array_sum($analyticsBreakdown);
+
+        // Calculate precise success rate from actual analysis tables
+        // This gives accurate success rate across all three modules
+        $socialMediaCompletedQuery = SocialMediaAnalysis::where('user_id', $user->id);
+        if ($startDate && $endDate) {
+            $socialMediaCompletedQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $socialMediaCompleted = $socialMediaCompletedQuery->where('status', SocialMediaAnalysis::STATUS_COMPLETED)->count();
+        $socialMediaFailed = SocialMediaAnalysis::where('user_id', $user->id)
+            ->when($startDate && $endDate, function($q) use ($startDate, $endDate) {
+                return $q->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->where('status', SocialMediaAnalysis::STATUS_FAILED)
+            ->count();
+        
+        $dataAnalysisCompletedQuery = DataAnalysis::where('user_id', $user->id);
+        if ($startDate && $endDate) {
+            $dataAnalysisCompletedQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $dataAnalysisCompleted = $dataAnalysisCompletedQuery->where('status', DataAnalysis::STATUS_COMPLETED)->count();
+        $dataAnalysisFailed = DataAnalysis::where('user_id', $user->id)
+            ->when($startDate && $endDate, function($q) use ($startDate, $endDate) {
+                return $q->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->where('status', DataAnalysis::STATUS_FAILED)
+            ->count();
+        
+        $predictionsCompletedQuery = Prediction::where('user_id', $user->id);
+        if ($startDate && $endDate) {
+            $predictionsCompletedQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        $predictionsCompleted = $predictionsCompletedQuery->where('status', 'completed')->count();
+        $predictionsFailed = Prediction::where('user_id', $user->id)
+            ->when($startDate && $endDate, function($q) use ($startDate, $endDate) {
+                return $q->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->where('status', 'failed')
+            ->count();
+        
+        // Calculate success rate from actual tables (more accurate)
+        $totalCompleted = $socialMediaCompleted + $dataAnalysisCompleted + $predictionsCompleted;
+        $totalFailed = $socialMediaFailed + $dataAnalysisFailed + $predictionsFailed;
+        $totalFinished = $totalCompleted + $totalFailed;
+        
+        // If we have tracked analyses in analytics table, use that for more detailed metrics
+        // Otherwise fall back to table-based calculation
+        $analyticsSuccessRate = AnalysisAnalytics::getSuccessRate($user->id, $startDate, $endDate);
+        
+        // Use table-based success rate (more accurate as it includes all analyses)
+        // Fall back to analytics table if no finished analyses in tables
+        $successRate = $totalFinished > 0 
+            ? round(($totalCompleted / $totalFinished) * 100, 1) 
+            : ($analyticsSuccessRate > 0 ? $analyticsSuccessRate : 0);
 
         return [
-            'total_analyses' => AnalysisAnalytics::byUser($user->id)
-                ->byDateRange($startDate, $endDate)
-                ->count(),
+            'total_analyses' => $totalAnalyses,
             
+            // AI Usage Metrics (separate from Apify)
             'total_tokens' => AnalysisAnalytics::getTotalTokenUsage($user->id, $startDate, $endDate),
-            
             'total_cost' => AnalysisAnalytics::getTotalCost($user->id, $startDate, $endDate),
+            
+            // Apify Usage Metrics (separate from AI)
+            'apify_total_calls' => AnalysisAnalytics::getTotalApifyCalls($user->id, $startDate, $endDate),
+            'apify_total_cost' => AnalysisAnalytics::getTotalApifyCost($user->id, $startDate, $endDate),
+            'apify_total_response_time' => AnalysisAnalytics::getTotalApifyResponseTime($user->id, $startDate, $endDate),
             
             'average_processing_time' => AnalysisAnalytics::getAverageProcessingTime($user->id, $startDate, $endDate) ?? 0,
             
-            'success_rate' => AnalysisAnalytics::getSuccessRate($user->id, $startDate, $endDate),
+            'success_rate' => $successRate,
             
             'token_usage_trend' => $this->getTokenUsageTrend($user->id, $startDate, $endDate),
             
             'cost_trend' => $this->getCostTrend($user->id, $startDate, $endDate),
             
-            'analysis_type_breakdown' => $this->getAnalysisTypeBreakdown($user->id, $startDate, $endDate),
+            'analysis_type_breakdown' => $analyticsBreakdown,
             
             'prediction_horizon_breakdown' => $this->getPredictionHorizonBreakdown($user->id, $startDate, $endDate),
         ];
@@ -194,9 +361,11 @@ class AnalyticsService
      */
     private function getTokenUsageTrend($userId, $startDate, $endDate)
     {
-        return AnalysisAnalytics::byUser($userId)
-            ->byDateRange($startDate, $endDate)
-            ->selectRaw('DATE(created_at) as date, SUM(total_tokens) as total_tokens')
+        $query = AnalysisAnalytics::byUser($userId);
+        if ($startDate && $endDate) {
+            $query = $query->byDateRange($startDate, $endDate);
+        }
+        return $query->selectRaw('DATE(created_at) as date, SUM(total_tokens) as total_tokens')
             ->groupBy('date')
             ->orderBy('date')
             ->get()
@@ -209,9 +378,11 @@ class AnalyticsService
      */
     private function getCostTrend($userId, $startDate, $endDate)
     {
-        return AnalysisAnalytics::byUser($userId)
-            ->byDateRange($startDate, $endDate)
-            ->selectRaw('DATE(created_at) as date, SUM(estimated_cost) as total_cost')
+        $query = AnalysisAnalytics::byUser($userId);
+        if ($startDate && $endDate) {
+            $query = $query->byDateRange($startDate, $endDate);
+        }
+        return $query->selectRaw('DATE(created_at) as date, SUM(estimated_cost) as total_cost')
             ->groupBy('date')
             ->orderBy('date')
             ->get()
@@ -224,7 +395,11 @@ class AnalyticsService
      */
     private function getAnalysisTypeBreakdown($userId, $startDate, $endDate, $organization = null)
     {
-        $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
+        $query = AnalysisAnalytics::query();
+        
+        if ($startDate && $endDate) {
+            $query = $query->byDateRange($startDate, $endDate);
+        }
         
         if ($userId) {
             $query = $query->byUser($userId);
@@ -245,7 +420,11 @@ class AnalyticsService
      */
     private function getPredictionHorizonBreakdown($userId, $startDate, $endDate, $organization = null)
     {
-        $query = AnalysisAnalytics::byDateRange($startDate, $endDate);
+        $query = AnalysisAnalytics::query();
+        
+        if ($startDate && $endDate) {
+            $query = $query->byDateRange($startDate, $endDate);
+        }
         
         if ($userId) {
             $query = $query->byUser($userId);

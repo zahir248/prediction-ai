@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SocialMediaAnalysis;
 use App\Services\SocialMediaService;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -12,10 +13,12 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class SocialMediaController extends Controller
 {
     protected $socialMediaService;
+    protected $analyticsService;
 
-    public function __construct(SocialMediaService $socialMediaService)
+    public function __construct(SocialMediaService $socialMediaService, AnalyticsService $analyticsService)
     {
         $this->socialMediaService = $socialMediaService;
+        $this->analyticsService = $analyticsService;
     }
 
     /**
@@ -275,11 +278,16 @@ class SocialMediaController extends Controller
 
             $results = $this->socialMediaService->searchAllPlatforms($username, $selectedPlatforms);
 
-            // Save platform data immediately after search (if we have results)
+            // Save platform data and Apify usage immediately after search
+            // Save even if no platforms found (total_found = 0) to track Apify usage for failed searches
             // Wrap in try-catch to ensure save failures don't affect the search response
-            if (isset($results['platforms']) && $results['total_found'] > 0) {
+            if (isset($results['platforms'])) {
                 try {
-                    $this->savePlatformData($username, $results['platforms']);
+                    $apifyUsage = $results['apify_usage'] ?? [];
+                    // Save Apify usage even if no platforms were found (to track failed scraping attempts)
+                    if (!empty($apifyUsage) || $results['total_found'] > 0) {
+                        $this->savePlatformData($username, $results['platforms'], $apifyUsage);
+                    }
                 } catch (\Exception $saveException) {
                     // Log but don't fail the request - search was successful
                     Log::error('Failed to save platform data after search', [
@@ -310,18 +318,45 @@ class SocialMediaController extends Controller
     /**
      * Save platform data after search (without AI analysis)
      */
-    protected function savePlatformData($username, $platformData)
+    protected function savePlatformData($username, $platformData, $apifyUsage = [])
     {
         try {
+            // Calculate Apify usage totals
+            $apifyCallsCount = count($apifyUsage);
+            $apifyTotalCost = 0.00;
+            $apifyTotalResponseTime = 0.00;
+            $apifySuccessfulCalls = 0;
+            $apifyFailedCalls = 0;
+            
+            foreach ($apifyUsage as $usage) {
+                if (isset($usage['cost'])) {
+                    $apifyTotalCost += (float) $usage['cost'];
+                }
+                if (isset($usage['response_time'])) {
+                    $apifyTotalResponseTime += (float) $usage['response_time'];
+                }
+                if (isset($usage['success'])) {
+                    if ($usage['success']) {
+                        $apifySuccessfulCalls++;
+                    } else {
+                        $apifyFailedCalls++;
+                    }
+                }
+            }
+            
             // Check if we already have platform data for this username
-            // Prefer records without AI analysis, but also check completed ones to update with fresh data
+            // Prefer records without AI analysis (PENDING status from searchAll)
             // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
             // This prevents "Out of sort memory" errors
             $existing = SocialMediaAnalysis::where('username', $username)
                 ->where('user_id', Auth::id())
                 ->where(function($query) {
-                    $query->whereNull('ai_analysis')
-                          ->orWhere('status', SocialMediaAnalysis::STATUS_FAILED);
+                    // Prefer records without AI analysis (PENDING status from searchAll)
+                    $query->where(function($q) {
+                        $q->whereNull('ai_analysis')
+                          ->where('status', SocialMediaAnalysis::STATUS_PENDING);
+                    })
+                    ->orWhere('status', SocialMediaAnalysis::STATUS_FAILED);
                 })
                 ->where('status', '!=', SocialMediaAnalysis::STATUS_PROCESSING) // Don't update processing ones
                 ->orderBy('id', 'desc')
@@ -332,12 +367,17 @@ class SocialMediaController extends Controller
                 $existing->update([
                     'platform_data' => $platformData,
                     'status' => SocialMediaAnalysis::STATUS_PENDING, // Reset to pending
+                    'apify_calls_count' => $apifyCallsCount,
+                    'apify_usage_details' => $apifyUsage,
+                    'apify_total_cost' => round($apifyTotalCost, 6),
+                    'apify_total_response_time' => round($apifyTotalResponseTime, 4),
                     'updated_at' => now()
                 ]);
                 
                 Log::info('Updated existing platform data', [
                     'analysis_id' => $existing->id,
-                    'username' => $username
+                    'username' => $username,
+                    'apify_calls' => $apifyCallsCount
                 ]);
             } else {
                 // Check if there's a completed analysis - if so, create a new one for fresh search
@@ -355,12 +395,17 @@ class SocialMediaController extends Controller
                         'status' => SocialMediaAnalysis::STATUS_PENDING,
                         'ai_analysis' => null,
                         'model_used' => null,
-                        'processing_time' => null
+                        'processing_time' => null,
+                        'apify_calls_count' => $apifyCallsCount,
+                        'apify_usage_details' => $apifyUsage,
+                        'apify_total_cost' => round($apifyTotalCost, 6),
+                        'apify_total_response_time' => round($apifyTotalResponseTime, 4)
                     ]);
                     
                     Log::info('Created new platform data record (previous analysis exists)', [
                         'analysis_id' => $analysis->id,
-                        'username' => $username
+                        'username' => $username,
+                        'apify_calls' => $apifyCallsCount
                     ]);
                 } else {
                     // Create new record with platform data
@@ -371,12 +416,17 @@ class SocialMediaController extends Controller
                         'status' => SocialMediaAnalysis::STATUS_PENDING,
                         'ai_analysis' => null,
                         'model_used' => null,
-                        'processing_time' => null
+                        'processing_time' => null,
+                        'apify_calls_count' => $apifyCallsCount,
+                        'apify_usage_details' => $apifyUsage,
+                        'apify_total_cost' => round($apifyTotalCost, 6),
+                        'apify_total_response_time' => round($apifyTotalResponseTime, 4)
                     ]);
                     
                     Log::info('Saved new platform data', [
                         'analysis_id' => $analysis->id,
-                        'username' => $username
+                        'username' => $username,
+                        'apify_calls' => $apifyCallsCount
                     ]);
                 }
             }
@@ -445,17 +495,32 @@ class SocialMediaController extends Controller
                 'model_used' => \App\Services\AIServiceFactory::getCurrentProvider()
             ]);
 
+            // Start analytics tracking
+            $analytics = $this->analyticsService->startAnalysisWithoutPrediction(Auth::id(), [
+                'text' => $this->prepareAnalysisText($platformData, $analysisType),
+                'analysis_type' => 'social-media-analysis',
+                'social_media_analysis_id' => $newAnalysis->id,
+            ]);
+
             // Prepare analysis text with analysis type
             $analysisText = $this->prepareAnalysisText($platformData, $analysisType);
 
             // Get AI service
             $aiService = \App\Services\AIServiceFactory::create();
 
-            // Perform AI analysis
-            $aiResult = $aiService->analyzeText($analysisText, 'social-media-analysis');
+            // Perform AI analysis (pass analytics for tracking)
+            $aiResult = $aiService->analyzeText($analysisText, 'social-media-analysis', null, null, $analytics, null);
 
             $endTime = microtime(true);
             $processingTime = $endTime - $startTime;
+            
+            // Complete analytics tracking
+            if ($analytics) {
+                $this->analyticsService->completeAnalysis($analytics, [
+                    'total_processing_time' => $processingTime,
+                    'api_error_message' => (is_array($aiResult) && isset($aiResult['title'])) ? null : 'Analysis failed'
+                ]);
+            }
 
             // Parse AI response
             $analysisResult = null;
@@ -501,6 +566,17 @@ class SocialMediaController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Calculate processing time for analytics
+            $processingTime = round(microtime(true) - $startTime, 3);
+            
+            // Complete analytics tracking with error
+            if (isset($analytics) && $analytics) {
+                $this->analyticsService->completeAnalysis($analytics, [
+                    'total_processing_time' => $processingTime,
+                    'api_error_message' => 'Re-analysis failed: ' . $e->getMessage()
+                ]);
+            }
+            
             Log::error('Re-analysis failed', [
                 'analysis_id' => $socialMediaAnalysis->id,
                 'username' => $username,
@@ -644,28 +720,47 @@ class SocialMediaController extends Controller
                     }
                 } else {
                     // Create or update analysis record with provided platform data
+                    // First, try to find the most recent record for this username (created by searchAll)
+                    // Prefer records without AI analysis, but also check pending ones
                     // Use orderBy('id', 'desc') instead of latest() to avoid sorting large JSON fields
                     $existing = SocialMediaAnalysis::where('username', $username)
                         ->where('user_id', Auth::id())
-                        ->whereNull('ai_analysis')
+                        ->where(function($query) {
+                            // Prefer records without AI analysis, or with pending status
+                            $query->whereNull('ai_analysis')
+                                  ->orWhere('status', SocialMediaAnalysis::STATUS_PENDING);
+                        })
                         ->where('status', '!=', SocialMediaAnalysis::STATUS_PROCESSING)
                         ->orderBy('id', 'desc')
                         ->first();
 
                     if ($existing) {
+                        // Update existing record instead of creating a new one
                         $analysis = $existing;
                         $analysis->update([
                             'platform_data' => $platformData,
                             'status' => SocialMediaAnalysis::STATUS_PROCESSING,
                             'model_used' => \App\Services\AIServiceFactory::getCurrentProvider()
                         ]);
+                        
+                        Log::info('Updated existing social media analysis for AI processing', [
+                            'analysis_id' => $analysis->id,
+                            'username' => $username,
+                            'previous_status' => $existing->status
+                        ]);
                     } else {
+                        // Only create new record if no existing one found
                         $analysis = SocialMediaAnalysis::create([
                             'username' => $username,
                             'platform_data' => $platformData,
                             'user_id' => Auth::id(),
                             'status' => SocialMediaAnalysis::STATUS_PROCESSING,
                             'model_used' => \App\Services\AIServiceFactory::getCurrentProvider()
+                        ]);
+                        
+                        Log::info('Created new social media analysis for AI processing', [
+                            'analysis_id' => $analysis->id,
+                            'username' => $username
                         ]);
                     }
                 }
@@ -678,24 +773,39 @@ class SocialMediaController extends Controller
                 'platforms' => array_keys($platformData)
             ]);
 
-            // Get AI service
-            $aiService = \App\Services\AIServiceFactory::create();
-            
             // Prepare text data from all platforms with analysis type
             $analysisText = $this->prepareAnalysisText($platformData, $analysisType);
             
-            // Perform AI analysis
+            // Start analytics tracking
+            $analytics = $this->analyticsService->startAnalysisWithoutPrediction(Auth::id(), [
+                'text' => $analysisText,
+                'analysis_type' => 'social-media-analysis',
+                'social_media_analysis_id' => $analysis->id,
+            ]);
+
+            // Get AI service
+            $aiService = \App\Services\AIServiceFactory::create();
+            
+            // Perform AI analysis (pass analytics for tracking)
             $result = $aiService->analyzeText(
                 $analysisText,
                 'social-media-analysis',
                 null,
                 null,
-                null,
+                $analytics,
                 null
             );
 
             // Calculate processing time
             $processingTime = round(microtime(true) - $startTime, 3);
+            
+            // Complete analytics tracking
+            if ($analytics) {
+                $this->analyticsService->completeAnalysis($analytics, [
+                    'total_processing_time' => $processingTime,
+                    'api_error_message' => isset($result['title']) ? null : 'Analysis failed'
+                ]);
+            }
             
             // Store analysis type in result if it's an array
             if (is_array($result)) {
@@ -717,6 +827,17 @@ class SocialMediaController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            // Calculate processing time for analytics
+            $processingTime = round(microtime(true) - $startTime, 3);
+            
+            // Complete analytics tracking with error
+            if (isset($analytics) && $analytics) {
+                $this->analyticsService->completeAnalysis($analytics, [
+                    'total_processing_time' => $processingTime,
+                    'api_error_message' => 'Analysis failed: ' . $e->getMessage()
+                ]);
+            }
+            
             Log::error('AI analysis exception', [
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
@@ -864,12 +985,25 @@ class SocialMediaController extends Controller
 
         try {
             $username = $socialMediaAnalysis->username;
+            $analysisId = $socialMediaAnalysis->id;
+            
+            // Preserve analytics by finding and keeping analytics records
+            // Analytics records are independent (no foreign key), so they remain automatically
+            // But we log this for clarity
+            $analyticsCount = \App\Models\AnalysisAnalytics::where('user_id', Auth::id())
+                ->where('analysis_type', 'social-media-analysis')
+                ->where('created_at', '>=', $socialMediaAnalysis->created_at->subMinutes(5))
+                ->where('created_at', '<=', $socialMediaAnalysis->updated_at->addMinutes(5))
+                ->count();
+            
             $socialMediaAnalysis->delete();
 
             Log::info('Social media analysis deleted', [
                 'user_id' => Auth::id(),
-                'analysis_id' => $socialMediaAnalysis->id,
-                'username' => $username
+                'analysis_id' => $analysisId,
+                'username' => $username,
+                'analytics_preserved' => $analyticsCount > 0,
+                'analytics_count' => $analyticsCount
             ]);
 
             return response()->json([

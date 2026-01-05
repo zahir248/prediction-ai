@@ -1008,8 +1008,14 @@ class PredictionController extends Controller
      */
     public function analytics(Request $request)
     {
-        $startDate = $request->get('start_date') ? \Carbon\Carbon::parse($request->get('start_date')) : now()->subMonth();
-        $endDate = $request->get('end_date') ? \Carbon\Carbon::parse($request->get('end_date')) : now();
+        // Default to all time (no date filter) to match history page behavior, or use provided dates
+        $startDate = $request->get('start_date') 
+            ? \Carbon\Carbon::parse($request->get('start_date')) 
+            : null;
+        
+        $endDate = $request->get('end_date') 
+            ? \Carbon\Carbon::parse($request->get('end_date')) 
+            : null;
 
         $analytics = $this->analyticsService->getUserAnalytics(Auth::user(), $startDate, $endDate);
 

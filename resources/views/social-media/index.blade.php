@@ -1168,6 +1168,19 @@ async function checkBeforeSearch(event) {
     }
     
     // All validations passed - proceed with search
+    // Check if search is already in progress
+    if (isSearchInProgress) {
+        console.log('BLOCKING SEARCH: Search already in progress (from checkBeforeSearch)');
+        return false; // Prevent form submission
+    }
+    
+    // Prevent form from submitting (we'll handle it manually)
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+    }
+    
     proceedWithSearchFlag = true;
     performSearch();
     return false; // Prevent form submission
@@ -2402,7 +2415,16 @@ function searchAgain() {
     initializeInlinePlatformSelection();
 }
 
+// Global flag to prevent duplicate concurrent searches
+let isSearchInProgress = false;
+
 async function performSearch() {
+    // Prevent duplicate concurrent searches
+    if (isSearchInProgress) {
+        console.log('performSearch: BLOCKED - Search already in progress');
+        return;
+    }
+    
     const username = document.getElementById('username').value.trim();
     if (!username) {
         console.log('performSearch: No username, aborting');
@@ -2419,6 +2441,9 @@ async function performSearch() {
         console.log('performSearch: BLOCKED - Notification visible and user has not chosen');
         return; // Don't make backend call
     }
+    
+    // Set flag to prevent duplicate searches
+    isSearchInProgress = true;
 
     // Hide "Did You Know" section when search starts
     const didYouKnowSection = document.getElementById('didYouKnowSection');
@@ -2765,6 +2790,9 @@ async function performSearch() {
             }, 1500); // 1.5 seconds delay to let first toast be visible first
         }
     } finally {
+        // Reset search in progress flag
+        isSearchInProgress = false;
+        
         if (searchButton) {
             searchButton.disabled = false;
             searchButton.textContent = 'Generate';
@@ -2836,6 +2864,12 @@ document.getElementById('searchForm').addEventListener('submit', async function(
     // ===== ONLY REACH HERE IF ALL CHECKS PASS =====
     console.log('ALL CHECKS PASSED - Proceeding with search');
     
+    // Check if search is already in progress
+    if (isSearchInProgress) {
+        console.log('BLOCKING SEARCH: Search already in progress');
+        return false;
+    }
+    
     // Reset proceed flag after check
     proceedWithSearchFlag = false;
 
@@ -2877,6 +2911,12 @@ document.getElementById('searchForm').addEventListener('submit', async function(
     });
 
     // Perform the search (only reaches here if all checks pass)
+    // Double-check if search is already in progress (might have been started by checkBeforeSearch)
+    if (isSearchInProgress) {
+        console.log('BLOCKING SEARCH: Search already in progress (from form submit)');
+        return false;
+    }
+    
     console.log('PROCEEDING WITH SEARCH - All checks passed');
     await performSearch();
     return false; // Prevent any default form submission

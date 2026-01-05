@@ -35,7 +35,13 @@ class AnalysisAnalytics extends Model
         'analysis_type',
         'prediction_horizon',
         'analysis_started_at',
-        'analysis_completed_at'
+        'analysis_completed_at',
+        'apify_calls_count',
+        'apify_platforms_used',
+        'apify_total_cost',
+        'apify_total_response_time',
+        'apify_successful_calls',
+        'apify_failed_calls'
     ];
 
     protected $casts = [
@@ -65,7 +71,11 @@ class AnalysisAnalytics extends Model
 
     public function scopeByDateRange($query, $startDate, $endDate)
     {
-        return $query->whereBetween('created_at', [$startDate, $endDate]);
+        if ($startDate && $endDate) {
+            return $query->whereBetween('created_at', [$startDate, $endDate]);
+        }
+        // If no date range provided, return all records
+        return $query;
     }
 
     public function scopeByAnalysisType($query, $type)
@@ -147,6 +157,63 @@ class AnalysisAnalytics extends Model
         return $query->sum('estimated_cost');
     }
 
+    public static function getTotalApifyCost($userId = null, $startDate = null, $endDate = null, $organization = null)
+    {
+        $query = self::query();
+        
+        if ($userId) {
+            $query->byUser($userId);
+        }
+        
+        if ($startDate && $endDate) {
+            $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
+        }
+        
+        return $query->sum('apify_total_cost');
+    }
+
+    public static function getTotalApifyCalls($userId = null, $startDate = null, $endDate = null, $organization = null)
+    {
+        $query = self::query();
+        
+        if ($userId) {
+            $query->byUser($userId);
+        }
+        
+        if ($startDate && $endDate) {
+            $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
+        }
+        
+        return $query->sum('apify_calls_count');
+    }
+
+    public static function getTotalApifyResponseTime($userId = null, $startDate = null, $endDate = null, $organization = null)
+    {
+        $query = self::query();
+        
+        if ($userId) {
+            $query->byUser($userId);
+        }
+        
+        if ($startDate && $endDate) {
+            $query->byDateRange($startDate, $endDate);
+        }
+        
+        if ($organization) {
+            $query->byOrganization($organization);
+        }
+        
+        return $query->sum('apify_total_response_time');
+    }
+
     public static function getAverageProcessingTime($userId = null, $startDate = null, $endDate = null, $organization = null)
     {
         $query = self::query();
@@ -163,7 +230,10 @@ class AnalysisAnalytics extends Model
             $query->byOrganization($organization);
         }
         
-        return $query->avg('total_processing_time');
+        // Only calculate average from completed analyses (have processing time)
+        return $query->whereNotNull('total_processing_time')
+            ->where('total_processing_time', '>', 0)
+            ->avg('total_processing_time');
     }
 
     public static function getSuccessRate($userId = null, $startDate = null, $endDate = null, $organization = null)
@@ -182,9 +252,17 @@ class AnalysisAnalytics extends Model
             $query->byOrganization($organization);
         }
         
-        $total = $query->count();
-        $successful = $query->whereNull('api_error_message')->count();
+        // Count total analyses that have been completed (started and finished)
+        $total = $query->whereNotNull('analysis_started_at')
+            ->whereNotNull('analysis_completed_at')
+            ->count();
         
-        return $total > 0 ? ($successful / $total) * 100 : 0;
+        // Count successful analyses: completed AND no API error
+        $successful = $query->whereNotNull('analysis_started_at')
+            ->whereNotNull('analysis_completed_at')
+            ->whereNull('api_error_message')
+            ->count();
+        
+        return $total > 0 ? round(($successful / $total) * 100, 1) : 0;
     }
 }

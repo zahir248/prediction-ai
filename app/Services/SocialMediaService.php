@@ -71,6 +71,10 @@ class SocialMediaService
      */
     protected function runApifyActor($actorId, $input, $waitForFinish = true)
     {
+        // Track Apify usage
+        $apifyStartTime = microtime(true);
+        $platform = $this->getPlatformFromActorId($actorId);
+        
         // Increase execution time limit for Apify operations
         // Longer timeout for fetching all posts (up to 10,000 posts)
         // Instagram scraping can be slower, so give it more time
@@ -86,9 +90,16 @@ class SocialMediaService
         try {
             $token = $this->getApiToken();
             if (!$token) {
-            return [
-                'success' => false,
-                    'error' => 'Apify API token not configured. Please set APIFY_API_TOKEN in your .env file and run: php artisan config:clear'
+                $apifyResponseTime = round(microtime(true) - $apifyStartTime, 4);
+                return [
+                    'success' => false,
+                    'error' => 'Apify API token not configured. Please set APIFY_API_TOKEN in your .env file and run: php artisan config:clear',
+                    'apify_usage' => [
+                        'platform' => $platform,
+                        'success' => false,
+                        'response_time' => $apifyResponseTime,
+                        'cost' => 0.00
+                    ]
                 ];
             }
 
@@ -159,7 +170,8 @@ class SocialMediaService
                     $errorMessage .= 'Please verify the actor ID in your Apify console or check config/services.php.';
                         }
                         
-                        return [
+                $apifyResponseTime = round(microtime(true) - $apifyStartTime, 4);
+                return [
                     'success' => false,
                     'error' => $errorMessage,
                     'error_code' => $error['error']['code'] ?? $response->status(),
@@ -169,7 +181,13 @@ class SocialMediaService
                         'Check the Apify console to find the correct actor ID',
                         'The actor ID format should be: username~actor-name (e.g., apify~facebook-posts-scraper)',
                         'Visit https://console.apify.com/actors to find available actors'
-                    ] : []
+                    ] : [],
+                    'apify_usage' => [
+                        'platform' => $platform,
+                        'success' => false,
+                        'response_time' => $apifyResponseTime,
+                        'cost' => 0.00
+                    ]
                 ];
             }
 
@@ -177,9 +195,16 @@ class SocialMediaService
             $runId = $runData['data']['id'] ?? null;
 
             if (!$runId) {
-                        return [
-                            'success' => false,
-                    'error' => 'Failed to get run ID from Apify'
+                $apifyResponseTime = round(microtime(true) - $apifyStartTime, 4);
+                return [
+                    'success' => false,
+                    'error' => 'Failed to get run ID from Apify',
+                    'apify_usage' => [
+                        'platform' => $platform,
+                        'success' => false,
+                        'response_time' => $apifyResponseTime,
+                        'cost' => 0.00
+                    ]
                 ];
             }
 
@@ -194,17 +219,29 @@ class SocialMediaService
             $waitTimeout = max($timeout, $this->timeout) + 30;
             
             if ($waitForFinish) {
-                $result = $this->waitForRunCompletion($runId, $token, $waitTimeout, $actorId);
+                $result = $this->waitForRunCompletion($runId, $token, $waitTimeout, $actorId, $apifyStartTime, $platform, $input);
+                // Calculate cost if not already set
+                if (isset($result['apify_usage']) && ($result['apify_usage']['cost'] == 0.00 || !isset($result['apify_usage']['cost'])) && $result['success']) {
+                    $result['apify_usage']['cost'] = $this->calculateApifyCost($platform, $input);
+                }
                 return $result;
             }
             
+            $apifyResponseTime = round(microtime(true) - $apifyStartTime, 4);
             return [
                 'success' => true,
                 'run_id' => $runId,
-                'status' => 'RUNNING'
+                'status' => 'RUNNING',
+                'apify_usage' => [
+                    'platform' => $platform,
+                    'success' => true,
+                    'response_time' => $apifyResponseTime,
+                    'cost' => $this->calculateApifyCost($platform, $input)
+                ]
             ];
             
         } catch (Exception $e) {
+            $apifyResponseTime = round(microtime(true) - $apifyStartTime, 4);
             Log::error('Apify actor run exception', [
                 'actor_id' => $actorId,
                 'exception' => $e->getMessage()
@@ -212,21 +249,72 @@ class SocialMediaService
             
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage()
+                'error' => 'Exception: ' . $e->getMessage(),
+                'apify_usage' => [
+                    'platform' => $platform,
+                    'success' => false,
+                    'response_time' => $apifyResponseTime,
+                    'cost' => 0.00
+                ]
             ];
         }
     }
     
     /**
+     * Get platform name from actor ID
+     */
+    protected function getPlatformFromActorId($actorId)
+    {
+        $actorIdLower = strtolower($actorId);
+        if (strpos($actorIdLower, 'facebook') !== false) {
+            return 'facebook';
+        } elseif (strpos($actorIdLower, 'instagram') !== false) {
+            return 'instagram';
+        } elseif (strpos($actorIdLower, 'tiktok') !== false) {
+            return 'tiktok';
+        } elseif (strpos($actorIdLower, 'twitter') !== false || strpos($actorIdLower, 'tweet') !== false) {
+            return 'twitter';
+        }
+        return 'unknown';
+    }
+    
+    /**
+     * Calculate estimated Apify cost based on platform and input
+     * Note: This is an estimate. Actual costs depend on Apify pricing
+     */
+    protected function calculateApifyCost($platform, $input)
+    {
+        // Base cost estimates per platform (these are approximate and should be adjusted based on actual Apify pricing)
+        $baseCosts = [
+            'facebook' => 0.10,  // $0.10 per run
+            'instagram' => 0.15, // $0.15 per run
+            'tiktok' => 0.12,    // $0.12 per run
+            'twitter' => 0.10,   // $0.10 per run
+        ];
+        
+        $baseCost = $baseCosts[$platform] ?? 0.10;
+        
+        // Add cost based on maxPosts/maxItems (more data = more cost)
+        $maxItems = $input['maxPosts'] ?? $input['maxItems'] ?? 10;
+        if ($maxItems > 1000) {
+            $baseCost *= 1.5; // 50% more for large requests
+        } elseif ($maxItems > 100) {
+            $baseCost *= 1.2; // 20% more for medium requests
+        }
+        
+        return round($baseCost, 6);
+    }
+    
+    /**
      * Wait for Apify run to complete and get results
      */
-    protected function waitForRunCompletion($runId, $token, $maxWaitTime = 180, $actorId = null)
+    protected function waitForRunCompletion($runId, $token, $maxWaitTime = 180, $actorId = null, $apifyStartTime = null, $platform = null, $input = [])
     {
-        $startTime = time();
+        $loopStartTime = time();
         $checkInterval = 5; // Check every 5 seconds
 
         while (true) {
-            $elapsedTime = time() - $startTime;
+            $elapsedTime = time() - $loopStartTime;
             
             if ($elapsedTime > $maxWaitTime) {
                 // Check final status before timing out to provide better error message
@@ -249,6 +337,7 @@ class SocialMediaService
                     $finalStatus = $statusData['data']['status'] ?? 'UNKNOWN';
                 }
 
+                $apifyResponseTime = $apifyStartTime ? round(microtime(true) - $apifyStartTime, 4) : $maxWaitTime;
                 Log::warning('Apify actor run timeout', [
                     'run_id' => $runId,
                     'actor_id' => $actorId,
@@ -262,7 +351,13 @@ class SocialMediaService
                     'success' => false,
                     'error' => 'Apify actor run timed out after ' . $maxWaitTime . ' seconds',
                     'final_status' => $finalStatus,
-                    'run_id' => $runId
+                    'run_id' => $runId,
+                    'apify_usage' => [
+                        'platform' => $platform ?? $this->getPlatformFromActorId($actorId ?? ''),
+                        'success' => false,
+                        'response_time' => $apifyResponseTime,
+                        'cost' => 0.00
+                    ]
                 ];
             }
 
@@ -281,6 +376,7 @@ class SocialMediaService
                 ->get("{$this->apifyBaseUrl}/actor-runs/{$runId}");
 
             if (!$statusResponse->successful()) {
+                $apifyResponseTime = $apifyStartTime ? round(microtime(true) - $apifyStartTime, 4) : 0;
                 Log::error('Failed to check Apify run status', [
                     'run_id' => $runId,
                     'actor_id' => $actorId,
@@ -289,7 +385,13 @@ class SocialMediaService
                 ]);
                 return [
                     'success' => false,
-                    'error' => 'Failed to check run status'
+                    'error' => 'Failed to check run status',
+                    'apify_usage' => [
+                        'platform' => $platform ?? $this->getPlatformFromActorId($actorId ?? ''),
+                        'success' => false,
+                        'response_time' => $apifyResponseTime,
+                        'cost' => 0.00
+                    ]
                 ];
             }
 
@@ -314,6 +416,9 @@ class SocialMediaService
                 if ($datasetResponse->successful()) {
                     $items = $datasetResponse->json();
                     
+                    // Calculate total response time
+                    $apifyResponseTime = $apifyStartTime ? round(microtime(true) - $apifyStartTime, 4) : 0;
+                    
                     // Log the full raw response from Apify API
                     Log::info('Apify dataset items retrieved - FULL RESPONSE', [
                         'run_id' => $runId,
@@ -324,38 +429,62 @@ class SocialMediaService
                         'first_item_full' => !empty($items[0]) ? json_encode($items[0], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null
                     ]);
                     
+                    // Calculate cost based on platform and input
+                    $calculatedPlatform = $platform ?? $this->getPlatformFromActorId($actorId ?? '');
+                    $calculatedCost = $this->calculateApifyCost($calculatedPlatform, $input);
+                    
                     return [
                         'success' => true,
                         'data' => $items,
-                        'run_id' => $runId
+                        'run_id' => $runId,
+                        'apify_usage' => [
+                            'platform' => $calculatedPlatform,
+                            'success' => true,
+                            'response_time' => $apifyResponseTime,
+                            'cost' => $calculatedCost
+                        ]
                     ];
                 } else {
+                    $apifyResponseTime = $apifyStartTime ? round(microtime(true) - $apifyStartTime, 4) : 0;
                     Log::error('Failed to fetch dataset items', [
                         'run_id' => $runId,
                         'status' => $datasetResponse->status(),
                         'response' => $datasetResponse->body()
                     ]);
-            return [
-                'success' => false,
-                        'error' => 'Failed to fetch dataset items'
-            ];
+                    return [
+                        'success' => false,
+                        'error' => 'Failed to fetch dataset items',
+                        'apify_usage' => [
+                            'platform' => $platform ?? $this->getPlatformFromActorId($actorId ?? ''),
+                            'success' => false,
+                            'response_time' => $apifyResponseTime,
+                            'cost' => 0.00
+                        ]
+                    ];
                 }
             } elseif ($status === 'FAILED' || $status === 'ABORTED') {
+                $apifyResponseTime = $apifyStartTime ? round(microtime(true) - $apifyStartTime, 4) : 0;
                 Log::error('Apify actor run failed or aborted', [
                     'run_id' => $runId,
                     'actor_id' => $actorId,
                     'status' => $status,
-                    'elapsed_time' => time() - $startTime
+                    'elapsed_time' => $apifyStartTime ? time() - $apifyStartTime : 0
                 ]);
                 return [
                     'success' => false,
                     'error' => 'Apify actor run ' . strtolower($status),
-                    'status' => $status
+                    'status' => $status,
+                    'apify_usage' => [
+                        'platform' => $platform ?? $this->getPlatformFromActorId($actorId ?? ''),
+                        'success' => false,
+                        'response_time' => $apifyResponseTime,
+                        'cost' => 0.00
+                    ]
                 ];
             }
 
             // Log progress every 30 seconds for long-running runs
-            $elapsedTime = time() - $startTime;
+            $elapsedTime = time() - $loopStartTime;
             if ($elapsedTime > 0 && $elapsedTime % 30 < $checkInterval) {
                 Log::info('Apify actor run in progress', [
                     'run_id' => $runId,
@@ -435,7 +564,8 @@ class SocialMediaService
                     ]);
                     return [
                         'success' => false,
-                        'error' => $data['error'] ?? 'Account not found or not accessible'
+                        'error' => $data['error'] ?? 'Account not found or not accessible',
+                        'apify_usage' => $result['apify_usage'] ?? null
                     ];
                 }
                 
@@ -448,7 +578,8 @@ class SocialMediaService
             return [
                     'success' => true,
                     'platform' => 'facebook',
-                    'data' => $data
+                    'data' => $data,
+                    'apify_usage' => $result['apify_usage'] ?? null
                 ];
             }
 
@@ -460,9 +591,16 @@ class SocialMediaService
                 'exception' => $e->getMessage()
             ]);
 
+            // If we have a result with apify_usage, preserve it even on exception
+            $apifyUsage = null;
+            if (isset($result) && isset($result['apify_usage'])) {
+                $apifyUsage = $result['apify_usage'];
+            }
+
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage()
+                'error' => 'Exception: ' . $e->getMessage(),
+                'apify_usage' => $apifyUsage
             ];
         }
     }
@@ -569,14 +707,16 @@ class SocialMediaService
                         'platform' => 'instagram',
                         'error' => $data['error'],
                         'error_code' => $data['error_code'] ?? null,
-                        'suggestion' => 'The account might be private, or Instagram is blocking the scraper. Please ensure the account is public and try again.'
+                        'suggestion' => 'The account might be private, or Instagram is blocking the scraper. Please ensure the account is public and try again.',
+                        'apify_usage' => $result['apify_usage'] ?? null
                     ];
                 }
 
                 return [
                     'success' => true,
                     'platform' => 'instagram',
-                    'data' => $data
+                    'data' => $data,
+                    'apify_usage' => $result['apify_usage'] ?? null
                 ];
             }
 
@@ -588,9 +728,16 @@ class SocialMediaService
                 'exception' => $e->getMessage()
             ]);
 
+            // If we have a result with apify_usage, preserve it even on exception
+            $apifyUsage = null;
+            if (isset($result) && isset($result['apify_usage'])) {
+                $apifyUsage = $result['apify_usage'];
+            }
+
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage()
+                'error' => 'Exception: ' . $e->getMessage(),
+                'apify_usage' => $apifyUsage
             ];
         }
     }
@@ -1503,9 +1650,10 @@ class SocialMediaService
                     
                     return [
                         'success' => true,
-                    'platform' => 'tiktok',
-                    'data' => $data
-                ];
+                        'platform' => 'tiktok',
+                        'data' => $data,
+                        'apify_usage' => $result['apify_usage'] ?? null
+                    ];
             }
 
             return $result;
@@ -1516,9 +1664,16 @@ class SocialMediaService
                 'exception' => $e->getMessage()
             ]);
 
+            // If we have a result with apify_usage, preserve it even on exception
+            $apifyUsage = null;
+            if (isset($result) && isset($result['apify_usage'])) {
+                $apifyUsage = $result['apify_usage'];
+            }
+
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage()
+                'error' => 'Exception: ' . $e->getMessage(),
+                'apify_usage' => $apifyUsage
             ];
         }
     }
@@ -1586,7 +1741,8 @@ class SocialMediaService
                 return [
                     'success' => true,
                     'platform' => 'twitter',
-                    'data' => $data
+                    'data' => $data,
+                    'apify_usage' => $result['apify_usage'] ?? null
                 ];
             }
 
@@ -1600,7 +1756,8 @@ class SocialMediaService
 
             return [
                 'success' => false,
-                'error' => 'Exception: ' . $e->getMessage()
+                'error' => 'Exception: ' . $e->getMessage(),
+                'apify_usage' => null // No Apify usage if exception occurred before scraping
             ];
         }
     }
@@ -1623,7 +1780,8 @@ class SocialMediaService
         $results = [
             'username' => $username,
             'platforms' => [],
-            'total_found' => 0
+            'total_found' => 0,
+            'apify_usage' => [] // Collect Apify usage from all platform searches
         ];
         
         // Initialize all platforms as not found
@@ -1640,6 +1798,10 @@ class SocialMediaService
                     $results['total_found']++;
                 } else {
                     $results['platforms']['facebook']['error'] = $facebookResult['error'] ?? 'Not found';
+                }
+                // Collect Apify usage
+                if (isset($facebookResult['apify_usage'])) {
+                    $results['apify_usage'][] = $facebookResult['apify_usage'];
                 }
             } catch (\Exception $e) {
                 Log::error('Facebook search exception in searchAllPlatforms', [
@@ -1659,6 +1821,10 @@ class SocialMediaService
                 } else {
                     $results['platforms']['instagram']['error'] = $instagramResult['error'] ?? 'Not found';
                 }
+                // Collect Apify usage
+                if (isset($instagramResult['apify_usage'])) {
+                    $results['apify_usage'][] = $instagramResult['apify_usage'];
+                }
             } catch (\Exception $e) {
                 Log::error('Instagram search exception in searchAllPlatforms', [
                     'username' => $username,
@@ -1677,6 +1843,10 @@ class SocialMediaService
                 } else {
                     $results['platforms']['tiktok']['error'] = $tiktokResult['error'] ?? 'Not found';
                 }
+                // Collect Apify usage
+                if (isset($tiktokResult['apify_usage'])) {
+                    $results['apify_usage'][] = $tiktokResult['apify_usage'];
+                }
             } catch (\Exception $e) {
                 Log::error('TikTok search exception in searchAllPlatforms', [
                     'username' => $username,
@@ -1694,6 +1864,10 @@ class SocialMediaService
                     $results['total_found']++;
                 } else {
                     $results['platforms']['twitter']['error'] = $twitterResult['error'] ?? 'Not found';
+                }
+                // Collect Apify usage
+                if (isset($twitterResult['apify_usage'])) {
+                    $results['apify_usage'][] = $twitterResult['apify_usage'];
                 }
             } catch (\Exception $e) {
                 Log::error('Twitter/X search exception in searchAllPlatforms', [
