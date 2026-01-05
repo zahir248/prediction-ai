@@ -476,7 +476,7 @@
     <div class="cursor-sidebar">
         <div class="cursor-sidebar-header" id="sidebarHeader">
             <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin: 0;">Analyze Data</h2>
-            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Upload Excel file to generate analysis</p>
+            <p style="color: #6b7280; font-size: 12px; margin-top: 4px; margin-bottom: 0;">Fill in the form to generate analysis</p>
         </div>
         
         <!-- Analysis Input Details Header (hidden by default, shown during analysis) -->
