@@ -4872,14 +4872,16 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!typingText || !typingCursor) return;
     
     const socialMediaFacts = [
-        "Social media analysis can reveal professional patterns, communication styles, and cultural fit indicators that traditional resumes don't show.",
-        "Platform-specific behaviors matter: LinkedIn shows professional networking, while Instagram reveals creative expression and lifestyle choices.",
-        "Consistent posting patterns indicate reliability and engagement, while sudden activity changes may signal life transitions or career shifts.",
-        "Content themes across platforms can reveal authentic interests, values, and professional focus areas that complement formal qualifications.",
-        "Social media presence analysis helps assess digital footprint, online reputation, and how candidates present themselves professionally.",
-        "Cross-platform consistency in messaging and branding shows attention to detail and professional awareness of personal brand management.",
-        "Engagement patterns with industry leaders and professional content indicate active learning and professional development interests.",
-        "Analysis of communication style, tone, and content quality provides insights into written communication skills and professionalism."
+        "AI agents handle multi-step tasks end-to-end. AI will not just answer questions but plan, execute, verify, and report results across tools (email, spreadsheets, APIs).",
+        "Data quality becomes more important than model size. Companies with clean, structured, proprietary data will outperform those using only bigger models.",
+        "AI costs drop sharply for common tasks. Inference and fine-tuned models will become cheap enough to be embedded in small apps and startups.",
+        "\"Human-in-the-loop\" becomes a legal requirement. Critical systems (finance, hiring, healthcare) will require documented human review for AI decisions.",
+        "AI replaces repetitive junior-level tasks, not roles. Entry-level work changes shape: fewer repetitive tasks, more validation, oversight, and creative work.",
+        "Synthetic data becomes widely accepted. AI-generated data will be used to train models where real data is scarce, sensitive, or expensive.",
+        "AI-generated UI/UX becomes mainstream. Design systems will be auto-generated based on brand rules, accessibility needs, and user behavior.",
+        "AI monitoring tools become mandatory in enterprises. Companies will track hallucinations, bias, drift, and cost the same way they track uptime today.",
+        "AI becomes a normal part of cybersecurity defense. Real-time AI systems will detect abnormal behavior faster than human analysts.",
+        "Voice AI becomes more human—but still identifiable. Speech AI will sound natural but remain clearly labeled to meet regulation and trust standards."
     ];
     
     let currentFactIndex = 0;

@@ -1594,11 +1594,16 @@ Number of Manufacturers by State (Negeri)"
 
     // Did You Know Facts for Data Analysis
     const facts = [
-        "Data analysis can reveal hidden patterns in your Excel sheets that might not be immediately visible. NUJUM's AI examines relationships between columns, identifies trends, and suggests optimal visualizations.",
-        "Excel files with multiple sheets are processed comprehensively. Each sheet is analyzed independently, and cross-sheet relationships are identified when present.",
-        "NUJUM automatically determines the best chart types for your data. Bar charts for comparisons, line charts for trends, and pie charts for distributions are selected based on data characteristics.",
-        "AI-powered data analysis goes beyond basic statistics. NUJUM identifies anomalies, predicts trends, and provides actionable recommendations based on your data patterns.",
-        "The analysis includes statistical summaries, key findings, trends identification, and strategic recommendations tailored to your specific dataset."
+        "Open-source AI grows alongside closed models. Organizations will mix open and proprietary models depending on cost, control, and privacy needs.",
+        "AI transforms internal company dashboards. Executives will ask questions in natural language instead of reading static charts.",
+        "AI reduces time-to-market for startups. Small teams will launch products faster using AI for coding, design, marketing, and analytics.",
+        "AI content floods the internet—curation wins. Platforms that filter, rank, and verify content will be more valuable than content creators alone.",
+        "AI becomes a default feature in SaaS pricing. \"AI-powered\" will stop being a premium add-on and become an expected baseline.",
+        "Multimodal AI becomes normal. Text, image, video, voice, and data analysis will be handled by a single system, not separate tools.",
+        "AI helps enforce compliance automatically. Regulatory checks (GDPR, SOC2, ISO) will be partially automated using AI audits.",
+        "AI changes how KPIs are defined. Metrics will focus more on outcomes and predictions, not just historical performance.",
+        "AI adoption becomes invisible. Users won't \"use AI\" explicitly—it will be embedded quietly in everyday tools.",
+        "Trust becomes the main AI differentiator. Accuracy, transparency, and reliability will matter more than flashy capabilities."
     ];
 
     // Typing animation
