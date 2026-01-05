@@ -313,6 +313,23 @@
             font-weight: 600;
         }
         
+        /* Profile dropdown - right align menu and ensure consistent hover colors */
+        #profileDropdown .nav-dropdown-menu {
+            left: auto;
+            right: 0;
+        }
+        
+        /* Ensure Profile dropdown hover matches other menus */
+        #profileDropdown .nav-dropdown-toggle:hover {
+            color: #374151 !important;
+            background-color: #f8fafc !important;
+        }
+        
+        #profileDropdown .nav-dropdown-item:hover {
+            color: #374151 !important;
+            background-color: #f8fafc !important;
+        }
+        
         /* Modal styles */
         .modal-overlay {
             position: fixed;
@@ -1118,7 +1135,7 @@
                     <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
                         Home
                     </a>
-                    <div class="nav-dropdown {{ request()->routeIs('predictions.*') ? 'has-active-child' : '' }}" id="predictionsDropdown">
+                    <div class="nav-dropdown {{ request()->routeIs('predictions.*') && !request()->routeIs('analytics') ? 'has-active-child' : '' }}" id="predictionsDropdown">
                         <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('predictionsDropdown');">
                             Predictions Analysis
                         </a>
@@ -1129,9 +1146,6 @@
                             @auth
                             <a href="{{ route('predictions.history') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
                                 History
-                            </a>
-                            <a href="{{ route('predictions.analytics') }}" class="nav-dropdown-item {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
-                                Analytics
                             </a>
                             @endauth
                         </div>
@@ -1173,9 +1187,19 @@
                     <div class="nav-user hidden-mobile">
                         @auth
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <a href="{{ route('profile.show') }}" class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                                    Profile
-                                </a>
+                                <div class="nav-dropdown {{ request()->routeIs('profile.*') || request()->routeIs('analytics') ? 'has-active-child' : '' }}" id="profileDropdown">
+                                    <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('profileDropdown');">
+                                        Dashboard
+                                    </a>
+                                    <div class="nav-dropdown-menu">
+                                        <a href="{{ route('profile.show') }}" class="nav-dropdown-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                                            Profile
+                                        </a>
+                                        <a href="{{ route('analytics') }}" class="nav-dropdown-item {{ request()->routeIs('analytics') ? 'active' : '' }}">
+                                            Analytics
+                                        </a>
+                                    </div>
+                                </div>
                                 <button type="button" onclick="showLogoutModal()" style="padding: 6px 12px; background: #ef4444; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; transition: background-color 0.2s ease;">
                                     Logout
                                 </button>
@@ -1204,7 +1228,7 @@
                     <a href="{{ route('home') }}" class="mobile-nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
                         Home
                     </a>
-                    <div class="mobile-nav-section {{ request()->routeIs('predictions.*') ? 'active has-active-child' : '' }}" id="mobilePredictionsSection">
+                    <div class="mobile-nav-section {{ request()->routeIs('predictions.*') && !request()->routeIs('analytics') ? 'active has-active-child' : '' }}" id="mobilePredictionsSection">
                         <div class="mobile-nav-section-header" onclick="toggleMobileDropdown('mobilePredictionsDropdown', 'mobilePredictionsSection')">
                             Predictions Analysis
                             <span class="mobile-nav-arrow">▼</span>
@@ -1216,9 +1240,6 @@
                             @auth
                             <a href="{{ route('predictions.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.history') ? 'active' : '' }}">
                                 History
-                            </a>
-                            <a href="{{ route('predictions.analytics') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('predictions.analytics') ? 'active' : '' }}">
-                                Analytics
                             </a>
                             @endauth
                         </div>
@@ -1257,9 +1278,20 @@
                         </div>
                     </div>
                     @auth
-                        <a href="{{ route('profile.show') }}" class="mobile-nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" style="display: flex; align-items: center; gap: 12px;">
-                            <span>Profile</span>
-                        </a>
+                        <div class="mobile-nav-section {{ request()->routeIs('profile.*') || request()->routeIs('analytics') ? 'active has-active-child' : '' }}" id="mobileProfileSection">
+                            <div class="mobile-nav-section-header" onclick="toggleMobileDropdown('mobileProfileDropdown', 'mobileProfileSection')">
+                                Dashboard
+                                <span class="mobile-nav-arrow">▼</span>
+                            </div>
+                            <div class="mobile-nav-section-content" id="mobileProfileDropdown" style="display: {{ request()->routeIs('profile.*') || request()->routeIs('analytics') ? 'block' : 'none' }};">
+                                <a href="{{ route('profile.show') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                                    Profile
+                                </a>
+                                <a href="{{ route('analytics') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('analytics') ? 'active' : '' }}">
+                                    Analytics
+                                </a>
+                            </div>
+                        </div>
                         <button type="button" onclick="showLogoutModal()" class="mobile-nav-link">
                             Logout
                         </button>
@@ -1412,6 +1444,7 @@
             const predictionsDropdown = document.getElementById('predictionsDropdown');
             const socialMediaDropdown = document.getElementById('socialMediaDropdown');
             const dataAnalysisDropdown = document.getElementById('dataAnalysisDropdown');
+            const profileDropdown = document.getElementById('profileDropdown');
             
             if (predictionsDropdown && !predictionsDropdown.contains(event.target)) {
                 // Only remove 'active' class, keep 'has-active-child' for highlighting
@@ -1427,6 +1460,11 @@
                 // Only remove 'active' class, keep 'has-active-child' for highlighting
                 dataAnalysisDropdown.classList.remove('active');
             }
+            
+            if (profileDropdown && !profileDropdown.contains(event.target)) {
+                // Only remove 'active' class, keep 'has-active-child' for highlighting
+                profileDropdown.classList.remove('active');
+            }
         });
         
         // Keep dropdown highlighted (but closed) if on a predictions route
@@ -1434,7 +1472,7 @@
             const predictionsDropdown = document.getElementById('predictionsDropdown');
             const socialMediaDropdown = document.getElementById('socialMediaDropdown');
             
-            @if(request()->routeIs('predictions.*'))
+            @if(request()->routeIs('predictions.*') && !request()->routeIs('analytics'))
                 if (predictionsDropdown) {
                     predictionsDropdown.classList.add('has-active-child');
                     // Don't auto-open, just keep it highlighted
@@ -1452,6 +1490,13 @@
                 const dataAnalysisDropdown = document.getElementById('dataAnalysisDropdown');
                 if (dataAnalysisDropdown) {
                     dataAnalysisDropdown.classList.add('has-active-child');
+                }
+            @endif
+            
+            @if(request()->routeIs('profile.*') || request()->routeIs('analytics'))
+                const profileDropdown = document.getElementById('profileDropdown');
+                if (profileDropdown) {
+                    profileDropdown.classList.add('has-active-child');
                 }
             @endif
         });

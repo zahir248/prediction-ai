@@ -101,7 +101,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
     Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
     Route::get('/predictions/history', [PredictionController::class, 'history'])->name('predictions.history');
-    Route::get('/predictions/analytics', [PredictionController::class, 'analytics'])->name('predictions.analytics');
+    Route::get('/analytics', [PredictionController::class, 'analytics'])->name('analytics');
     Route::get('/predictions/fix-data', [PredictionController::class, 'fixData'])->name('predictions.fix-data');
     Route::get('/predictions/debug-data', [PredictionController::class, 'debugData'])->name('predictions.debug-data');
     Route::get('/predictions/debug-auth', [PredictionController::class, 'debugAuth'])->name('predictions.debug-auth');

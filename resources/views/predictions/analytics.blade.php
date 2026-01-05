@@ -183,7 +183,7 @@
                 <div class="cursor-section-title">
                     <span>Filter</span>
                 </div>
-                <form method="GET" action="{{ route('predictions.analytics') }}" id="dateRangeForm">
+                <form method="GET" action="{{ route('analytics') }}" id="dateRangeForm">
                     <!-- Date From and To Row -->
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px;">
                         <!-- Date From -->
@@ -209,7 +209,7 @@
                     
                     <!-- Action Buttons -->
                     <div style="display: flex; gap: 6px;">
-                        <a href="{{ route('predictions.analytics') }}" 
+                        <a href="{{ route('analytics') }}" 
                            style="flex: 1; padding: 6px 10px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; font-weight: 500; font-size: 11px; text-decoration: none; text-align: center; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 4px;">
                             <i class="bi bi-x-circle" style="font-size: 11px;"></i>Clear
                         </a>
