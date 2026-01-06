@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\DocumentationController;
 use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\DataAnalysisController;
@@ -25,6 +26,9 @@ Route::get('/health', function() {
         'message' => 'System is running'
     ]);
 });
+
+// Chatbot route (no auth required for public access)
+Route::post('/chatbot/chat', [ChatbotController::class, 'chat'])->name('chatbot.chat');
 
 // Responsive design test page (no auth required)
 Route::get('/responsive-test', function () {

@@ -1041,4 +1041,63 @@ class ChatGPTService implements AIServiceInterface
             ]);
         }
     }
+
+    /**
+     * Chat with AI - conversational interface (stateless, no history)
+     */
+    public function chat(string $message): string
+    {
+        try {
+            // Validate API key
+            if (empty($this->apiKey)) {
+                Log::error('ChatGPT API key not configured');
+                return "I'm sorry, but the AI service is not properly configured. Please contact support.";
+            }
+
+            // Build messages array with system message and current message only
+            $messages = [
+                [
+                    'role' => 'system',
+                    'content' => "You are a helpful AI assistant for NUJUM, an AI-powered analysis platform. You help users with questions about predictions analysis, social media analysis, data analysis, and general platform usage. Be friendly, concise, and helpful. Keep responses conversational and under 200 words unless the user asks for detailed information."
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $message
+                ]
+            ];
+
+            $response = Http::timeout(60)->withOptions([
+                'verify' => $this->sslVerify,
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                    CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
+                ]
+            ])->withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json'
+            ])->post($this->baseUrl, [
+                'model' => $this->model,
+                'messages' => $messages,
+                'temperature' => 0.7,
+                'max_tokens' => 500
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['choices'][0]['message']['content'])) {
+                    return trim($data['choices'][0]['message']['content']);
+                }
+                
+                Log::error('Unexpected ChatGPT chat response structure: ' . json_encode($data));
+                return "I'm sorry, I encountered an issue processing your message. Please try again.";
+            }
+
+            Log::error('ChatGPT chat API error: ' . $response->body());
+            return "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
+        } catch (\Exception $e) {
+            Log::error('ChatGPT chat exception: ' . $e->getMessage());
+            return "I'm sorry, something went wrong. Please try again later.";
+        }
+    }
 }

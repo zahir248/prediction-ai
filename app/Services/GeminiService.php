@@ -2095,4 +2095,90 @@ class GeminiService implements AIServiceInterface
         
         return $jsonString;
     }
+
+    /**
+     * Chat with AI - conversational interface (stateless, no history)
+     */
+    public function chat(string $message): string
+    {
+        try {
+            // Validate API key
+            if (empty($this->apiKey)) {
+                Log::error('Gemini API key not configured');
+                return "I'm sorry, but the AI service is not properly configured. Please contact support.";
+            }
+
+            // Build conversation context with system instruction
+            $systemInstruction = "You are a helpful AI assistant for NUJUM, an AI-powered analysis platform. You help users with questions about predictions analysis, social media analysis, data analysis, and general platform usage. Be friendly, concise, and helpful. Keep responses conversational and under 200 words unless the user asks for detailed information.";
+            
+            // Build contents array with only current message
+            $contents = [
+                [
+                    'parts' => [
+                        ['text' => $message]
+                    ],
+                    'role' => 'user'
+                ]
+            ];
+
+            $response = Http::timeout(60)->withOptions([
+                'verify' => $this->sslVerify,
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                    CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
+                ]
+            ])->withHeaders([
+                'x-goog-api-key' => $this->apiKey,
+                'Content-Type' => 'application/json'
+            ])->post($this->baseUrl, [
+                'contents' => $contents,
+                'systemInstruction' => [
+                    'parts' => [
+                        ['text' => $systemInstruction]
+                    ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.7,
+                    'topK' => 40,
+                    'topP' => 0.95,
+                    'maxOutputTokens' => 500,
+                ],
+                'safetySettings' => [
+                    [
+                        'category' => 'HARM_CATEGORY_HARASSMENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_HATE_SPEECH',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ],
+                    [
+                        'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                    ]
+                ]
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                
+                if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+                    return trim($data['candidates'][0]['content']['parts'][0]['text']);
+                }
+                
+                Log::error('Unexpected Gemini chat response structure: ' . json_encode($data));
+                return "I'm sorry, I encountered an issue processing your message. Please try again.";
+            }
+
+            Log::error('Gemini chat API error: ' . $response->body());
+            return "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
+        } catch (\Exception $e) {
+            Log::error('Gemini chat exception: ' . $e->getMessage());
+            return "I'm sorry, something went wrong. Please try again later.";
+        }
+    }
 }

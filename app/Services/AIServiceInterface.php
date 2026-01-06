@@ -18,4 +18,9 @@ interface AIServiceInterface
      * Get available models
      */
     public function getAvailableModels();
+
+    /**
+     * Chat with AI - conversational interface (stateless, no history)
+     */
+    public function chat(string $message): string;
 }
