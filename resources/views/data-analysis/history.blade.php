@@ -344,6 +344,12 @@
                                     <i class="bi bi-file-earmark-spreadsheet"></i>
                                     <span>Raw Data</span>
                                 </div>
+                                @if($analysis->status === 'completed')
+                                <div class="analysis-tile-context-menu-item" onclick="event.stopPropagation(); closeContextMenu(); confirmExport({{ $analysis->id }}, '{{ Str::limit($analysis->file_name, 50) }}')">
+                                    <i class="bi bi-download"></i>
+                                    <span>Export</span>
+                                </div>
+                                @endif
                                 <div class="analysis-tile-context-menu-item delete" onclick="event.stopPropagation(); closeContextMenu(); confirmDelete({{ $analysis->id }}, '{{ Str::limit($analysis->file_name, 50) }}')">
                                     <i class="bi bi-trash"></i>
                                     <span>Delete</span>
@@ -371,6 +377,30 @@
                 <i class="bi bi-file-earmark-text" style="font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5;"></i>
                 <p>Select an analysis to view results</p>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Export Confirmation Modal -->
+<div id="exportModal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="modal-content" style="background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 100%; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+        <div style="margin-bottom: 24px;">
+            <span style="font-size: 48px; color: #10b981;">📄</span>
+        </div>
+        <h3 style="color: #1e293b; margin-bottom: 16px; font-size: 20px; font-weight: 600;">Export PDF Report</h3>
+        <p style="color: #64748b; margin-bottom: 24px; line-height: 1.6;">Are you ready to export this data analysis dashboard as a PDF report?</p>
+        <p id="exportFileName" style="color: #1e293b; margin-bottom: 24px; font-weight: 600; font-style: italic; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0;"></p>
+        <p style="color: #10b981; margin-bottom: 24px; font-size: 14px; font-weight: 500;">The report will include all dashboard content, charts, and insights.</p>
+        
+        <div style="display: flex; gap: 16px; justify-content: center;">
+            <button onclick="closeExportModal()" 
+                    style="padding: 12px 24px; background: transparent; color: #64748b; border: 1px solid #d1d5db; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer;">
+                Cancel
+            </button>
+            <button id="confirmExportBtn" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 8px; font-weight: 500; font-size: 14px; transition: all 0.3s ease; cursor: pointer; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                Export PDF
+            </button>
         </div>
     </div>
 </div>
@@ -581,10 +611,20 @@ function deleteAnalysis() {
 // Set up the confirm delete button
 document.getElementById('confirmDeleteBtn').onclick = deleteAnalysis;
 
+// Set up the confirm export button
+document.getElementById('confirmExportBtn').onclick = exportToPdf;
+
 // Close modal when clicking outside
 document.getElementById('deleteModal').onclick = function(e) {
     if (e.target === this) {
         closeDeleteModal();
+    }
+};
+
+// Close export modal when clicking outside
+document.getElementById('exportModal').onclick = function(e) {
+    if (e.target === this) {
+        closeExportModal();
     }
 };
 
@@ -717,6 +757,7 @@ function displayExcelPreview(excelData, container) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeDeleteModal();
+        closeExportModal();
         closeContextMenu();
     }
 });
@@ -992,6 +1033,62 @@ function closeContextMenu() {
     document.querySelectorAll('.analysis-tile-context-menu').forEach(menu => {
         menu.classList.remove('show');
     });
+}
+
+// Export modal functions
+let currentExportId = null;
+
+function confirmExport(analysisId, fileName) {
+    currentExportId = analysisId;
+    document.getElementById('exportFileName').textContent = fileName;
+    document.getElementById('exportModal').style.display = 'flex';
+}
+
+function closeExportModal() {
+    document.getElementById('exportModal').style.display = 'none';
+    currentExportId = null;
+}
+
+// Export to PDF
+function exportToPdf() {
+    if (!currentExportId) {
+        showToast('Error: Analysis ID not found', 'error');
+        return;
+    }
+    
+    // Store the ID before closing the modal
+    const analysisId = currentExportId;
+    
+    // Close the modal first
+    closeExportModal();
+    
+    // Validate analysis ID is a valid number
+    const analysisIdNum = parseInt(analysisId);
+    if (isNaN(analysisIdNum) || analysisIdNum <= 0) {
+        console.error('Invalid analysis ID for export:', analysisId);
+        showToast('Error: Invalid analysis ID', 'error');
+        return;
+    }
+    
+    // Show loading message
+    showToast('Exporting PDF...', 'success');
+    
+    // Generate absolute URL to handle subdirectory deployments
+    const baseUrl = '{{ url("/") }}';
+    const exportUrl = `${baseUrl}/data-analysis/${analysisIdNum}/export`;
+    
+    // Show success message after a short delay (optimistic)
+    setTimeout(() => {
+        showToast('PDF exported successfully!', 'success');
+    }, 1000);
+    
+    // Redirect to the export route
+    // The download will start automatically
+    setTimeout(() => {
+        showToast('PDF exported successfully!', 'success');
+    }, 1000);
+    
+    window.location.href = exportUrl;
 }
 
 // Load Dashboard View

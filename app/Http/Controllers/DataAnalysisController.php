@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DataAnalysisController extends Controller
 {
@@ -509,6 +510,163 @@ class DataAnalysisController extends Controller
                 'success' => false,
                 'error' => 'Failed to load Excel data: ' . $e->getMessage(),
             ], 500);
+        }
+    }
+
+    /**
+     * Export data analysis dashboard to PDF
+     */
+    public function export(DataAnalysis $dataAnalysis)
+    {
+        // Check ownership
+        if ((int)Auth::id() !== (int)$dataAnalysis->user_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Check if analysis is completed
+        if ($dataAnalysis->status !== DataAnalysis::STATUS_COMPLETED) {
+            abort(400, 'Analysis not completed yet');
+        }
+
+        try {
+            // Increase execution time limit for PDF generation
+            set_time_limit(120); // 2 minutes
+            
+            // Prepare dashboard data from AI insights and chart configs
+            $dashboardData = $this->prepareDashboardDataFromInsights($dataAnalysis);
+            
+            // Generate chart images for PDF with timeout handling
+            $chartImages = [];
+            $startTime = microtime(true);
+            $maxGenerationTime = 25; // Maximum time to spend generating chart images (seconds)
+            
+            if (!empty($dashboardData['chart_configs']) && is_array($dashboardData['chart_configs'])) {
+                // Don't limit charts - generate images for all of them
+                // But add timeout protection per chart
+                $chartConfigs = $dashboardData['chart_configs'];
+                
+                foreach ($chartConfigs as $index => $chartConfig) {
+                    // Check if we're running out of time
+                    $elapsed = microtime(true) - $startTime;
+                    if ($elapsed > $maxGenerationTime) {
+                        Log::info('Stopping chart image generation due to time limit. Generated ' . count($chartImages) . ' charts.');
+                        break;
+                    }
+                    
+                    try {
+                        // Check if this is a map chart for debugging
+                        $chartTitle = $chartConfig['title'] ?? '';
+                        $chartType = $chartConfig['type'] ?? 'unknown';
+                        $isMapChart = stripos($chartTitle, 'map') !== false 
+                            || stripos($chartType, 'map') !== false;
+                        
+                        // Log chart generation attempt
+                        $isComparisonChart = stripos($chartTitle, 'vs.') !== false 
+                            || stripos($chartTitle, 'versus') !== false 
+                            || stripos($chartTitle, 'comparison') !== false;
+                        
+                        Log::info('Generating chart image', [
+                            'index' => $index,
+                            'title' => $chartTitle,
+                            'type' => $chartType,
+                            'is_map' => $isMapChart,
+                            'is_comparison' => $isComparisonChart,
+                            'has_data' => !empty($chartConfig['data']),
+                            'labels_count' => isset($chartConfig['data']['labels']) ? count($chartConfig['data']['labels']) : 0,
+                            'datasets_count' => isset($chartConfig['data']['datasets']) ? count($chartConfig['data']['datasets']) : 0,
+                        ]);
+                        
+                        if ($isMapChart) {
+                            Log::info('Generating map image', [
+                                'index' => $index,
+                                'title' => $chartTitle,
+                                'has_coordinates' => isset($chartConfig['coordinates']),
+                                'coordinates_count' => isset($chartConfig['coordinates']) && is_array($chartConfig['coordinates']) 
+                                    ? count($chartConfig['coordinates']) : 0,
+                            ]);
+                        }
+                        
+                        // Use smaller image size for faster generation
+                        $chartImage = \App\Services\ChartImageService::generateChartImage($chartConfig, 600, 300);
+                        if ($chartImage) {
+                            $chartImages[$index] = $chartImage;
+                            Log::info('Chart image generated successfully', [
+                                'index' => $index,
+                                'title' => $chartTitle,
+                                'type' => $chartType,
+                            ]);
+                        } else {
+                            Log::warning('Chart image generation returned null', [
+                                'index' => $index,
+                                'title' => $chartTitle,
+                                'type' => $chartType,
+                                'is_map' => $isMapChart,
+                            ]);
+                        }
+                    } catch (\Exception $e) {
+                        // Log but continue with other charts
+                        Log::warning('Failed to generate chart image for index ' . $index . ': ' . $e->getMessage(), [
+                            'title' => $chartConfig['title'] ?? 'Unknown',
+                            'type' => $chartConfig['type'] ?? 'unknown',
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                        continue;
+                    }
+                }
+            }
+            
+            // Render the dashboard view as HTML for PDF
+            $html = view('data-analysis.export-pdf', compact('dataAnalysis', 'dashboardData', 'chartImages'))->render();
+            
+            // Generate PDF using the rendered HTML
+            $pdf = Pdf::loadHTML($html);
+            
+            // Set PDF options for better formatting and page break handling
+            $pdf->setPaper('a4', 'portrait');
+            $pdf->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'Arial',
+                'defaultMediaType' => 'screen',
+                'isFontSubsettingEnabled' => false, // Disable to speed up
+                'isPhpEnabled' => true,
+                'isJavascriptEnabled' => false,
+                'defaultPaperSize' => 'a4',
+                'defaultPaperOrientation' => 'portrait',
+                'dpi' => 120, // Reduced from 150 to 120 for faster processing
+                'fontHeightRatio' => 0.9,
+                'enable-smart-shrinking' => true,
+                'enable-local-file-access' => true,
+                'chroot' => public_path(), // Set chroot for security and performance
+            ]);
+            
+            // Add page numbers using DomPDF callback
+            $dompdf = $pdf->getDomPDF();
+            $dompdf->setCallbacks([
+                [
+                    'event' => 'end_page', 'f' => function ($infos) {
+                        $canvas = $infos["canvas"];
+                        $fontMetrics = $infos["fontMetrics"];
+                        $font = $fontMetrics->getFont("Times New Roman", "normal");
+                        $size = 9;
+                        $pageText = "{PAGE_NUM}";
+                        $y = $canvas->get_height() - 24;
+                        $pageWidth = 595.28; // A4 width in points
+                        $textWidth = $fontMetrics->get_text_width($pageText, $font, $size);
+                        $x = ($pageWidth / 2) - ($textWidth / 2) + 25;
+                        $canvas->page_text($x, $y, $pageText, $font, $size, array(0, 0, 0));
+                    }
+                ]
+            ]);
+
+            // Generate filename
+            $filename = 'data_analysis_' . $dataAnalysis->id . '_' . date('Y-m-d_H-i-s') . '.pdf';
+
+            // Return PDF for download
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            Log::error('Error exporting data analysis PDF: ' . $e->getMessage());
+            abort(500, 'Failed to generate PDF: ' . $e->getMessage());
         }
     }
 

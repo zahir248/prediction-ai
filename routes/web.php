@@ -171,6 +171,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/data-analysis/{dataAnalysis}/analysis-html', [DataAnalysisController::class, 'getAnalysisHtml'])->name('data-analysis.analysis-html');
     Route::get('/data-analysis/{dataAnalysis}/excel-preview', [DataAnalysisController::class, 'excelPreview'])->name('data-analysis.excel-preview');
     Route::get('/data-analysis/{dataAnalysis}/dashboard', [DataAnalysisController::class, 'dashboard'])->name('data-analysis.dashboard');
+    Route::get('/data-analysis/{dataAnalysis}/export', [DataAnalysisController::class, 'export'])->name('data-analysis.export');
     Route::get('/data-analysis/{dataAnalysis}', [DataAnalysisController::class, 'show'])->name('data-analysis.show');
     Route::delete('/data-analysis/{dataAnalysis}', [DataAnalysisController::class, 'destroy'])->name('data-analysis.destroy');
     
