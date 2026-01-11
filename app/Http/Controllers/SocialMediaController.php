@@ -265,7 +265,8 @@ class SocialMediaController extends Controller
 
         try {
             // Increase execution time limit for this operation
-            set_time_limit(600); // 10 minutes
+            // Instagram scraping can take 15+ minutes, so set a high limit
+            set_time_limit(1200); // 20 minutes to allow for Instagram scraping
             
             $username = trim($request->input('username'));
             $selectedPlatforms = $request->input('platforms', ['facebook', 'instagram', 'tiktok', 'twitter']); // Default to all
@@ -306,6 +307,36 @@ class SocialMediaController extends Controller
                 'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'error' => 'Exception: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Check status of a running Apify actor run
+     */
+    public function checkRunStatus(Request $request)
+    {
+        $request->validate([
+            'run_id' => 'required|string',
+            'platform' => 'nullable|string|in:instagram,facebook,tiktok,twitter'
+        ]);
+
+        try {
+            $runId = $request->input('run_id');
+            $platform = $request->input('platform', 'instagram');
+
+            $result = $this->socialMediaService->checkApifyRunStatus($runId, $platform);
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            Log::error('Check run status exception', [
+                'run_id' => $request->input('run_id'),
+                'exception' => $e->getMessage()
             ]);
 
             return response()->json([

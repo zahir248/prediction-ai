@@ -78,10 +78,11 @@ class SocialMediaService
         // Increase execution time limit for Apify operations
         // Longer timeout for fetching all posts (up to 10,000 posts)
         // Instagram scraping can be slower, so give it more time
+        // Instagram post scraper can take 10-15 minutes for some accounts
         if (strpos($actorId, 'facebook') !== false && ($input['maxPosts'] ?? 0) > 1000) {
             $timeout = 600; // 10 minutes for large Facebook requests
         } elseif (strpos($actorId, 'instagram') !== false) {
-            $timeout = 450; // 7.5 minutes for Instagram (can be slow due to rate limiting)
+            $timeout = 900; // 15 minutes for Instagram (can be very slow due to rate limiting and account size)
         } else {
             $timeout = 300; // 5 minutes for others
         }
@@ -215,8 +216,9 @@ class SocialMediaService
 
             // Wait for the run to finish
             // Use the calculated timeout (matches execution time limit) or config timeout, whichever is higher
-            // Add a small buffer (30 seconds) to account for status check delays
-            $waitTimeout = max($timeout, $this->timeout) + 30;
+            // Add a buffer (60 seconds) to account for status check delays and network latency
+            // For Instagram, we need extra time as it can take 10-15 minutes
+            $waitTimeout = max($timeout, $this->timeout) + 60;
             
             if ($waitForFinish) {
                 $result = $this->waitForRunCompletion($runId, $token, $waitTimeout, $actorId, $apifyStartTime, $platform, $input);
@@ -312,11 +314,34 @@ class SocialMediaService
     {
         $loopStartTime = time();
         $checkInterval = 5; // Check every 5 seconds
+        
+        // Extend execution time limit to ensure we can wait for the full duration
+        // Add extra buffer (5 minutes) to account for the wait time
+        $currentTimeLimit = ini_get('max_execution_time');
+        $requiredTimeLimit = $maxWaitTime + 300; // maxWaitTime + 5 minute buffer
+        if ($currentTimeLimit > 0 && $currentTimeLimit < $requiredTimeLimit) {
+            set_time_limit($requiredTimeLimit);
+            Log::info('Extended execution time limit for Apify wait', [
+                'run_id' => $runId,
+                'previous_limit' => $currentTimeLimit,
+                'new_limit' => $requiredTimeLimit,
+                'max_wait_time' => $maxWaitTime
+            ]);
+        }
 
         while (true) {
             $elapsedTime = time() - $loopStartTime;
             
             if ($elapsedTime > $maxWaitTime) {
+                Log::warning('Apify actor run approaching timeout - checking final status', [
+                    'run_id' => $runId,
+                    'actor_id' => $actorId,
+                    'elapsed_time' => $elapsedTime,
+                    'max_wait_time' => $maxWaitTime,
+                    'remaining_execution_time' => ini_get('max_execution_time'),
+                    'platform' => $platform
+                ]);
+                
                 // Check final status before timing out to provide better error message
                 $statusResponse = Http::timeout(60)
                     ->withOptions([
@@ -346,6 +371,25 @@ class SocialMediaService
                     'final_status' => $finalStatus,
                     'suggestion' => $finalStatus === 'RUNNING' ? 'Run is still in progress. Consider increasing timeout or checking run status later via Apify console.' : 'Run may have failed or is taking longer than expected.'
                 ]);
+
+                // If actor is still running, return a special status indicating it's processing
+                // This prevents the frontend from showing "not found" when the actor is still working
+                if ($finalStatus === 'RUNNING') {
+                    return [
+                        'success' => false,
+                        'status' => 'processing',
+                        'message' => 'Instagram scraping is still in progress. This may take several more minutes.',
+                        'error' => 'Apify actor run is still processing after ' . $maxWaitTime . ' seconds',
+                        'final_status' => $finalStatus,
+                        'run_id' => $runId,
+                        'apify_usage' => [
+                            'platform' => $platform ?? $this->getPlatformFromActorId($actorId ?? ''),
+                            'success' => false,
+                            'response_time' => $apifyResponseTime,
+                            'cost' => 0.00
+                        ]
+                    ];
+                }
 
                 return [
                     'success' => false,
@@ -397,6 +441,17 @@ class SocialMediaService
 
             $statusData = $statusResponse->json();
             $status = $statusData['data']['status'] ?? null;
+            
+            // Log status changes
+            if ($status === 'SUCCEEDED' || $status === 'FAILED' || $status === 'ABORTED') {
+                Log::info('Apify actor run status changed', [
+                    'run_id' => $runId,
+                    'actor_id' => $actorId,
+                    'status' => $status,
+                    'elapsed_time' => time() - $loopStartTime,
+                    'status_data' => json_encode($statusData, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+                ]);
+            }
 
             if ($status === 'SUCCEEDED') {
                 // Get the dataset items
@@ -419,15 +474,30 @@ class SocialMediaService
                     // Calculate total response time
                     $apifyResponseTime = $apifyStartTime ? round(microtime(true) - $apifyStartTime, 4) : 0;
                     
+                    $itemsCount = is_array($items) ? count($items) : 0;
+                    
                     // Log the full raw response from Apify API
                     Log::info('Apify dataset items retrieved - FULL RESPONSE', [
                         'run_id' => $runId,
                         'actor_id' => $actorId,
-                        'items_count' => is_array($items) ? count($items) : 0,
+                        'items_count' => $itemsCount,
+                        'is_empty' => empty($items),
+                        'is_array' => is_array($items),
                         'full_response' => json_encode($items, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
                         'first_item_structure' => !empty($items[0]) && is_array($items[0]) ? array_keys($items[0]) : [],
-                        'first_item_full' => !empty($items[0]) ? json_encode($items[0], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null
+                        'first_item_full' => !empty($items[0]) ? json_encode($items[0], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : null,
+                        'has_errors' => !empty($items[0]) && is_array($items[0]) && (isset($items[0]['error']) || isset($items[0]['errorDescription']))
                     ]);
+                    
+                    // Log warning if dataset is empty
+                    if (empty($items) || $itemsCount === 0) {
+                        Log::warning('Apify dataset is empty after successful run', [
+                            'run_id' => $runId,
+                            'actor_id' => $actorId,
+                            'platform' => $platform ?? $this->getPlatformFromActorId($actorId ?? ''),
+                            'elapsed_time' => $apifyResponseTime
+                        ]);
+                    }
                     
                     // Calculate cost based on platform and input
                     $calculatedPlatform = $platform ?? $this->getPlatformFromActorId($actorId ?? '');
@@ -498,6 +568,116 @@ class SocialMediaService
 
             // Wait before next check
             sleep($checkInterval);
+        }
+    }
+    
+    /**
+     * Check status of a running Apify actor and get results if completed
+     * This is useful for checking long-running Instagram scrapes
+     */
+    public function checkApifyRunStatus($runId, $platform = 'instagram')
+    {
+        try {
+            $token = $this->getApiToken();
+            if (!$token) {
+                return [
+                    'success' => false,
+                    'error' => 'Apify API token not configured'
+                ];
+            }
+
+            // Check run status
+            $statusResponse = Http::timeout(60)
+                ->withOptions([
+                    'verify' => $this->sslVerify,
+                    'curl' => [
+                        CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                        CURLOPT_SSL_VERIFYHOST => $this->sslVerify ? 2 : 0,
+                    ]
+                ])
+                ->withHeaders([
+                    'Authorization' => 'Bearer ' . $token,
+                ])
+                ->get("{$this->apifyBaseUrl}/actor-runs/{$runId}");
+
+            if (!$statusResponse->successful()) {
+                return [
+                    'success' => false,
+                    'error' => 'Failed to check run status',
+                    'status_code' => $statusResponse->status()
+                ];
+            }
+
+            $statusData = $statusResponse->json();
+            $status = $statusData['data']['status'] ?? null;
+            $actorId = $statusData['data']['actId'] ?? null;
+
+            if ($status === 'SUCCEEDED') {
+                // Get the dataset items
+                $datasetResponse = Http::timeout(60)
+                    ->withOptions([
+                        'verify' => $this->sslVerify,
+                        'curl' => [
+                            CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                            CURLOPT_SSL_VERIFYHOST => $this->sslVerify ? 2 : 0,
+                        ]
+                    ])
+                    ->withHeaders([
+                        'Authorization' => 'Bearer ' . $token,
+                    ])
+                    ->get("{$this->apifyBaseUrl}/datasets/{$statusData['data']['defaultDatasetId']}/items");
+
+                if ($datasetResponse->successful()) {
+                    $items = $datasetResponse->json();
+                    
+                    // Format the data based on platform
+                    if ($platform === 'instagram') {
+                        $formattedData = $this->formatApifyInstagramData($items);
+                        return [
+                            'success' => true,
+                            'status' => 'completed',
+                            'data' => $formattedData,
+                            'run_id' => $runId
+                        ];
+                    }
+                    
+                    return [
+                        'success' => true,
+                        'status' => 'completed',
+                        'data' => $items,
+                        'run_id' => $runId
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'error' => 'Failed to fetch dataset items',
+                        'status' => $status
+                    ];
+                }
+            } elseif ($status === 'FAILED' || $status === 'ABORTED') {
+                return [
+                    'success' => false,
+                    'error' => 'Apify actor run ' . strtolower($status),
+                    'status' => $status
+                ];
+            } else {
+                // Still running
+                return [
+                    'success' => false,
+                    'status' => 'processing',
+                    'message' => 'Instagram scraping is still in progress',
+                    'run_id' => $runId
+                ];
+            }
+        } catch (\Exception $e) {
+            Log::error('Check Apify run status exception', [
+                'run_id' => $runId,
+                'exception' => $e->getMessage()
+            ]);
+            return [
+                'success' => false,
+                'error' => 'Exception: ' . $e->getMessage()
+            ];
         }
     }
     
@@ -690,6 +870,24 @@ class SocialMediaService
                 'error_code' => $result['error_code'] ?? null,
                 'has_data' => isset($result['data']) && !empty($result['data'])
             ]);
+
+            // Check if the result indicates the actor is still processing
+            if (isset($result['status']) && $result['status'] === 'processing') {
+                Log::info('Instagram actor still processing', [
+                    'identifier' => $identifier,
+                    'run_id' => $result['run_id'] ?? null,
+                    'message' => $result['message'] ?? null
+                ]);
+                return [
+                    'success' => false,
+                    'status' => 'processing',
+                    'platform' => 'instagram',
+                    'message' => $result['message'] ?? 'Instagram scraping is still in progress. This may take several more minutes.',
+                    'run_id' => $result['run_id'] ?? null,
+                    'error' => $result['error'] ?? 'Processing',
+                    'apify_usage' => $result['apify_usage'] ?? null
+                ];
+            }
 
             if ($result['success']) {
                 $data = $this->formatApifyInstagramData($result['data']);
@@ -1206,42 +1404,110 @@ class SocialMediaService
     {
         if (empty($items) || !is_array($items)) {
             Log::warning('Instagram scraper returned empty data', [
-                'items_count' => is_array($items) ? count($items) : 0
+                'items_count' => is_array($items) ? count($items) : 0,
+                'items_type' => gettype($items),
+                'full_response' => json_encode($items, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
             ]);
             return [
-                'error' => 'No data returned from Apify'
+                'error' => 'No data returned from Apify. The username may not exist or the account may be private.',
+                'error_code' => 'NO_DATA'
             ];
         }
 
         Log::info('Formatting Instagram data', [
             'items_count' => count($items),
             'first_item_keys' => !empty($items[0]) && is_array($items[0]) ? array_keys($items[0]) : [],
-            'first_item_sample' => !empty($items[0]) ? json_encode(array_slice($items[0], 0, 5, true)) : null
+            'first_item_sample' => !empty($items[0]) ? json_encode(array_slice($items[0], 0, 5, true)) : null,
+            'full_items' => json_encode($items, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
         ]);
 
         // Check if the response contains an error
         if (!empty($items[0]) && is_array($items[0]) && (isset($items[0]['error']) || isset($items[0]['errorDescription']))) {
             $errorMsg = $items[0]['errorDescription'] ?? $items[0]['error'] ?? 'Instagram scraper returned an error';
+            $errorCode = $items[0]['error'] ?? null;
+            
+            // Check for specific error messages that indicate username not found
+            $errorLower = strtolower($errorMsg);
+            if (strpos($errorLower, 'not found') !== false || 
+                strpos($errorLower, 'doesn\'t exist') !== false ||
+                strpos($errorLower, 'does not exist') !== false ||
+                strpos($errorLower, 'user not found') !== false ||
+                strpos($errorLower, 'account not found') !== false ||
+                $errorCode === 'USER_NOT_FOUND' ||
+                $errorCode === 'NOT_FOUND') {
+                Log::warning('Instagram username not found', [
+                    'error' => $errorCode,
+                    'errorDescription' => $errorMsg,
+                    'full_item' => json_encode($items[0])
+                ]);
+                return [
+                    'error' => 'Username not found. The Instagram account does not exist or the username is incorrect.',
+                    'error_code' => $errorCode ?? 'USER_NOT_FOUND'
+                ];
+            }
+            
             Log::warning('Instagram scraper returned error', [
-                'error' => $items[0]['error'] ?? null,
-                'errorDescription' => $items[0]['errorDescription'] ?? null,
+                'error' => $errorCode,
+                'errorDescription' => $errorMsg,
                 'full_item' => json_encode($items[0])
             ]);
             return [
                 'error' => $errorMsg,
-                'error_code' => $items[0]['error'] ?? null
+                'error_code' => $errorCode
             ];
         }
         
-        // Filter out error items
-        $items = array_values(array_filter($items, function($item) {
-            return is_array($item) && !isset($item['error']) && !isset($item['errorDescription']);
-        }));
+        // Filter out error items and log what we're filtering
+        $errorItems = [];
+        $validItems = [];
+        foreach ($items as $item) {
+            if (is_array($item) && (isset($item['error']) || isset($item['errorDescription']))) {
+                $errorItems[] = $item;
+            } else {
+                $validItems[] = $item;
+            }
+        }
+        
+        if (!empty($errorItems)) {
+            Log::info('Instagram scraper returned error items', [
+                'error_items_count' => count($errorItems),
+                'valid_items_count' => count($validItems),
+                'error_items' => json_encode($errorItems, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+            ]);
+        }
+        
+        // Use only valid items
+        $items = $validItems;
         
         if (empty($items)) {
-            Log::warning('Instagram scraper returned only error items');
+            // Check if error items indicate username not found
+            $usernameNotFound = false;
+            foreach ($errorItems as $errorItem) {
+                $errorMsg = strtolower($errorItem['errorDescription'] ?? $errorItem['error'] ?? '');
+                if (strpos($errorMsg, 'not found') !== false || 
+                    strpos($errorMsg, 'doesn\'t exist') !== false ||
+                    strpos($errorMsg, 'does not exist') !== false ||
+                    strpos($errorMsg, 'user not found') !== false ||
+                    strpos($errorMsg, 'account not found') !== false) {
+                    $usernameNotFound = true;
+                    break;
+                }
+            }
+            
+            if ($usernameNotFound) {
+                Log::warning('Instagram username not found - all items are errors indicating not found');
                 return [
-                'error' => 'Instagram scraper returned no valid data. The account might be private or the scraper encountered an error.'
+                    'error' => 'Username not found. The Instagram account does not exist or the username is incorrect.',
+                    'error_code' => 'USER_NOT_FOUND'
+                ];
+            }
+            
+            Log::warning('Instagram scraper returned only error items', [
+                'error_items' => json_encode($errorItems, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+            ]);
+            return [
+                'error' => 'Instagram scraper returned no valid data. The account might be private or the scraper encountered an error.',
+                'error_code' => 'NO_VALID_DATA'
             ];
         }
 
@@ -1768,7 +2034,8 @@ class SocialMediaService
     public function searchAllPlatforms($username, $selectedPlatforms = null)
     {
         // Increase execution time limit for multi-platform search
-        set_time_limit(600); // 10 minutes for all platforms
+        // Instagram scraping can take 15+ minutes, so set a high limit
+        set_time_limit(1200); // 20 minutes for all platforms (Instagram needs extra time)
         
         // Default to all platforms if none specified
         if ($selectedPlatforms === null) {
@@ -1819,7 +2086,23 @@ class SocialMediaService
                     $results['platforms']['instagram'] = ['found' => true, 'data' => $instagramResult['data'], 'error' => null];
                     $results['total_found']++;
                 } else {
-                    $results['platforms']['instagram']['error'] = $instagramResult['error'] ?? 'Not found';
+                    // Check if Instagram is still processing
+                    if (isset($instagramResult['status']) && $instagramResult['status'] === 'processing') {
+                        $results['platforms']['instagram'] = [
+                            'found' => false,
+                            'data' => null,
+                            'error' => null,
+                            'status' => 'processing',
+                            'message' => $instagramResult['message'] ?? 'Instagram scraping is still in progress. This may take several more minutes.',
+                            'run_id' => $instagramResult['run_id'] ?? null
+                        ];
+                        Log::info('Instagram search still processing', [
+                            'username' => $username,
+                            'run_id' => $instagramResult['run_id'] ?? null
+                        ]);
+                    } else {
+                        $results['platforms']['instagram']['error'] = $instagramResult['error'] ?? 'Not found';
+                    }
                 }
                 // Collect Apify usage
                 if (isset($instagramResult['apify_usage'])) {

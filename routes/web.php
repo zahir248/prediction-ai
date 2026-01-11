@@ -158,6 +158,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'destroy'])->name('social-media.destroy');
     Route::post('/social-media/analyze', [SocialMediaController::class, 'analyze'])->name('social-media.analyze');
     Route::post('/social-media/search-all', [SocialMediaController::class, 'searchAll'])->name('social-media.search-all');
+    Route::post('/social-media/check-run-status', [SocialMediaController::class, 'checkRunStatus'])->name('social-media.check-run-status');
     Route::post('/social-media/get-existing-data', [SocialMediaController::class, 'getExistingPlatformData'])->name('social-media.get-existing-data');
     Route::post('/social-media/ai-analysis', [SocialMediaController::class, 'aiAnalysis'])->name('social-media.ai-analysis');
     Route::post('/social-media/{socialMediaAnalysis}/re-analyze', [SocialMediaController::class, 'reAnalyze'])->name('social-media.re-analyze');

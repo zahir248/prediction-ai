@@ -2502,13 +2502,91 @@ async function performSearch() {
         
         // Check if search failed - only fail if NO platforms were found
         // If at least one platform is found, proceed with analysis even if some platforms failed
+        // Also check if any platform is still processing (e.g., Instagram)
         const hasFoundPlatforms = data.platforms && Object.values(data.platforms).some(p => p && p.found === true);
         const hasPlatforms = data.platforms && Object.keys(data.platforms).length > 0;
+        const hasProcessingPlatforms = data.platforms && Object.values(data.platforms).some(p => p && p.status === 'processing');
         
         // Only fail if:
         // 1. No platforms exist at all, OR
-        // 2. Platforms exist but NONE were found (all platforms failed)
-        const searchFailed = !hasPlatforms || (hasPlatforms && !hasFoundPlatforms);
+        // 2. Platforms exist but NONE were found (all platforms failed) AND none are processing
+        const searchFailed = !hasPlatforms || (hasPlatforms && !hasFoundPlatforms && !hasProcessingPlatforms);
+        
+        // Handle processing platforms (e.g., Instagram still scraping)
+        if (hasProcessingPlatforms) {
+            const processingPlatform = Object.entries(data.platforms).find(([key, p]) => p && p.status === 'processing');
+            if (processingPlatform) {
+                const [platformName, platformData] = processingPlatform;
+                const runId = platformData.run_id;
+                const message = platformData.message || `${platformName} scraping is still in progress. This may take several more minutes.`;
+                
+                // Show processing message
+                const mainContent = document.querySelector('.cursor-main-content');
+                if (mainContent) {
+                    mainContent.style.display = 'flex';
+                    mainContent.style.alignItems = 'center';
+                    mainContent.style.justifyContent = 'center';
+                    mainContent.style.padding = '24px';
+                    mainContent.style.background = '#ffffff';
+                    
+                    mainContent.innerHTML = `
+                        <div style="max-width: 500px; width: 100%; text-align: center; padding: 40px 24px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
+                            <h2 style="font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 12px;">Processing ${platformName}</h2>
+                            <p style="font-size: 16px; color: #64748b; line-height: 1.6; margin-bottom: 24px;">${message}</p>
+                            <p style="font-size: 14px; color: #94a3b8; margin-top: 16px;">The page will automatically refresh when complete, or you can check back later.</p>
+                        </div>
+                    `;
+                }
+                
+                // Poll for results every 30 seconds if we have a run_id
+                if (runId && platformName === 'instagram') {
+                    let pollCount = 0;
+                    const maxPolls = 20; // Poll for up to 10 minutes (20 * 30 seconds)
+                    const pollInterval = setInterval(async () => {
+                        pollCount++;
+                        if (pollCount > maxPolls) {
+                            clearInterval(pollInterval);
+                            return;
+                        }
+                        
+                        try {
+                            const statusResponse = await fetch('{{ route("social-media.check-run-status") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || document.querySelector('input[name="_token"]').value
+                                },
+                                body: JSON.stringify({ 
+                                    run_id: runId,
+                                    platform: 'instagram'
+                                })
+                            });
+                            
+                            const statusData = await statusResponse.json();
+                            
+                            if (statusData.success && statusData.status === 'completed') {
+                                clearInterval(pollInterval);
+                                // Reload the page to show results
+                                window.location.reload();
+                            } else if (statusData.status === 'processing') {
+                                // Still processing, continue polling
+                                console.log('Instagram still processing, poll count:', pollCount);
+                            } else {
+                                // Failed or aborted
+                                clearInterval(pollInterval);
+                                console.error('Instagram scraping failed:', statusData.error);
+                            }
+                        } catch (error) {
+                            console.error('Error checking status:', error);
+                        }
+                    }, 30000); // Poll every 30 seconds
+                }
+                
+                // Don't proceed to error handling if we have processing platforms
+                return;
+            }
+        }
         
         if (searchFailed) {
             // Stop progress modal
