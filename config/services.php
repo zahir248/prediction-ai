@@ -67,7 +67,7 @@ return [
         'facebook_actor_id' => env('APIFY_FACEBOOK_ACTOR_ID', 'apify/facebook-posts-scraper'),
         'instagram_actor_id' => env('APIFY_INSTAGRAM_ACTOR_ID', 'apify/instagram-post-scraper'),
         'tiktok_actor_id' => env('APIFY_TIKTOK_ACTOR_ID', 'clockworks/tiktok-profile-scraper'),
-        'twitter_actor_id' => env('APIFY_TWITTER_ACTOR_ID', 'apidojo/tweet-scraper'),
+        'twitter_actor_id' => env('APIFY_TWITTER_ACTOR_ID', 'epctex/twitter-profile-scraper'),
     ],
 
 ];

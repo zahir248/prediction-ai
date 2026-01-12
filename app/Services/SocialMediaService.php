@@ -32,7 +32,7 @@ class SocialMediaService
         $this->facebookActorId = config('services.apify.facebook_actor_id', 'apify/facebook-posts-scraper');
         $this->instagramActorId = config('services.apify.instagram_actor_id', 'apify/instagram-scraper');
         $this->tiktokActorId = config('services.apify.tiktok_actor_id', 'clockworks/tiktok-profile-scraper');
-        $this->twitterActorId = config('services.apify.twitter_actor_id', 'apify/twitter-scraper');
+        $this->twitterActorId = config('services.apify.twitter_actor_id', 'epctex/twitter-profile-scraper');
         
         if (empty($this->apifyApiToken)) {
             Log::warning('Apify API token is not configured', [
@@ -1955,19 +1955,23 @@ class SocialMediaService
             $cleanUsername = preg_replace('/^https?:\/\/(www\.)?(twitter\.com\/|x\.com\/)/', '', $cleanUsername);
             $cleanUsername = trim($cleanUsername, '/');
 
-            // apidojo/tweet-scraper uses searchTerms with "from:username" format
+            // epctex/twitter-profile-scraper uses startUrls with Twitter profile URLs
+            $twitterUrl = "https://twitter.com/{$cleanUsername}";
             $input = [
-                'searchTerms' => ["from:{$cleanUsername}"],
-                'maxItems' => 100, // Get more tweets for better engagement analysis
-                'sort' => 'Latest',
-                'tweetLanguage' => 'en',
+                'startUrls' => [$twitterUrl],
+                'addUserInfo' => true, // Include user information in all scraped tweets
+                'onlyUserInfo' => false, // Get tweets as well, not just user info
+                'proxy' => [
+                    'useApifyProxy' => true
+                ]
             ];
             
             Log::info('Scraping Twitter/X account', [
                 'username' => $username,
                 'clean_username' => $cleanUsername,
                 'actor_id' => $this->twitterActorId,
-                'input_format' => 'searchTerms array'
+                'input_format' => 'startUrls array',
+                'twitter_url' => $twitterUrl
             ]);
 
             $result = $this->runApifyActor($this->twitterActorId, $input);
@@ -2443,7 +2447,7 @@ class SocialMediaService
             return ['error' => 'No data returned from Apify'];
         }
 
-        // apify/twitter-scraper returns tweets with user data
+        // epctex/twitter-profile-scraper returns tweets with user data (when addUserInfo is true)
         $profileData = null;
         $tweets = [];
 
