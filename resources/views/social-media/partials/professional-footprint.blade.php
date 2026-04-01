@@ -82,15 +82,44 @@
     $circumference = 2 * M_PI * $radius;
     $offset = $circumference - ($percentage / 100) * $circumference;
     $isPdfExport = isset($GLOBALS['isPdfExport']) && $GLOBALS['isPdfExport'] === true;
+
+    if (!isset($__fieldKeyUi)) {
+        $__reportLangMs = (($analysis['report_language'] ?? 'en') === 'ms');
+        $__fieldKeyUi = function (string $key) use ($__reportLangMs): string {
+            if (!$__reportLangMs) {
+                return ucwords(str_replace('_', ' ', $key));
+            }
+            $map = [
+                'recommendations' => 'Cadangan',
+                'evidence' => 'Bukti',
+                'concerns' => 'Kebimbangan',
+                'strengths' => 'Kekuatan',
+                'indicators' => 'Petunjuk',
+                'current_focus' => 'Tumpuan semasa',
+                'expertise_areas' => 'Bidang kepakaran',
+                'industry_positioning' => 'Kedudukan dalam industri',
+                'career_goals' => 'Matlamat kerjaya',
+                'growth_potential' => 'Potensi pertumbuhan',
+                'market_value' => 'Nilai pasaran',
+                'online_presence' => 'Kehadiran dalam talian',
+                'content_quality' => 'Kualiti kandungan',
+                'brand_consistency' => 'Konsisten jenama',
+                'platform_utilization' => 'Penggunaan platform',
+                'audience_engagement' => 'Penglibatan audiens',
+                'professionalism_score' => 'Skor profesionalisme',
+            ];
+            return $map[$key] ?? ucwords(str_replace('_', ' ', $key));
+        };
+    }
 @endphp
 
 <div class="professional-footprint-container" style="margin-bottom: 32px; padding: 32px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Professional Footprint Analysis</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Professional Footprint Analysis', 'Analisis Jejak Profesional') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -103,12 +132,18 @@
     @else
         <div style="margin-bottom: 32px; color: #475569; line-height: 1.75; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @php
-                $username = $socialMediaAnalysis->username ?? 'This profile';
-                $postsText = $totalPosts ? "based on analysis of {$totalPosts} posts" : '';
-                $platformsText = $platformsCount ? "across {$platformsCount} platform" . ($platformsCount > 1 ? 's' : '') : '';
+                $username = $socialMediaAnalysis->username ?? $__ui('This profile', 'Profil ini');
+                $postsText = $totalPosts ? $__ui("based on analysis of {$totalPosts} posts", "berdasarkan analisis {$totalPosts} siaran") : '';
+                $platformsText = $platformsCount ? $__ui(
+                    "across {$platformsCount} platform" . ($platformsCount > 1 ? 's' : ''),
+                    "merentasi {$platformsCount} platform"
+                ) : '';
                 $contextText = trim($postsText . ' ' . $platformsText);
             @endphp
-            {{ $username }} demonstrates a professionalism score of <strong style="color: {{ $scoreColor }};">{{ $score }}/{{ $maxScore }}</strong>@if($contextText), {{ $contextText }}@endif.
+            @php
+                $demonstrates = $__ui('demonstrates a professionalism score of', 'menunjukkan skor profesionalisme sebanyak');
+            @endphp
+            {{ $username }} {{ $demonstrates }} <strong style="color: {{ $scoreColor }};">{{ $score }}/{{ $maxScore }}</strong>@if($contextText), {{ $contextText }}@endif.
         </div>
     @endif
 
@@ -164,7 +199,7 @@
                 <!-- Score Text in Center -->
                 <div class="professional-footprint-score" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; width: 100%;">
                     <div style="font-size: 56px; font-weight: 700; color: {{ $scoreColor }}; line-height: 1; margin-bottom: 4px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $score }}</div>
-                    <div style="font-size: 14px; color: #64748b; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">out of {{ $maxScore }}</div>
+                    <div style="font-size: 14px; color: #64748b; font-weight: 500; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('out of', 'daripada') }} {{ $maxScore }}</div>
                 </div>
             </div>
         </div>
@@ -173,18 +208,18 @@
     <!-- Breakdown of Metrics -->
     <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
         <div style="color: #374151; line-height: 1.8; font-size: 16px;">
-            <strong style="color: #1e293b;">Breaking down the professionalism metrics:</strong>
+            <strong style="color: #1e293b;">{{ $__ui('Breaking down the professionalism metrics:', 'Memecahkan metrik profesionalisme:') }}</strong>
             <div style="margin-top: 12px;">
                 @if(!empty($breakdown) && is_array($breakdown))
                     @foreach($breakdown as $key => $value)
                         @if(is_string($value))
                             <div style="margin-bottom: 8px;">
-                                <strong style="color: #374151;">{{ ucwords(str_replace('_', ' ', $key)) }}:</strong> 
+                                <strong style="color: #374151;">{{ $__fieldKeyUi($key) }}:</strong> 
                                 <span style="color: #64748b;">{{ $value }}</span>
                             </div>
                         @elseif(is_array($value))
                             <div style="margin-bottom: 8px;">
-                                <strong style="color: #374151;">{{ ucwords(str_replace('_', ' ', $key)) }}:</strong> 
+                                <strong style="color: #374151;">{{ $__fieldKeyUi($key) }}:</strong> 
                                 <span style="color: #64748b;">{{ implode(', ', array_filter($value, 'is_string')) }}</span>
                             </div>
                         @endif
@@ -194,26 +229,26 @@
                 @if(isset($data['content_relevance']) || isset($data['tone_analysis']) || isset($data['engagement_quality']))
                     @if(isset($data['content_relevance']))
                         <div style="margin-bottom: 8px;">
-                            <strong style="color: #374151;">Content Relevance:</strong> 
-                            <span style="color: #64748b;">{{ is_string($data['content_relevance']) ? $data['content_relevance'] : 'Shows professional focus through industry-related posts.' }}</span>
+                            <strong style="color: #374151;">{{ $__ui('Content Relevance:', 'Kesesuaian Kandungan:') }}</strong> 
+                            <span style="color: #64748b;">{{ is_string($data['content_relevance']) ? $data['content_relevance'] : $__ui('Shows professional focus through industry-related posts.', 'Menunjukkan tumpuan profesional melalui siaran berkaitan industri.') }}</span>
                         </div>
                     @endif
                     @if(isset($data['tone_analysis']))
                         <div style="margin-bottom: 8px;">
-                            <strong style="color: #374151;">Tone Analysis:</strong> 
-                            <span style="color: #64748b;">{{ is_string($data['tone_analysis']) ? $data['tone_analysis'] : 'Indicates mixed sentiment in public communications.' }}</span>
+                            <strong style="color: #374151;">{{ $__ui('Tone Analysis:', 'Analisis Nada:') }}</strong> 
+                            <span style="color: #64748b;">{{ is_string($data['tone_analysis']) ? $data['tone_analysis'] : $__ui('Indicates mixed sentiment in public communications.', 'Menunjukkan sentimen bercampur dalam komunikasi awam.') }}</span>
                         </div>
                     @endif
                     @if(isset($data['engagement_quality']))
                         <div style="margin-bottom: 8px;">
-                            <strong style="color: #374151;">Engagement Quality:</strong> 
-                            <span style="color: #64748b;">{{ is_string($data['engagement_quality']) ? $data['engagement_quality'] : 'Reflects conversational interactions across platforms.' }}</span>
+                            <strong style="color: #374151;">{{ $__ui('Engagement Quality:', 'Kualiti Penglibatan:') }}</strong> 
+                            <span style="color: #64748b;">{{ is_string($data['engagement_quality']) ? $data['engagement_quality'] : $__ui('Reflects conversational interactions across platforms.', 'Mencerminkan interaksi perbualan merentasi platform.') }}</span>
                         </div>
                     @endif
                     @if(isset($data['concerns']) || isset($data['concerns_notes']))
                         <div style="margin-top: 12px; padding: 12px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 6px;">
-                            <strong style="color: #92400e;">Note:</strong> 
-                            <span style="color: #78350f;">{{ is_string($data['concerns'] ?? $data['concerns_notes']) ? ($data['concerns'] ?? $data['concerns_notes']) : 'However, concerns were noted that require further investigation.' }}</span>
+                            <strong style="color: #92400e;">{{ $__ui('Note:', 'Nota:') }}</strong> 
+                            <span style="color: #78350f;">{{ is_string($data['concerns'] ?? $data['concerns_notes']) ? ($data['concerns'] ?? $data['concerns_notes']) : $__ui('However, concerns were noted that require further investigation.', 'Walau bagaimanapun, terdapat kebimbangan yang memerlukan siasatan lanjut.') }}</span>
                         </div>
                     @endif
                 @endif
@@ -226,12 +261,12 @@
         @if(!in_array($key, ['professionalism_score', 'score', 'max_score', 'confidence', 'confidence_level', 'overview', 'summary', 'description', 'breakdown', 'metrics', 'total_posts', 'posts_analyzed', 'platforms_analyzed', 'platforms', 'content_relevance', 'tone_analysis', 'engagement_quality', 'concerns', 'concerns_notes']))
             @if(is_string($value) && trim($value) !== '')
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                    <strong style="color: #374151;">{{ ucwords(str_replace('_', ' ', $key)) }}:</strong> 
+                    <strong style="color: #374151;">{{ $__fieldKeyUi($key) }}:</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $value }}</span>
                 </div>
             @elseif(is_array($value) && count($value) > 0)
                 <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                    <strong style="color: #374151;">{{ ucwords(str_replace('_', ' ', $key)) }}:</strong>
+                    <strong style="color: #374151;">{{ $__fieldKeyUi($key) }}:</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($value as $item)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

@@ -2,25 +2,46 @@
     $data = $analysis['cultural_fit_indicators'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 70;
     $overview = $data['overview'] ?? $data['summary'] ?? $data['description'] ?? '';
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+    $sliderScaleLow = $__smMs ? 'Rendah' : 'Low';
+    $sliderScaleMedium = $__smMs ? 'Sederhana' : 'Medium';
+    $sliderScaleStrong = $__smMs ? 'Kuat' : 'Strong';
+
+    $culturalFitLabels = [
+        'value_alignment' => $__smMs ? 'Penjajaran Nilai' : 'Value Alignment',
+        'teamwork_ethos' => $__smMs ? 'Semangat Berpasukan' : 'Teamwork Ethos',
+        'innovation_mindset' => $__smMs ? 'Mindset Inovasi' : 'Innovation Mindset',
+    ];
+    $culturalFitDefaults = [
+        'value_alignment' => $__smMs
+            ? 'Penilaian nilai dan prinsip yang ditunjukkan dalam kandungan.'
+            : 'Assessment of values and principles shown in content.',
+        'teamwork_ethos' => $__smMs
+            ? 'Petunjuk tingkah laku berorientasikan pasukan dan kolaborasi.'
+            : 'Indicators of team-oriented behavior and collaboration.',
+        'innovation_mindset' => $__smMs
+            ? 'Sikap terhadap inovasi dan pemikiran kreatif.'
+            : 'Attitude toward innovation and creative thinking.',
+    ];
+
     // Extract indicators with slider values
     $indicators = [
         'value_alignment' => [
-            'label' => 'Value Alignment',
+            'label' => $culturalFitLabels['value_alignment'],
             'value' => $data['value_alignment_level'] ?? $data['values_alignment'] ?? $data['value_alignment'] ?? null,
-            'description' => $data['value_alignment'] ?? $data['values_alignment'] ?? 'Assessment of values and principles shown in content.',
+            'description' => $data['value_alignment'] ?? $data['values_alignment'] ?? $culturalFitDefaults['value_alignment'],
             'color_scheme' => 'yellow-green' // Yellow to Green
         ],
         'teamwork_ethos' => [
-            'label' => 'Teamwork Ethos',
+            'label' => $culturalFitLabels['teamwork_ethos'],
             'value' => $data['teamwork_ethos_level'] ?? $data['team_collaboration'] ?? $data['teamwork'] ?? null,
-            'description' => $data['teamwork_ethos'] ?? $data['team_collaboration'] ?? 'Indicators of team-oriented behavior and collaboration.',
+            'description' => $data['teamwork_ethos'] ?? $data['team_collaboration'] ?? $culturalFitDefaults['teamwork_ethos'],
             'color_scheme' => 'blue-purple' // Light Blue to Purple
         ],
         'innovation_mindset' => [
-            'label' => 'Innovation Mindset',
+            'label' => $culturalFitLabels['innovation_mindset'],
             'value' => $data['innovation_mindset_level'] ?? $data['innovation'] ?? null,
-            'description' => $data['innovation_mindset'] ?? $data['innovation'] ?? 'Attitude toward innovation and creative thinking.',
+            'description' => $data['innovation_mindset'] ?? $data['innovation'] ?? $culturalFitDefaults['innovation_mindset'],
             'color_scheme' => 'pink-red' // Pink to Red
         ]
     ];
@@ -108,10 +129,10 @@
 <div class="cultural-fit-container" style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Cultural Fit Indicators</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Cultural Fit Indicators', 'Petunjuk Keserasian Budaya') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -128,17 +149,17 @@
         $dimensions = [
             'value_alignment' => [
                 'score' => culturalFit_getSliderValue($indicators['value_alignment']['value']),
-                'label' => 'Value Alignment',
+                'label' => $indicators['value_alignment']['label'],
                 'description' => $indicators['value_alignment']['description']
             ],
             'teamwork_ethos' => [
                 'score' => culturalFit_getSliderValue($indicators['teamwork_ethos']['value']),
-                'label' => 'Teamwork Ethos',
+                'label' => $indicators['teamwork_ethos']['label'],
                 'description' => $indicators['teamwork_ethos']['description']
             ],
             'innovation_mindset' => [
                 'score' => culturalFit_getSliderValue($indicators['innovation_mindset']['value']),
-                'label' => 'Innovation Mindset',
+                'label' => $indicators['innovation_mindset']['label'],
                 'description' => $indicators['innovation_mindset']['description']
             ]
         ];
@@ -239,7 +260,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Cultural Fit Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Cultural Fit Radar Chart', 'Carta radar keserasian budaya') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -318,12 +339,13 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('.radar-chart-svg');
+        const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             tooltip.style.opacity = '0';
@@ -404,7 +426,9 @@
         @foreach($indicators as $key => $indicator)
             @php
                 $sliderValue = culturalFit_getSliderValue($indicator['value']);
-                $sliderLabel = culturalFit_getSliderLabel($sliderValue);
+                $sliderLabel = $__smMs
+                    ? ($sliderValue <= 30 ? $sliderScaleLow : ($sliderValue <= 60 ? $sliderScaleMedium : $sliderScaleStrong))
+                    : culturalFit_getSliderLabel($sliderValue);
                 $gradient = culturalFit_getSliderGradient($sliderValue, $indicator['color_scheme']);
                 $handleColor = culturalFit_getSliderHandleColor($sliderValue, $indicator['color_scheme']);
                 
@@ -441,16 +465,16 @@
                     
                     // Labels
                     $sliderSvg .= sprintf(
-                        '<text x="0" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif">Low</text>',
-                        $trackY - 12
+                        '<text x="0" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif">%s</text>',
+                        $trackY - 12, htmlspecialchars($sliderScaleLow)
                     );
                     $sliderSvg .= sprintf(
-                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="middle">Medium</text>',
-                        $sliderWidth / 2, $trackY - 12
+                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="middle">%s</text>',
+                        $sliderWidth / 2, $trackY - 12, htmlspecialchars($sliderScaleMedium)
                     );
                     $sliderSvg .= sprintf(
-                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="end">Strong</text>',
-                        $sliderWidth, $trackY - 12
+                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="end">%s</text>',
+                        $sliderWidth, $trackY - 12, htmlspecialchars($sliderScaleStrong)
                     );
                     
                     $sliderSvg .= '</svg>';
@@ -466,7 +490,7 @@
                 <div style="margin-bottom: 12px;">
                     @if($isPdfExport)
                         <!-- For PDF: Use SVG -->
-                        <img src="{{ $sliderSvgDataUri }}" alt="{{ $indicator['label'] }} Slider" style="width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto;" />
+                        <img src="{{ $sliderSvgDataUri }}" alt="{{ $indicator['label'] }} {{ $__ui('slider', 'gelangsar') }}" style="width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto;" />
                     @else
                         <!-- For Web: Use CSS-based slider -->
                         <div style="position: relative; height: 12px; background: linear-gradient(to right, #f1f5f9 0%, #e2e8f0 100%); border-radius: 8px; overflow: visible; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
@@ -490,9 +514,9 @@
                             
                             <!-- Labels above slider track -->
                             <div style="position: absolute; left: 0; top: -24px; width: 100%; display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
-                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Low</span>
-                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Medium</span>
-                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Strong</span>
+                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">{{ $sliderScaleLow }}</span>
+                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">{{ $sliderScaleMedium }}</span>
+                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">{{ $sliderScaleStrong }}</span>
                             </div>
                         </div>
                     @endif
@@ -511,14 +535,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['overall_fit']) && is_string($data['overall_fit']))
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Overall Fit:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Overall Fit:', 'Keserasian Keseluruhan:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['overall_fit'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['strengths']) && is_array($data['strengths']) && count($data['strengths']) > 0)
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Strengths:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Strengths:', 'Kekuatan:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['strengths'] as $strength)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">
@@ -535,7 +559,7 @@
             
             @if(isset($data['concerns']) && is_array($data['concerns']) && count($data['concerns']) > 0)
                 <div>
-                    <strong style="color: #374151;">Concerns:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Concerns:', 'Kebimbangan:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['concerns'] as $concern)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

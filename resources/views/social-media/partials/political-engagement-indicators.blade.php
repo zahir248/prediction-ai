@@ -1,33 +1,59 @@
 @php
     $data = $analysis['political_engagement_indicators'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+
+    $engagementLabels = [
+        'consistency' => $__smMs ? 'Konsisten' : 'Consistency',
+        'activism_level' => $__smMs ? 'Tahap Aktivisme' : 'Activism Level',
+        'commitment' => $__smMs ? 'Komitmen' : 'Commitment',
+        'advocacy' => $__smMs ? 'Advokasi' : 'Advocacy',
+        'influence' => $__smMs ? 'Pengaruh' : 'Influence',
+    ];
+    $engagementDefaults = [
+        'consistency' => $__smMs
+            ? 'Penilaian kekonsistenan siaran politik dan corak aktiviti.'
+            : 'Assessment of political posting consistency and activity patterns.',
+        'activism_level' => $__smMs
+            ? 'Tahap aktivisme politik, penyertaan, dan penglibatan.'
+            : 'Level of political activism, participation, and engagement.',
+        'commitment' => $__smMs
+            ? 'Bukti komitmen politik dan penglibatan jangka panjang.'
+            : 'Evidence of political commitment and long-term engagement.',
+        'advocacy' => $__smMs
+            ? 'Aktiviti advokasi politik dan sokongan terhadap isu.'
+            : 'Political advocacy activities and cause support.',
+        'influence' => $__smMs
+            ? 'Pengaruh politik, capaian, dan keupayaan untuk menggerakkan orang ramai.'
+            : 'Political influence, reach, and ability to mobilize.',
+    ];
+
     // Extract scores for the dimensions
     $dimensions = [
         'consistency' => [
             'score' => $data['consistency_score'] ?? $data['consistency'] ?? null,
-            'description' => $data['consistency'] ?? 'Assessment of political posting consistency and activity patterns.',
-            'label' => 'Consistency'
+            'description' => $data['consistency'] ?? $engagementDefaults['consistency'],
+            'label' => $engagementLabels['consistency'],
         ],
         'activism_level' => [
             'score' => $data['activism_level_score'] ?? $data['activism_level'] ?? null,
-            'description' => $data['activism_level'] ?? 'Level of political activism, participation, and engagement.',
-            'label' => 'Activism Level'
+            'description' => $data['activism_level'] ?? $engagementDefaults['activism_level'],
+            'label' => $engagementLabels['activism_level'],
         ],
         'commitment' => [
             'score' => $data['commitment_score'] ?? $data['commitment'] ?? null,
-            'description' => $data['commitment'] ?? 'Evidence of political commitment and long-term engagement.',
-            'label' => 'Commitment'
+            'description' => $data['commitment'] ?? $engagementDefaults['commitment'],
+            'label' => $engagementLabels['commitment'],
         ],
         'advocacy' => [
             'score' => $data['advocacy_score'] ?? $data['advocacy'] ?? null,
-            'description' => $data['advocacy'] ?? 'Political advocacy activities and cause support.',
-            'label' => 'Advocacy'
+            'description' => $data['advocacy'] ?? $engagementDefaults['advocacy'],
+            'label' => $engagementLabels['advocacy'],
         ],
         'influence' => [
             'score' => $data['influence_score'] ?? $data['influence'] ?? null,
-            'description' => $data['influence'] ?? 'Political influence, reach, and ability to mobilize.',
-            'label' => 'Influence'
+            'description' => $data['influence'] ?? $engagementDefaults['influence'],
+            'label' => $engagementLabels['influence'],
         ]
     ];
     
@@ -91,17 +117,20 @@
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Political Engagement Indicators</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Political Engagement Indicators', 'Petunjuk Penglibatan Politik') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
     
     <!-- Introduction Text -->
     <p style="color: #64748b; line-height: 1.8; font-size: 16px; margin-bottom: 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-        Based on analysis of political activities and engagement patterns, the following political engagement indicators have been assessed across five key dimensions:
+        {{ $__ui(
+            'Based on analysis of political activities and engagement patterns, the following political engagement indicators have been assessed across five key dimensions:',
+            'Berdasarkan analisis aktiviti politik dan corak penglibatan, petunjuk penglibatan politik berikut telah dinilai merentasi lima dimensi utama:'
+        ) }}
     </p>
     
     <!-- Radar Chart -->
@@ -170,7 +199,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Political Engagement Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Political Engagement Radar Chart', 'Carta radar penglibatan politik') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -249,12 +278,13 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('.radar-chart-svg');
+        const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             tooltip.style.opacity = '0';
@@ -349,14 +379,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['overall_assessment']) && is_string($data['overall_assessment']))
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Overall Assessment:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Overall Assessment:', 'Penilaian Keseluruhan:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['overall_assessment'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['evidence']) && is_array($data['evidence']) && count($data['evidence']) > 0)
                 <div>
-                    <strong style="color: #374151;">Evidence:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Evidence:', 'Bukti:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['evidence'] as $evidence)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

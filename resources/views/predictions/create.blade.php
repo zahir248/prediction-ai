@@ -460,7 +460,7 @@
                 <!-- Issue Details Section -->
                 <div style="margin-bottom: 24px;">
                     <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Issue Details</h2>
-                    <div>
+                    <div style="margin-bottom: 20px;">
                         <label for="input_data" style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
                             Describe the issue or topic <span style="color: #dc2626;">*</span>
                             <span class="info-tooltip" data-tooltip="Provide detailed information about the issue, situation, or topic you want to analyze. Include relevant data, statistics, current trends, challenges, and context. The more detailed information you provide, the more accurate and comprehensive the NUJUM prediction will be. This is the core input that drives the entire analysis.">
@@ -478,7 +478,6 @@
                             <p style="color: #dc2626; font-size: 13px; margin-top: 6px; margin-bottom: 0;">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
 
                 <!-- Additional Resources Section (Collapsible) -->
                 <div style="margin-bottom: 32px;">
@@ -573,6 +572,33 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Report Language Section -->
+                <div style="margin-bottom: 24px;">
+                    <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Report Language</h2>
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 12px;">
+                                Language <span style="color: #dc2626;">*</span>
+                                <span class="info-tooltip" data-tooltip="Choose the language for the generated report text. The analysis structure stays the same; headings and narrative will match your selection.">
+                                <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
+                                </span>
+                            </div>
+                            <div role="radiogroup" aria-label="Report language" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: stretch; gap: 10px; width: 100%;">
+                                <label style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1 1 0; min-width: 0; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 13px; color: #374151; font-weight: 500; transition: border-color 0.15s ease, background 0.15s ease;">
+                                    <input type="radio" name="report_language" value="en" {{ old('report_language') == 'en' ? 'checked' : '' }} style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; flex-shrink: 0;">
+                                    <span style="white-space: nowrap;">English</span>
+                                </label>
+                                <label style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1 1 0; min-width: 0; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 13px; color: #374151; font-weight: 500; transition: border-color 0.15s ease, background 0.15s ease;">
+                                    <input type="radio" name="report_language" value="ms" {{ old('report_language') == 'ms' ? 'checked' : '' }} style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; flex-shrink: 0;">
+                                    <span style="white-space: nowrap;">Bahasa Melayu</span>
+                                </label>
+                            </div>
+                            @error('report_language')
+                            <p style="color: #dc2626; font-size: 12px; margin-top: 8px; margin-bottom: 0;">{{ $message }}</p>
+                            @enderror
+                        </div>
+                </div>
 
                 </form>
                 </div>
@@ -1807,6 +1833,7 @@ function updateFormProgress() {
     const progressItems = [
         { id: 'progress-topic', field: 'topic' },
         { id: 'progress-horizon', field: 'prediction_horizon' },
+        { id: 'progress-language', field: 'report_language' },
         { id: 'progress-input', field: 'input_data' }
     ];
     
@@ -1814,11 +1841,18 @@ function updateFormProgress() {
         const item = document.getElementById(id);
         if (!item) return;
         
-        const fieldElement = document.querySelector(`[name="${field}"], #${field}`);
+        const radioGroup = document.querySelectorAll(`input[type="radio"][name="${field}"]`);
+        const fieldElement = radioGroup.length
+            ? document.querySelector(`input[type="radio"][name="${field}"]:checked`)
+            : document.querySelector(`[name="${field}"], #${field}`);
         const icon = item.querySelector('i');
         const text = item.querySelector('span');
         
-        if (fieldElement && fieldElement.value && fieldElement.value.trim() !== '') {
+        const hasValue = radioGroup.length
+            ? !!document.querySelector(`input[type="radio"][name="${field}"]:checked`)
+            : (fieldElement && fieldElement.value && fieldElement.value.trim() !== '');
+        
+        if (hasValue) {
             icon.className = 'bi bi-check-circle-fill';
             icon.style.color = '#059669';
             item.classList.add('completed');
@@ -2100,6 +2134,11 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            if (!document.querySelector('input[name="report_language"]:checked')) {
+                alert('Please select a report language.');
+                return;
+            }
+            
             // Reset analysis flags for new analysis
             window.analysisSecondToastShown = false;
             window.analysisFailed = false;
@@ -2228,6 +2267,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get form values
         const topic = document.getElementById('topic')?.value || 'N/A';
         const horizon = document.getElementById('prediction_horizon')?.value || 'N/A';
+        const reportLang = document.querySelector('input[name="report_language"]:checked')?.value || '';
+        const reportLangLabel = reportLang === 'ms' ? 'Bahasa Melayu' : (reportLang === 'en' ? 'English' : '—');
         const inputData = document.getElementById('input_data')?.value || 'N/A';
         const target = document.getElementById('target')?.value || 'N/A';
         const sourceUrls = Array.from(document.querySelectorAll('input[name="source_urls[]"]')).map(input => input.value).filter(url => url);
@@ -2254,7 +2295,6 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
         
-        // Add Issue Description
         if (inputData && inputData !== 'N/A') {
             detailsHtml += `
                 <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
@@ -2277,7 +2317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (files.length > 0) {
             detailsHtml += `
-                <div style="margin-bottom: 20px;">
+                <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
                     <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">Uploaded Files (${files.length})</div>
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         ${Array.from(files).map(file => `<div style="font-size: 12px; color: #4b5563; line-height: 1.5;">${file.name} <span style="color: #9ca3af;">(${(file.size / 1024 / 1024).toFixed(2)} MB)</span></div>`).join('')}
@@ -2285,6 +2325,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
+        
+        detailsHtml += `
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Report Language</div>
+                <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${reportLangLabel}</div>
+            </div>
+        `;
         
         promptDetailsContent.innerHTML = detailsHtml;
     }

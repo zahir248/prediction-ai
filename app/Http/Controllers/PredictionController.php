@@ -117,6 +117,7 @@ class PredictionController extends Controller
             'topic' => 'required|string|max:255',
             'target' => 'nullable|string|max:1000',
             'prediction_horizon' => 'required|in:next_two_days,next_two_weeks,next_month,three_months,six_months,twelve_months,two_years',
+            'report_language' => 'required|in:en,ms',
             'input_data' => 'required|string|min:10',
             'source_urls' => 'nullable|array',
             'source_urls.*' => 'nullable|url|max:500',
@@ -153,12 +154,18 @@ class PredictionController extends Controller
             }
         }
 
+        $reportLanguage = $request->report_language;
+
         // Create prediction record with fixed analysis type
         $prediction = Prediction::create([
             'topic' => $request->topic,
             'target' => $request->target,
             'prediction_horizon' => $request->prediction_horizon,
-            'input_data' => ['text' => $combinedInputData, 'analysis_type' => 'prediction-analysis'],
+            'input_data' => [
+                'text' => $combinedInputData,
+                'analysis_type' => 'prediction-analysis',
+                'report_language' => $reportLanguage,
+            ],
             'source_urls' => $sourceUrls,
             'uploaded_files' => $uploadedFiles,
             'extracted_text' => $extractedText,
@@ -192,7 +199,8 @@ class PredictionController extends Controller
                 $sourceUrls,
                 $request->prediction_horizon,
                 $analytics,
-                $request->target
+                $request->target,
+                $reportLanguage
             );
             
             // Calculate actual processing time

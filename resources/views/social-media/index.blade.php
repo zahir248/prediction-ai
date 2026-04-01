@@ -17,7 +17,8 @@
         border-right: 1px solid #e5e7eb;
         display: flex;
         flex-direction: column;
-        overflow-y: auto;
+        min-height: 0;
+        overflow: hidden;
         position: relative;
         z-index: 1;
     }
@@ -287,9 +288,10 @@
     
     .cursor-sidebar-content {
         flex: 1;
+        min-height: 0;
         padding: 16px;
-        padding-bottom: 100px;
         overflow-x: visible;
+        overflow-y: auto;
     }
     
     .cursor-main-content {
@@ -399,6 +401,7 @@
                             onkeyup="checkExistingData(this.value)"
                         >
                     </div>
+                    </div>
 
                     <!-- Existing Data Notification -->
                         <div id="existingDataNotification" style="display: none; margin-bottom: 16px; padding: 12px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 6px; font-size: 12px;">
@@ -430,8 +433,8 @@
                     <!-- Platform Selection -->
                     <div id="platformSelectionSection" style="margin-bottom: 20px;">
                         <label style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">
-                            Platforms <span style="color: #dc2626;">*</span>
-                            <span class="info-tooltip" data-tooltip="Select one or more social media platforms to analyze. NUJUM will search for the username on each selected platform and gather profile data, posts, engagement metrics, and other relevant information for comprehensive personality and communication analysis.">
+                            Platform <span style="color: #dc2626;">*</span>
+                            <span class="info-tooltip" data-tooltip="Select one social media platform to analyze. NUJUM will search for the username on that platform and gather profile data, posts, engagement metrics, and other relevant information for analysis.">
                                 <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
                             </span>
                         </label>
@@ -486,7 +489,30 @@
                         </div>
                         <input type="text" id="analysis-type-required" name="analysis-type-required" required style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; border: none; padding: 0; margin: 0;" tabindex="-1">
                         </div>
-            </div>
+
+                    <!-- Report Language (same options as prediction analysis) -->
+                    <div id="reportLanguageSection" style="margin-bottom: 24px;">
+                        <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Report Language</h2>
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-weight: 600; color: #374151; font-size: 12px;">
+                                Language <span style="color: #dc2626;">*</span>
+                                <span class="info-tooltip" data-tooltip="Choose the language for the generated report text. The analysis structure stays the same; headings and narrative will match your selection.">
+                                    <i class="bi bi-info-circle" style="color: #3b82f6; cursor: help; font-size: 14px;"></i>
+                                </span>
+                            </div>
+                            <div role="radiogroup" aria-label="Report language" style="display: flex; flex-direction: row; flex-wrap: nowrap; align-items: stretch; gap: 8px; width: 100%;">
+                                <label style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1 1 0; min-width: 0; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 12px; color: #374151; font-weight: 500;">
+                                    <input type="radio" name="sm_report_language" value="en" onchange="validateReportLanguage()" style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; flex-shrink: 0;">
+                                    <span style="white-space: nowrap;">English</span>
+                                </label>
+                                <label style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1 1 0; min-width: 0; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; background: #ffffff; cursor: pointer; font-size: 12px; color: #374151; font-weight: 500;">
+                                    <input type="radio" name="sm_report_language" value="ms" onchange="validateReportLanguage()" style="width: 16px; height: 16px; accent-color: #2563eb; cursor: pointer; flex-shrink: 0;">
+                                    <span style="white-space: nowrap;">Bahasa Melayu</span>
+                                </label>
+                            </div>
+                            <input type="text" id="report-language-required" name="report-language-required" required style="position: absolute; opacity: 0; pointer-events: none; height: 0; width: 0; border: none; padding: 0; margin: 0;" tabindex="-1" aria-hidden="true">
+                        </div>
+                    </div>
 
             <!-- Results Container -->
             <div id="resultsContainer" style="display: none;"></div>
@@ -497,11 +523,12 @@
             <div id="promptDetailsCard" style="display: none;">
                 <div id="promptDetailsContent">
                     <!-- Prompt details will be populated here -->
-                    </div>
                 </div>
             </div>
+        </div>
+        <!-- /cursor-sidebar-content — floating bars below match predictions/create layout -->
 
-        <!-- Floating Action Buttons for Prompt Details (hidden by default, same position as Generate button) -->
+        <!-- Floating Action Buttons for Prompt Details (hidden by default, pinned to bottom of sidebar) -->
         <div class="floating-submit-container" id="promptDetailsActions" style="display: none;">
             <div style="display: flex; gap: 12px;">
                 <a href="#" id="exportBtn" onclick="event.preventDefault(); confirmExportFromSocialMedia(); return false;" class="floating-submit-btn" style="flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
@@ -510,8 +537,8 @@
                 <a href="{{ route('social-media.index') }}" class="floating-submit-btn" style="flex: 1; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
                     New Analysis
                 </a>
-    </div>
-</div>
+            </div>
+        </div>
 
         <!-- Floating Submit Button -->
         <div class="floating-submit-container" id="floatingSubmitContainer">
@@ -754,8 +781,8 @@
         transform: translateY(0);
     }
     
-    .cursor-sidebar-content {
-        padding-bottom: 0;
+    #promptDetailsActions .floating-submit-btn {
+        min-width: 0;
     }
 </style>
 
@@ -773,18 +800,10 @@ let selectedPlatforms = []; // Default: no platforms selected
 // Store selected analysis type from modal
 let selectedAnalysisTypeInModal = null; // No default selection
 
-// Function to update selected platforms from inline checkboxes
+// Function to update selected platforms from inline radio group (single platform)
 function updateSelectedPlatformsFromInline() {
-    selectedPlatforms = [];
-    const platformCheckboxes = document.querySelectorAll('input[id^="inline_platform_"]');
-    platformCheckboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            const platformKey = checkbox.value;
-            if (!selectedPlatforms.includes(platformKey)) {
-                selectedPlatforms.push(platformKey);
-            }
-        }
-    });
+    const checked = document.querySelector('input[name="inline_search_platform"]:checked');
+    selectedPlatforms = checked && checked.value ? [checked.value] : [];
 }
 
 // Function to validate platforms and set hidden input
@@ -815,9 +834,9 @@ function validatePlatforms() {
         if (platformContainer) {
             const platformItems = platformContainer.children;
             Array.from(platformItems).forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (checkbox) {
-                    if (checkbox.checked) {
+                const radio = item.querySelector('input[type="radio"]');
+                if (radio) {
+                    if (radio.checked) {
                         item.style.borderColor = '#667eea';
                         item.style.background = '#f8faff';
                     } else {
@@ -829,13 +848,20 @@ function validatePlatforms() {
         }
     } else {
         platformsRequired.value = '';
-        platformsRequired.setCustomValidity('Please select at least one platform to analyze.');
-        // Add red styling to all platform boxes
+        platformsRequired.setCustomValidity('Please select a platform to analyze.');
+        // Neutral styling until a platform is chosen (avoid persistent red on load)
         if (platformContainer) {
-            const platformItems = platformContainer.children;
-            Array.from(platformItems).forEach(item => {
-                item.style.borderColor = '#dc2626';
-                item.style.background = '#fef2f2';
+            Array.from(platformContainer.children).forEach(item => {
+                const radio = item.querySelector('input[type="radio"]');
+                if (radio) {
+                    if (radio.checked) {
+                        item.style.borderColor = '#667eea';
+                        item.style.background = '#f8faff';
+                    } else {
+                        item.style.borderColor = '#e5e7eb';
+                        item.style.background = '#ffffff';
+                    }
+                }
             });
         }
     }
@@ -849,23 +875,57 @@ function validateAnalysisType() {
     const politicalDiv = document.getElementById('inlineAnalysisTypePolitical');
     
     if (analysisTypeRequired) {
-        if (selectedAnalysisType && window.selectedAnalysisTypeForAnalysis) {
+        if (selectedAnalysisType) {
             analysisTypeRequired.value = 'selected';
             analysisTypeRequired.setCustomValidity('');
-            // Clear red styling - boxes will have their normal selected/unselected styling
+            window.selectedAnalysisTypeForAnalysis = selectedAnalysisType.value;
         } else {
             analysisTypeRequired.value = '';
             analysisTypeRequired.setCustomValidity('Please select an analysis type.');
-            // Add red styling to both analysis type boxes (lighter red border)
+            // Neutral default (same as unselected cards); native validity on Generate
             if (professionalDiv) {
-                professionalDiv.style.borderColor = '#f87171';
-                professionalDiv.style.background = '#fef2f2';
+                professionalDiv.style.borderColor = '#e2e8f0';
+                professionalDiv.style.background = '#ffffff';
             }
             if (politicalDiv) {
-                politicalDiv.style.borderColor = '#f87171';
-                politicalDiv.style.background = '#fef2f2';
+                politicalDiv.style.borderColor = '#e2e8f0';
+                politicalDiv.style.background = '#ffffff';
             }
         }
+    }
+}
+
+// Report language: no default; user must choose (same idea as prediction analysis)
+function validateReportLanguage() {
+    const reportLanguageRequired = document.getElementById('report-language-required');
+    if (!reportLanguageRequired) {
+        return;
+    }
+    
+    if (!reportLanguageRequired.hasAttribute('required')) {
+        reportLanguageRequired.setAttribute('required', 'required');
+    }
+    
+    const checked = document.querySelector('input[name="sm_report_language"]:checked');
+    const reportSection = document.getElementById('reportLanguageSection');
+    const labels = reportSection ? reportSection.querySelectorAll('[role="radiogroup"] label') : [];
+    
+    if (checked) {
+        reportLanguageRequired.value = 'selected';
+        reportLanguageRequired.setCustomValidity('');
+        window.smReportLanguageForAnalysis = checked.value;
+        labels.forEach(lab => {
+            lab.style.borderColor = '#d1d5db';
+            lab.style.background = '#ffffff';
+        });
+    } else {
+        reportLanguageRequired.value = '';
+        reportLanguageRequired.setCustomValidity('Please select a report language.');
+        // Keep neutral appearance on load; native validation message appears on Generate
+        labels.forEach(lab => {
+            lab.style.borderColor = '#d1d5db';
+            lab.style.background = '#ffffff';
+        });
     }
 }
 
@@ -885,6 +945,7 @@ async function checkBeforeSearch(event) {
         validatePlatforms();
     }
     validateAnalysisType();
+    validateReportLanguage();
     
     // Get the form element
     const form = document.getElementById('searchForm');
@@ -949,6 +1010,25 @@ async function checkBeforeSearch(event) {
                     firstInvalid.reportValidity();
                     
                     // Restore original style after validation message appears
+                    setTimeout(() => {
+                        firstInvalid.style.cssText = originalStyle;
+                    }, 100);
+                } else {
+                    firstInvalid.reportValidity();
+                }
+            } else if (firstInvalid.id === 'report-language-required') {
+                const reportContainer = document.getElementById('reportLanguageSection');
+                if (reportContainer) {
+                    const rect = reportContainer.getBoundingClientRect();
+                    const originalStyle = firstInvalid.style.cssText;
+                    firstInvalid.style.position = 'fixed';
+                    firstInvalid.style.top = (rect.top + rect.height / 2) + 'px';
+                    firstInvalid.style.left = (rect.left + rect.width / 2) + 'px';
+                    firstInvalid.style.width = '1px';
+                    firstInvalid.style.height = '1px';
+                    firstInvalid.style.opacity = '0.01';
+                    firstInvalid.style.zIndex = '10000';
+                    firstInvalid.reportValidity();
                     setTimeout(() => {
                         firstInvalid.style.cssText = originalStyle;
                     }, 100);
@@ -1047,7 +1127,7 @@ async function checkBeforeSearch(event) {
     // Reset the flag since this is a normal search (not from "Search Again")
     modalOpenedFromSearchAgain = false;
     
-    // Get selected platforms from inline checkboxes
+    // Get selected platform from inline radio group
     updateSelectedPlatformsFromInline();
     
     // Clear any displayed platform data from right panel before starting analysis
@@ -1144,12 +1224,20 @@ async function checkBeforeSearch(event) {
                 const platformNamesList = selectedPlatforms.map(platformKey => platformNames[platformKey] || platformKey).join(', ');
                 detailsHtml += platformNamesList;
                 
+                const reportLangCode = document.querySelector('input[name="sm_report_language"]:checked')?.value;
+                const reportLangName = reportLangCode === 'ms' ? 'Bahasa Melayu' : (reportLangCode === 'en' ? 'English' : '—');
+                window.smReportLanguageForAnalysis = reportLangCode || null;
+                
                 detailsHtml += `
                         </div>
                     </div>
                     <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
                         <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Analysis Type</div>
                         <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${analysisTypeName}</div>
+                    </div>
+                    <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+                        <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Report Language</div>
+                        <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${reportLangName}</div>
                     </div>
                 `;
                 
@@ -1318,8 +1406,7 @@ function initializeInlinePlatformSelection() {
     platformContainer.innerHTML = '';
     selectedPlatforms = [];
     
-    // Create checkboxes for each platform (all checked by default)
-    platforms.forEach(platform => {
+    platforms.forEach((platform) => {
         const platformItem = document.createElement('div');
         platformItem.style.cssText = 'padding: 12px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;';
         platformItem.onmouseover = function() {
@@ -1335,16 +1422,17 @@ function initializeInlinePlatformSelection() {
             }
         };
         platformItem.onclick = function(e) {
-            if (e.target.type !== 'checkbox') {
-                const checkbox = this.querySelector('input');
-                checkbox.checked = !checkbox.checked;
+            if (e.target.type === 'radio') return;
+            const radio = document.getElementById(`inline_platform_${platform.key}`);
+            if (radio) {
+                radio.checked = true;
                 toggleInlinePlatformSelection(platform.key);
             }
         };
         
         platformItem.innerHTML = `
             <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                <input type="checkbox" id="inline_platform_${platform.key}" value="${platform.key}" onchange="toggleInlinePlatformSelection('${platform.key}')" 
+                <input type="radio" name="inline_search_platform" id="inline_platform_${platform.key}" value="${platform.key}" onchange="toggleInlinePlatformSelection('${platform.key}')" 
                        style="width: 18px; height: 18px; margin-right: 8px; cursor: pointer; accent-color: #667eea;">
                 <div style="width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; margin-right: 8px; flex-shrink: 0;">${platform.icon}</div>
                 <span style="font-weight: 600; color: #1e293b; font-size: 12px; flex: 1;">${platform.name}</span>
@@ -1358,6 +1446,13 @@ function initializeInlinePlatformSelection() {
     });
     
     platformInitializationInProgress = false;
+    
+    if (typeof updateProceedButtonState === 'function') {
+        updateProceedButtonState();
+    }
+    if (typeof validateReportLanguage === 'function') {
+        validateReportLanguage();
+    }
     
     // Re-attach tooltip listeners after platforms are initialized
     setTimeout(function() {
@@ -1407,34 +1502,28 @@ function selectAnalysisTypeInline(type) {
     validateAnalysisType();
 }
 
-// Toggle inline platform selection
+// Inline platform radio: one platform at a time
 function toggleInlinePlatformSelection(platformKey) {
-    const checkbox = document.getElementById(`inline_platform_${platformKey}`);
-    if (!checkbox) return;
+    const radio = document.getElementById(`inline_platform_${platformKey}`);
+    if (!radio) return;
     
-    if (checkbox.checked) {
-        if (!selectedPlatforms.includes(platformKey)) {
-            selectedPlatforms.push(platformKey);
-        }
-    } else {
-        selectedPlatforms = selectedPlatforms.filter(p => p !== platformKey);
-    }
+    selectedPlatforms = radio.checked ? [platformKey] : [];
     
-    // Validate platforms when selection changes (this will clear red styling if valid)
     validatePlatforms();
     
-    // Update visual state (only if validation passed, otherwise validatePlatforms handles it)
-    if (selectedPlatforms && selectedPlatforms.length > 0) {
-    const platformItem = checkbox.closest('div');
-    if (platformItem) {
-        if (checkbox.checked) {
-            platformItem.style.borderColor = '#667eea';
-            platformItem.style.background = '#f8faff';
-        } else {
-            platformItem.style.borderColor = '#e5e7eb';
-            platformItem.style.background = '#ffffff';
+    const container = document.getElementById('inlinePlatformSelection');
+    if (container) {
+        Array.from(container.children).forEach(item => {
+            const r = item.querySelector('input[type="radio"]');
+            if (!r) return;
+            if (r.checked) {
+                item.style.borderColor = '#667eea';
+                item.style.background = '#f8faff';
+            } else {
+                item.style.borderColor = '#e5e7eb';
+                item.style.background = '#ffffff';
             }
-        }
+        });
     }
 }
 
@@ -1446,7 +1535,7 @@ function updateProceedButtonState() {
             proceedButton.disabled = true;
             proceedButton.style.opacity = '0.5';
             proceedButton.style.cursor = 'not-allowed';
-            proceedButton.textContent = 'Select at least one platform';
+            proceedButton.textContent = 'Select a platform';
         } else {
             proceedButton.disabled = false;
             proceedButton.style.opacity = '1';
@@ -1498,6 +1587,8 @@ function showPromptDetails() {
     const username = document.getElementById('username')?.value.trim() || 'N/A';
     const selectedType = document.querySelector('input[name="inlineAnalysisType"]:checked')?.value || 'N/A';
     const analysisTypeLabel = selectedType === 'professional' ? 'Professional' : selectedType === 'political' ? 'Political' : 'N/A';
+    const reportLangCode = document.querySelector('input[name="sm_report_language"]:checked')?.value || window.smReportLanguageForAnalysis;
+    const reportLangName = reportLangCode === 'ms' ? 'Bahasa Melayu' : (reportLangCode === 'en' ? 'English' : '—');
     
     // Get platform data
     const platformData = window.searchResultsData?.platforms || {};
@@ -1533,6 +1624,10 @@ function showPromptDetails() {
         <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
             <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Analysis Type</div>
             <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${analysisTypeLabel}</div>
+        </div>
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+            <div style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">Report Language</div>
+            <div style="font-size: 13px; color: #111827; line-height: 1.5; font-weight: 500;">${reportLangName}</div>
         </div>
     `;
     
@@ -2181,12 +2276,12 @@ function checkExistingData(username) {
             platformsRequired.value = '';
         }
         
-        // Reset platform selections
+        // Reset platform selection (none selected)
         selectedPlatforms = [];
-        const platformCheckboxes = document.querySelectorAll('input[id^="inline_platform_"]');
-        platformCheckboxes.forEach(checkbox => {
-            checkbox.checked = false;
-            const platformItem = checkbox.closest('div');
+        const platformRadios = document.querySelectorAll('input[name="inline_search_platform"]');
+        platformRadios.forEach(radio => {
+            radio.checked = false;
+            const platformItem = radio.closest('div');
             if (platformItem) {
                 platformItem.style.borderColor = '#e5e7eb';
                 platformItem.style.background = '#ffffff';
@@ -2208,6 +2303,13 @@ function checkExistingData(username) {
         if (politicalDiv) {
             politicalDiv.style.borderColor = '#e2e8f0';
             politicalDiv.style.background = '#ffffff';
+        }
+        
+        document.querySelectorAll('input[name="sm_report_language"]').forEach(r => {
+            r.checked = false;
+        });
+        if (typeof validateReportLanguage === 'function') {
+            validateReportLanguage();
         }
         
         return;
@@ -3660,7 +3762,8 @@ function initTooltips() {
 // Analysis Modal Functions
 let currentAnalysisData = null;
 let currentPlatform = null;
-let selectedAnalysisPlatforms = {}; // Store selected platforms for analysis
+/** Single platform key for analysis modal (when multiple were found) */
+let selectedAnalysisPlatform = null;
 
 function openAnalysisModal(platform, dataIdOrData) {
     currentPlatform = platform;
@@ -3742,17 +3845,13 @@ function showPlatformSelection() {
         return;
     }
     
-    // Initialize selected platforms - all selected by default
-    selectedAnalysisPlatforms = {};
-    availablePlatforms.forEach(platform => {
-        selectedAnalysisPlatforms[platform.key] = true;
-    });
+    selectedAnalysisPlatform = null;
     
     // Build platform selection UI
     let html = `
         <div style="padding: 32px 24px;">
-            <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center;">Select Platforms for Analysis</h3>
-            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Choose which platforms to include in the NUJUM analysis</p>
+            <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center;">Select Platform for Analysis</h3>
+            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Choose one platform for the NUJUM analysis</p>
             
             <!-- Analysis Type Selection -->
             <div style="margin-bottom: 32px;">
@@ -3792,22 +3891,8 @@ function showPlatformSelection() {
             <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px;">
     `;
     
-    // Add "Select All" option
-    html += `
-        <div style="padding: 16px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
-             onclick="toggleSelectAll()" 
-             onmouseover="this.style.borderColor='#667eea'; this.style.background='#f0f4ff';" 
-             onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc';">
-            <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                <input type="checkbox" id="selectAllCheckbox" checked onchange="toggleSelectAll()" 
-                       style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
-                <span style="font-weight: 600; color: #1e293b; font-size: 15px;">Select All Platforms</span>
-            </label>
-        </div>
-    `;
-    
-    // Add individual platform checkboxes
-    availablePlatforms.forEach(platform => {
+    // One platform per analysis (radio group; no default — user must choose)
+    availablePlatforms.forEach((platform) => {
         let platformIconSVG = '';
         if (platform.key === 'facebook') {
             platformIconSVG = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>';
@@ -3820,12 +3905,12 @@ function showPlatformSelection() {
         }
         
         html += `
-            <div style="padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
-                 onclick="togglePlatform('${platform.key}')" 
-                 onmouseover="this.style.borderColor='#667eea'; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.1)';" 
-                 onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+            <div class="analysis-modal-platform-row" data-platform-key="${platform.key}" style="padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
+                 onclick="selectAnalysisModalPlatform('${platform.key}')" 
+                 onmouseover="if(window.selectedAnalysisPlatform !== '${platform.key}') { this.style.borderColor='#9ca3af'; }" 
+                 onmouseout="selectAnalysisModalPlatformHoverOut(this, '${platform.key}')">
                 <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                    <input type="checkbox" id="platform_${platform.key}" checked onchange="togglePlatform('${platform.key}')" 
+                    <input type="radio" name="analysisModalPlatform" id="platform_${platform.key}" value="${platform.key}" onchange="selectAnalysisModalPlatform('${platform.key}')" 
                            style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
                     <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">${platformIconSVG}</div>
                     <span style="font-weight: 600; color: #1e293b; font-size: 15px; flex: 1;">${platform.name}</span>
@@ -3861,32 +3946,22 @@ function showPlatformSelection() {
     selectAnalysisType('professional');
 }
 
-function toggleSelectAll() {
-    const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    const isChecked = selectAllCheckbox.checked;
-    
-    // Update all platform checkboxes
-    Object.keys(selectedAnalysisPlatforms).forEach(platform => {
-        selectedAnalysisPlatforms[platform] = isChecked;
-        const checkbox = document.getElementById(`platform_${platform}`);
-        if (checkbox) {
-            checkbox.checked = isChecked;
-        }
+function selectAnalysisModalPlatform(platformKey) {
+    window.selectedAnalysisPlatform = platformKey;
+    const radio = document.getElementById(`platform_${platformKey}`);
+    if (radio) radio.checked = true;
+    document.querySelectorAll('.analysis-modal-platform-row').forEach(row => {
+        const key = row.getAttribute('data-platform-key');
+        const sel = key === platformKey;
+        row.style.borderColor = sel ? '#667eea' : '#e2e8f0';
+        row.style.background = sel ? '#f0f4ff' : '#ffffff';
     });
 }
 
-function togglePlatform(platform) {
-    const checkbox = document.getElementById(`platform_${platform}`);
-    if (checkbox) {
-        selectedAnalysisPlatforms[platform] = checkbox.checked;
-        
-        // Update "Select All" checkbox based on individual selections
-        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
-        if (selectAllCheckbox) {
-            const allSelected = Object.values(selectedAnalysisPlatforms).every(selected => selected);
-            selectAllCheckbox.checked = allSelected;
-        }
-    }
+function selectAnalysisModalPlatformHoverOut(rowEl, platformKey) {
+    const sel = window.selectedAnalysisPlatform === platformKey;
+    rowEl.style.borderColor = sel ? '#667eea' : '#e2e8f0';
+    rowEl.style.background = sel ? '#f0f4ff' : '#ffffff';
 }
 
 function selectAnalysisType(type) {
@@ -3924,23 +3999,19 @@ function selectAnalysisType(type) {
 window.selectedAnalysisType = 'professional';
 
 function proceedWithAnalysis() {
-    // Check if at least one platform is selected
-    const hasSelection = Object.values(selectedAnalysisPlatforms).some(selected => selected);
-    if (!hasSelection) {
-        alert('Please select at least one platform to analyze.');
+    const checked = document.querySelector('input[name="analysisModalPlatform"]:checked');
+    if (!checked || !currentAnalysisData || !currentAnalysisData[checked.value]) {
+        alert('Please select a platform to analyze.');
         return;
     }
+    const platformKey = checked.value;
+    window.selectedAnalysisPlatform = platformKey;
     
     // Get selected analysis type
     const analysisType = window.selectedAnalysisType || document.querySelector('input[name="analysisType"]:checked')?.value || 'professional';
     
-    // Filter currentAnalysisData to only include selected platforms
-    const filteredData = {};
-    Object.keys(currentAnalysisData).forEach(platform => {
-        if (selectedAnalysisPlatforms[platform]) {
-            filteredData[platform] = currentAnalysisData[platform];
-        }
-    });
+    // Keep only the selected platform
+    const filteredData = { [platformKey]: currentAnalysisData[platformKey] };
     
     // Update currentAnalysisData with filtered data
     currentAnalysisData = filteredData;
@@ -3971,7 +4042,7 @@ function closeAnalysisModal() {
     }
     currentAnalysisData = null;
     currentPlatform = null;
-    selectedPlatforms = {};
+    selectedAnalysisPlatform = null;
 }
 
 // Start analysis directly with stored analysis type
@@ -4002,6 +4073,13 @@ async function startAnalysis(analysisType = 'professional') {
         return;
     }
     
+    const reportLangRadio = document.querySelector('input[name="sm_report_language"]:checked');
+    if (!reportLangRadio) {
+        alert('Please select a report language.');
+        return;
+    }
+    window.smReportLanguageForAnalysis = reportLangRadio.value;
+    
     // Reset toast flags for new analysis
     window.analysisSecondToastShown = false;
     // Reset analysis failed flag for new analysis
@@ -4024,7 +4102,8 @@ async function startAnalysis(analysisType = 'professional') {
                 username: username,
                 platform_data: useExisting ? null : currentAnalysisData, // Don't send if using existing
                 use_existing: useExisting,
-                analysis_type: analysisType
+                analysis_type: analysisType,
+                report_language: reportLangRadio.value
             })
         });
         
@@ -4123,6 +4202,9 @@ async function startAnalysis(analysisType = 'professional') {
 function displayAnalysisResult(analysis) {
     const modalContent = document.getElementById('analysisModalContent');
     if (!modalContent) return;
+
+    const reportMs = analysis.report_language === 'ms';
+    const ui = (en, ms) => reportMs ? ms : en;
     
     let html = '<div style="max-height: 80vh; overflow-y: auto; padding-right: 8px;">';
     
@@ -4183,37 +4265,37 @@ function displayAnalysisResult(analysis) {
     
     // Professional Footprint
     if (analysis.professional_footprint) {
-        html += generateSection('Professional Footprint Analysis', analysis.professional_footprint);
+        html += generateSection(ui('Professional Footprint Analysis', 'Analisis Jejak Profesional'), analysis.professional_footprint, reportMs);
     }
     
     // Work Ethic Indicators
     if (analysis.work_ethic_indicators) {
-        html += generateSection('Work Ethic Indicators', analysis.work_ethic_indicators);
+        html += generateSection(ui('Work Ethic Indicators', 'Petunjuk Etika Kerja'), analysis.work_ethic_indicators, reportMs);
     }
     
     // Cultural Fit Indicators
     if (analysis.cultural_fit_indicators) {
-        html += generateSection('Cultural Fit Indicators', analysis.cultural_fit_indicators);
+        html += generateSection(ui('Cultural Fit Indicators', 'Petunjuk Keserasian Budaya'), analysis.cultural_fit_indicators, reportMs);
     }
     
     // Professional Growth Signals
     if (analysis.professional_growth_signals) {
-        html += generateSection('Professional Growth Signals', analysis.professional_growth_signals);
+        html += generateSection(ui('Professional Growth Signals', 'Isyarat Pertumbuhan Profesional'), analysis.professional_growth_signals, reportMs);
     }
     
     // Activity Overview
     if (analysis.activity_overview) {
-        html += generateSection('Activity Overview & Behavioral Patterns', analysis.activity_overview);
+        html += generateSection(ui('Activity Overview & Behavioral Patterns', 'Gambaran Aktiviti & Corak Tingkah Laku'), analysis.activity_overview, reportMs);
     }
     
     // Personality & Communication
     if (analysis.personality_communication) {
-        html += generateSection('Personality & Communication Snapshot', analysis.personality_communication);
+        html += generateSection(ui('Personality & Communication Snapshot', 'Gambaran Personaliti & Komunikasi'), analysis.personality_communication, reportMs);
     }
     
     // Career Profile
     if (analysis.career_profile) {
-        html += generateSection('Career Profile & Growth Signals', analysis.career_profile);
+        html += generateSection(ui('Career Profile & Growth Signals', 'Profil Kerjaya & Isyarat Pertumbuhan'), analysis.career_profile, reportMs);
     }
     
     // Overall Assessment
@@ -4256,21 +4338,78 @@ function displayAnalysisResult(analysis) {
     modalContent.innerHTML = html;
 }
 
-function generateSection(title, data) {
+function generateSection(title, data, reportMs) {
+    const fieldKeyLabel = (key) => {
+        if (!reportMs) {
+            return key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        const map = {
+            recommendations: 'Cadangan',
+            evidence: 'Bukti',
+            concerns: 'Kebimbangan',
+            strengths: 'Kekuatan',
+            indicators: 'Petunjuk',
+            notable_patterns: 'Corak Ketara',
+            key_characteristics: 'Ciri Utama',
+            summary: 'Ringkasan',
+            overview: 'Gambaran Keseluruhan',
+            description: 'Penerangan',
+            current_focus: 'Tumpuan semasa',
+            expertise_areas: 'Bidang kepakaran',
+            industry_positioning: 'Kedudukan dalam industri',
+            career_goals: 'Matlamat kerjaya',
+            growth_potential: 'Potensi pertumbuhan',
+            market_value: 'Nilai pasaran',
+            current_political_focus: 'Tumpuan politik semasa',
+            political_expertise_areas: 'Bidang kepakaran politik',
+            political_positioning: 'Kedudukan politik',
+            political_goals: 'Matlamat politik',
+            political_growth_potential: 'Potensi pertumbuhan politik',
+            political_market_value: 'Nilai pengaruh politik',
+            online_presence: 'Kehadiran dalam talian',
+            content_quality: 'Kualiti kandungan',
+            brand_consistency: 'Konsisten jenama',
+            platform_utilization: 'Penggunaan platform',
+            audience_engagement: 'Penglibatan audiens',
+            professionalism_score: 'Skor profesionalisme',
+            confidence: 'Keyakinan',
+            confidence_level: 'Tahap keyakinan',
+            tone_analysis: 'Analisis nada',
+            content_relevance: 'Kesesuaian kandungan',
+            engagement_quality: 'Kualiti penglibatan',
+            political_affiliation_score: 'Skor afiliasi politik',
+            political_leanings: 'Kecondongan politik',
+            political_engagement: 'Penglibatan politik',
+            political_content: 'Kandungan politik',
+            political_network: 'Rangkaian politik',
+            political_consistency: 'Kekonsistenan politik',
+            political_influence: 'Pengaruh politik',
+            political_controversies: 'Kontroversi politik',
+            political_communication_style: 'Gaya komunikasi politik',
+            political_credibility: 'Kredibiliti politik',
+            political_brand_consistency: 'Konsisten jenama politik',
+            political_platform_utilization: 'Penggunaan platform (politik)',
+            political_audience_engagement: 'Penglibatan audiens (politik)',
+        };
+        return map[key] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    };
+
     let html = `<div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">`;
     html += `<h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">${title}</h3>`;
     
     Object.keys(data).forEach(key => {
         if (key === 'recommendations' || key === 'evidence' || key === 'concerns' || key === 'strengths' || key === 'indicators' || key === 'notable_patterns' || key === 'key_characteristics') {
             if (Array.isArray(data[key]) && data[key].length > 0) {
-                html += `<div style="margin-bottom: 12px;"><strong style="color: #374151;">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</strong><ul style="margin: 8px 0 0 20px; padding: 0;">`;
+                html += `<div style="margin-bottom: 12px;"><strong style="color: #374151;">${fieldKeyLabel(key)}:</strong><ul style="margin: 8px 0 0 20px; padding: 0;">`;
                 data[key].forEach(item => {
                     html += `<li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">${item}</li>`;
                 });
                 html += `</ul></div>`;
             }
         } else if (typeof data[key] === 'string' && data[key].trim() !== '') {
-            html += `<div style="margin-bottom: 12px;"><strong style="color: #374151;">${key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}:</strong> <span style="color: #64748b; line-height: 1.6;">${data[key]}</span></div>`;
+            html += `<div style="margin-bottom: 12px;"><strong style="color: #374151;">${fieldKeyLabel(key)}:</strong> <span style="color: #64748b; line-height: 1.6;">${data[key]}</span></div>`;
+        } else if (typeof data[key] === 'number' && !Number.isNaN(data[key])) {
+            html += `<div style="margin-bottom: 12px;"><strong style="color: #374151;">${fieldKeyLabel(key)}:</strong> <span style="color: #64748b; line-height: 1.6;">${data[key]}</span></div>`;
         }
     });
     

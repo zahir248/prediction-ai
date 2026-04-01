@@ -7,7 +7,7 @@ interface AIServiceInterface
     /**
      * Analyze text and provide predictions
      */
-    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null);
+    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null, $reportLanguage = null);
 
     /**
      * Test the API connection

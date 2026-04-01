@@ -372,54 +372,139 @@
     </style>
 </head>
 <body>
+    @php
+        $analysis = $socialMediaAnalysis->ai_analysis ?? [];
+        $__reportLangMs = (($analysis['report_language'] ?? 'en') === 'ms');
+        $__ui = function (string $en, string $ms) use ($__reportLangMs): string {
+            return $__reportLangMs ? $ms : $en;
+        };
+        $__riskLevelUi = function (?string $level) use ($__reportLangMs): string {
+            if ($level === null || $level === '') {
+                return '';
+            }
+            if (!$__reportLangMs) {
+                return $level;
+            }
+            return match (trim($level)) {
+                'High' => 'Tinggi',
+                'Medium' => 'Sederhana',
+                'Low' => 'Rendah',
+                default => $level,
+            };
+        };
+        $__fieldKeyUi = function (string $key) use ($__reportLangMs): string {
+            if (!$__reportLangMs) {
+                return ucwords(str_replace('_', ' ', $key));
+            }
+            $map = [
+                'recommendations' => 'Cadangan',
+                'evidence' => 'Bukti',
+                'concerns' => 'Kebimbangan',
+                'strengths' => 'Kekuatan',
+                'indicators' => 'Petunjuk',
+                'notable_patterns' => 'Corak Ketara',
+                'key_characteristics' => 'Ciri Utama',
+                'summary' => 'Ringkasan',
+                'overview' => 'Gambaran Keseluruhan',
+                'description' => 'Penerangan',
+                'current_focus' => 'Tumpuan semasa',
+                'expertise_areas' => 'Bidang kepakaran',
+                'industry_positioning' => 'Kedudukan dalam industri',
+                'career_goals' => 'Matlamat kerjaya',
+                'growth_potential' => 'Potensi pertumbuhan',
+                'market_value' => 'Nilai pasaran',
+                'current_political_focus' => 'Tumpuan politik semasa',
+                'political_expertise_areas' => 'Bidang kepakaran politik',
+                'political_positioning' => 'Kedudukan politik',
+                'political_goals' => 'Matlamat politik',
+                'political_growth_potential' => 'Potensi pertumbuhan politik',
+                'political_market_value' => 'Nilai pengaruh politik',
+                'online_presence' => 'Kehadiran dalam talian',
+                'content_quality' => 'Kualiti kandungan',
+                'brand_consistency' => 'Konsisten jenama',
+                'platform_utilization' => 'Penggunaan platform',
+                'audience_engagement' => 'Penglibatan audiens',
+                'professionalism_score' => 'Skor profesionalisme',
+                'confidence' => 'Keyakinan',
+                'political_affiliation_score' => 'Skor afiliasi politik',
+                'political_leanings' => 'Kecondongan politik',
+                'political_engagement' => 'Penglibatan politik',
+                'political_content' => 'Kandungan politik',
+                'political_network' => 'Rangkaian politik',
+                'political_consistency' => 'Kekonsistenan politik',
+                'political_influence' => 'Pengaruh politik',
+                'political_controversies' => 'Kontroversi politik',
+                'political_communication_style' => 'Gaya komunikasi politik',
+                'political_credibility' => 'Kredibiliti politik',
+                'political_brand_consistency' => 'Konsisten jenama politik',
+                'political_platform_utilization' => 'Penggunaan platform (politik)',
+                'political_audience_engagement' => 'Penglibatan audiens (politik)',
+            ];
+            return $map[$key] ?? ucwords(str_replace('_', ' ', $key));
+        };
+    @endphp
     <div class="header">
-        <h1>Social Media Analysis Report</h1>
+        <h1>{{ $__ui('Social Media Analysis Report', 'Laporan Analisis Media Sosial') }}</h1>
         <p class="subtitle">{{ $socialMediaAnalysis->username }}</p>
-        <p>Generated on {{ date('F d, Y \a\t g:i A') }}</p>
+        <p>{{ $__ui('Generated on', 'Dijana pada') }} {{ date('F d, Y \a\t g:i A') }}</p>
     </div>
 
     <!-- Analysis Information -->
     <div class="section major-section">
-        <div class="section-title">Analysis Information</div>
+        <div class="section-title">{{ $__ui('Analysis Information', 'Maklumat Analisis') }}</div>
         <div class="info-grid">
             <div class="info-row">
-                <div class="info-label">Username</div>
+                <div class="info-label">{{ $__ui('Username', 'Nama pengguna') }}</div>
                 <div class="info-value">{{ $socialMediaAnalysis->username }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label">Status</div>
+                <div class="info-label">{{ $__ui('Status', 'Status') }}</div>
                 <div class="info-value">
                     @php
-                        $statusClass = 'status-' . strtolower($socialMediaAnalysis->status);
+                        $statusClass = 'status-' . strtolower((string) $socialMediaAnalysis->status);
+                        $statusDisplay = $__reportLangMs
+                            ? match (strtolower((string) $socialMediaAnalysis->status)) {
+                                'completed' => 'Selesai',
+                                'processing' => 'Memproses',
+                                'failed' => 'Gagal',
+                                'pending' => 'Menunggu',
+                                default => ucfirst((string) $socialMediaAnalysis->status),
+                            }
+                            : ucfirst((string) $socialMediaAnalysis->status);
                     @endphp
-                    <span class="status-badge {{ $statusClass }}">{{ ucfirst($socialMediaAnalysis->status) }}</span>
+                    <span class="status-badge {{ $statusClass }}">{{ $statusDisplay }}</span>
                 </div>
             </div>
             @if($socialMediaAnalysis->status === 'completed' && $socialMediaAnalysis->ai_analysis)
             @php
                 $analysisType = $socialMediaAnalysis->ai_analysis['analysis_type'] ?? 'professional';
+                $reportLang = $socialMediaAnalysis->ai_analysis['report_language'] ?? 'en';
             @endphp
             <div class="info-row">
-                <div class="info-label">Analysis Type</div>
+                <div class="info-label">{{ $__ui('Analysis Type', 'Jenis Analisis') }}</div>
                 <div class="info-value">
-                    <span style="font-weight: 600; text-transform: capitalize;">{{ $analysisType === 'political' ? 'Political' : 'Professional' }}</span>
+                    <span style="font-weight: 600; text-transform: capitalize;">{{ $analysisType === 'political' ? $__ui('Political', 'Politik') : $__ui('Professional', 'Profesional') }}</span>
                 </div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">{{ $__ui('Report language', 'Bahasa laporan') }}</div>
+                <div class="info-value">{{ $reportLang === 'ms' ? 'Bahasa Melayu' : 'English' }}</div>
             </div>
             @endif
             @if($socialMediaAnalysis->platform_count > 0 && is_array($socialMediaAnalysis->found_platforms) && count($socialMediaAnalysis->found_platforms) > 0)
             <div class="info-row">
-                <div class="info-label">Platforms Found</div>
+                <div class="info-label">{{ $__ui('Platforms Found', 'Platform Dijumpai') }}</div>
                 <div class="info-value">{{ $socialMediaAnalysis->platform_count }} ({{ implode(', ', array_map('ucfirst', $socialMediaAnalysis->found_platforms)) }})</div>
             </div>
             @endif
             @if($socialMediaAnalysis->processing_time)
             <div class="info-row">
-                <div class="info-label">Processing Time</div>
-                <div class="info-value">{{ number_format($socialMediaAnalysis->processing_time, 2) }} seconds</div>
+                <div class="info-label">{{ $__ui('Processing Time', 'Masa Pemprosesan') }}</div>
+                <div class="info-value">{{ number_format($socialMediaAnalysis->processing_time, 2) }} {{ $__ui('seconds', 'saat') }}</div>
             </div>
             @endif
             <div class="info-row">
-                <div class="info-label">Analyzed On</div>
+                <div class="info-label">{{ $__ui('Analyzed On', 'Dianalisis Pada') }}</div>
                 <div class="info-value">{{ $socialMediaAnalysis->created_at->format('F d, Y \a\t g:i A') }}</div>
             </div>
         </div>
@@ -428,12 +513,80 @@
     @if($socialMediaAnalysis->status === 'completed' && $socialMediaAnalysis->ai_analysis)
         @php
             $analysis = $socialMediaAnalysis->ai_analysis;
+            $__reportLangMs = (($analysis['report_language'] ?? 'en') === 'ms');
+            $__ui = function (string $en, string $ms) use ($__reportLangMs): string {
+                return $__reportLangMs ? $ms : $en;
+            };
+            $__riskLevelUi = function (?string $level) use ($__reportLangMs): string {
+                if ($level === null || $level === '') {
+                    return '';
+                }
+                if (!$__reportLangMs) {
+                    return $level;
+                }
+                return match (trim($level)) {
+                    'High' => 'Tinggi',
+                    'Medium' => 'Sederhana',
+                    'Low' => 'Rendah',
+                    default => $level,
+                };
+            };
+            $__fieldKeyUi = function (string $key) use ($__reportLangMs): string {
+                if (!$__reportLangMs) {
+                    return ucwords(str_replace('_', ' ', $key));
+                }
+                $map = [
+                    'recommendations' => 'Cadangan',
+                    'evidence' => 'Bukti',
+                    'concerns' => 'Kebimbangan',
+                    'strengths' => 'Kekuatan',
+                    'indicators' => 'Petunjuk',
+                    'notable_patterns' => 'Corak Ketara',
+                    'key_characteristics' => 'Ciri Utama',
+                    'summary' => 'Ringkasan',
+                    'overview' => 'Gambaran Keseluruhan',
+                    'description' => 'Penerangan',
+                    'current_focus' => 'Tumpuan semasa',
+                    'expertise_areas' => 'Bidang kepakaran',
+                    'industry_positioning' => 'Kedudukan dalam industri',
+                    'career_goals' => 'Matlamat kerjaya',
+                    'growth_potential' => 'Potensi pertumbuhan',
+                    'market_value' => 'Nilai pasaran',
+                    'current_political_focus' => 'Tumpuan politik semasa',
+                    'political_expertise_areas' => 'Bidang kepakaran politik',
+                    'political_positioning' => 'Kedudukan politik',
+                    'political_goals' => 'Matlamat politik',
+                    'political_growth_potential' => 'Potensi pertumbuhan politik',
+                    'political_market_value' => 'Nilai pengaruh politik',
+                    'online_presence' => 'Kehadiran dalam talian',
+                    'content_quality' => 'Kualiti kandungan',
+                    'brand_consistency' => 'Konsisten jenama',
+                    'platform_utilization' => 'Penggunaan platform',
+                    'audience_engagement' => 'Penglibatan audiens',
+                    'professionalism_score' => 'Skor profesionalisme',
+                    'confidence' => 'Keyakinan',
+                    'political_affiliation_score' => 'Skor afiliasi politik',
+                    'political_leanings' => 'Kecondongan politik',
+                    'political_engagement' => 'Penglibatan politik',
+                    'political_content' => 'Kandungan politik',
+                    'political_network' => 'Rangkaian politik',
+                    'political_consistency' => 'Kekonsistenan politik',
+                    'political_influence' => 'Pengaruh politik',
+                    'political_controversies' => 'Kontroversi politik',
+                    'political_communication_style' => 'Gaya komunikasi politik',
+                    'political_credibility' => 'Kredibiliti politik',
+                    'political_brand_consistency' => 'Konsisten jenama politik',
+                    'political_platform_utilization' => 'Penggunaan platform (politik)',
+                    'political_audience_engagement' => 'Penglibatan audiens (politik)',
+                ];
+                return $map[$key] ?? ucwords(str_replace('_', ' ', $key));
+            };
         @endphp
 
         <!-- Executive Summary -->
         @if(isset($analysis['executive_summary']) && is_string($analysis['executive_summary']))
         <div class="section major-section">
-            <div class="section-title">Executive Summary & Risk Assessment</div>
+            <div class="section-title">{{ $__ui('Executive Summary & Risk Assessment', 'Ringkasan Eksekutif & Penilaian Risiko') }}</div>
             <div class="content-box">
                 <p>{{ $analysis['executive_summary'] }}</p>
             </div>
@@ -443,24 +596,34 @@
         <!-- Risk Assessment -->
         @if(isset($analysis['risk_assessment']))
         <div class="section major-section">
-            <div class="section-title">Risk Assessment</div>
+            <div class="section-title">{{ $__ui('Risk Assessment', 'Penilaian Risiko') }}</div>
             <div class="content-box">
                 @if(isset($analysis['risk_assessment']['overall_risk_level']) && is_string($analysis['risk_assessment']['overall_risk_level']))
                     @php
-                        $riskColor = $analysis['risk_assessment']['overall_risk_level'] === 'High' ? '#ef4444' : 
-                                    ($analysis['risk_assessment']['overall_risk_level'] === 'Medium' ? '#f59e0b' : '#10b981');
+                        $rawLevel = $analysis['risk_assessment']['overall_risk_level'];
+                        $t = trim($rawLevel);
+                        $normLevel = match ($t) {
+                            'Tinggi' => 'High',
+                            'High' => 'High',
+                            'Sederhana' => 'Medium',
+                            'Medium' => 'Medium',
+                            'Rendah' => 'Low',
+                            'Low' => 'Low',
+                            default => $t,
+                        };
+                        $riskColor = $normLevel === 'High' ? '#ef4444' : ($normLevel === 'Medium' ? '#f59e0b' : '#10b981');
                     @endphp
-                    <p><strong>Overall Risk Level:</strong> <span style="color: {{ $riskColor }}; font-weight: 600;">{{ $analysis['risk_assessment']['overall_risk_level'] }}</span></p>
+                    <p><strong>{{ $__ui('Overall Risk Level:', 'Tahap Risiko Keseluruhan:') }}</strong> <span style="color: {{ $riskColor }}; font-weight: 600;">{{ $__riskLevelUi($rawLevel) }}</span></p>
                 @endif
                 
                 @if(isset($analysis['risk_assessment']['risk_factors']) && is_array($analysis['risk_assessment']['risk_factors']))
-                    <div class="subsection-title">Risk Factors</div>
+                    <div class="subsection-title">{{ $__ui('Risk Factors', 'Faktor Risiko') }}</div>
                     <ul class="factors-list">
                         @foreach($analysis['risk_assessment']['risk_factors'] as $risk)
                             <li>
                                 @if(is_array($risk))
-                                    <strong>{{ $risk['risk'] ?? 'Risk' }}</strong>
-                                    @if(isset($risk['level'])) <span style="color: #ef4444;">({{ $risk['level'] }})</span>@endif
+                                    <strong>{{ $risk['risk'] ?? $__ui('Risk', 'Risiko') }}</strong>
+                                    @if(isset($risk['level'])) <span style="color: #ef4444;">({{ $__riskLevelUi($risk['level']) }})</span>@endif
                                     @if(isset($risk['description']))<br><span style="font-size: 9pt;">{{ $risk['description'] }}</span>@endif
                                 @else
                                     {{ $risk }}
@@ -471,7 +634,7 @@
                 @endif
                 
                 @if(isset($analysis['risk_assessment']['red_flags']) && is_array($analysis['risk_assessment']['red_flags']))
-                    <div class="subsection-title" style="color: #991b1b;">Red Flags</div>
+                    <div class="subsection-title" style="color: #991b1b;">{{ $__ui('Red Flags', 'Bendera Merah') }}</div>
                     <ul class="factors-list" style="background: #fef2f2; padding: 8px 8px 8px 24px; border-left: 4px solid #ef4444; border-radius: 4px;">
                         @foreach($analysis['risk_assessment']['red_flags'] as $flag)
                             <li style="color: #991b1b;">
@@ -486,7 +649,7 @@
                 @endif
                 
                 @if(isset($analysis['risk_assessment']['positive_indicators']) && is_array($analysis['risk_assessment']['positive_indicators']))
-                    <div class="subsection-title" style="color: #166534;">Positive Indicators</div>
+                    <div class="subsection-title" style="color: #166534;">{{ $__ui('Positive Indicators', 'Petunjuk Positif') }}</div>
                     <ul class="factors-list" style="background: #f0fdf4; padding: 8px 8px 8px 24px; border-left: 4px solid #10b981; border-radius: 4px;">
                         @foreach($analysis['risk_assessment']['positive_indicators'] as $indicator)
                             <li style="color: #166534;">
@@ -546,14 +709,14 @@
             <!-- Career Profile -->
             @if(isset($analysis['career_profile']))
                 <div class="section major-section avoid-break page-break">
-                    @include('social-media.partials.analysis-section', ['title' => 'Career Profile & Growth Signals', 'data' => $analysis['career_profile']])
+                    @include('social-media.partials.analysis-section', ['analysis' => $analysis, 'title' => $__ui('Career Profile & Growth Signals', 'Profil Kerjaya & Isyarat Pertumbuhan'), 'data' => $analysis['career_profile']])
                 </div>
             @endif
         @elseif($analysisType === 'political')
             <!-- Political Profile -->
             @if(isset($analysis['political_profile']))
                 <div class="section major-section avoid-break page-break">
-                    @include('social-media.partials.analysis-section', ['title' => 'Political Profile', 'data' => $analysis['political_profile']])
+                    @include('social-media.partials.analysis-section', ['analysis' => $analysis, 'title' => $__ui('Political Profile', 'Profil Politik'), 'data' => $analysis['political_profile']])
                 </div>
             @endif
 
@@ -588,7 +751,7 @@
             <!-- Political Career Profile -->
             @if(isset($analysis['political_career_profile']))
                 <div class="section major-section avoid-break page-break">
-                    @include('social-media.partials.analysis-section', ['title' => 'Political Career Profile', 'data' => $analysis['political_career_profile']])
+                    @include('social-media.partials.analysis-section', ['analysis' => $analysis, 'title' => $__ui('Political Career Profile', 'Profil Kerjaya Politik'), 'data' => $analysis['political_career_profile']])
                 </div>
             @endif
         @endif
@@ -603,7 +766,7 @@
         <!-- Overall Assessment -->
         @if(isset($analysis['overall_assessment']) && is_string($analysis['overall_assessment']))
         <div class="section major-section" style="page-break-before: always; break-before: page;">
-            <div class="section-title">Overall Assessment</div>
+            <div class="section-title">{{ $__ui('Overall Assessment', 'Penilaian Keseluruhan') }}</div>
             <div class="content-box">
                 <p>{{ $analysis['overall_assessment'] }}</p>
             </div>
@@ -613,7 +776,7 @@
         <!-- Recommendations -->
         @if(isset($analysis['recommendations']) && is_array($analysis['recommendations']))
         <div class="section major-section">
-            <div class="section-title">Recommendations</div>
+            <div class="section-title">{{ $__ui('Recommendations', 'Cadangan') }}</div>
             <div class="content-box">
                 <ul class="recommendations-list">
                     @foreach($analysis['recommendations'] as $rec)
@@ -626,27 +789,27 @@
 
     @elseif($socialMediaAnalysis->status === 'failed')
         <div class="section major-section">
-            <div class="section-title">Analysis Status</div>
+            <div class="section-title">{{ $__ui('Analysis Status', 'Status Analisis') }}</div>
             <div class="content-box" style="border-left: 3px solid #f44336; color: #c62828;">
-                <h3>Analysis Failed</h3>
-                <p>The social media analysis could not be completed. Please try again or contact support.</p>
+                <h3>{{ $__ui('Analysis Failed', 'Analisis Gagal') }}</h3>
+                <p>{{ $__ui('The social media analysis could not be completed. Please try again or contact support.', 'Analisis media sosial tidak dapat diselesaikan. Sila cuba lagi atau hubungi sokongan.') }}</p>
             </div>
         </div>
     @else
         <div class="section major-section">
-            <div class="section-title">Analysis Status</div>
+            <div class="section-title">{{ $__ui('Analysis Status', 'Status Analisis') }}</div>
             <div class="content-box" style="border-left: 3px solid #ff9800; color: #ef6c00;">
-                <h3>Processing...</h3>
-                <p>Your social media analysis is being processed by NUJUM. This may take a few moments.</p>
+                <h3>{{ $__ui('Processing...', 'Memproses...') }}</h3>
+                <p>{{ $__ui('Your social media analysis is being processed by NUJUM. This may take a few moments.', 'Analisis media sosial anda sedang diproses oleh NUJUM. Ini mungkin mengambil masa beberapa ketika.') }}</p>
             </div>
         </div>
     @endif
 
     <!-- Footer -->
     <div class="footer">
-        <p>This report was automatically generated by the NUJUM System</p>
-        <p>Generated: {{ date('Y-m-d H:i:s') }}</p>
-        <p>For questions or support, please visit <a href="https://iesb.com.my/" style="color: #666; text-decoration: none;">https://iesb.com.my/</a></p>
+        <p>{{ $__ui('This report was automatically generated by the NUJUM System', 'Laporan ini dijana secara automatik oleh Sistem NUJUM') }}</p>
+        <p>{{ $__ui('Generated:', 'Dijana:') }} {{ date('Y-m-d H:i:s') }}</p>
+        <p>{{ $__ui('For questions or support, please visit', 'Untuk pertanyaan atau sokongan, sila lawati') }} <a href="https://iesb.com.my/" style="color: #666; text-decoration: none;">https://iesb.com.my/</a></p>
     </div>
     
     <script type="text/php">

@@ -25,7 +25,7 @@ class ChatGPTService implements AIServiceInterface
         $this->sslVerify = config('services.chatgpt.ssl_verify', !app()->environment('local', 'development'));
     }
 
-    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null)
+    public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null, $reportLanguage = null)
     {
         try {
             // Validate API key
@@ -77,7 +77,7 @@ class ChatGPTService implements AIServiceInterface
             // Store the current prediction horizon for fallback responses
             $this->currentPredictionHorizon = $predictionHorizon;
             
-            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary, $target);
+            $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary, $target, $reportLanguage);
             
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
@@ -241,14 +241,45 @@ class ChatGPTService implements AIServiceInterface
         return $horizonMap[$horizon] ?? 'Next Month';
     }
 
-    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null, $target = null)
+    /**
+     * Language instruction for prediction-analysis JSON output (English or Bahasa Melayu).
+     */
+    protected function predictionReportLanguageInstruction(?string $reportLanguage): string
+    {
+        if ($reportLanguage === 'ms') {
+            return "OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). "
+                . "Every JSON string value—title, executive_summary, current_situation, all point/explanation fields, risks, recommendations, methodology, notes, source_analysis, etc.—must be in professional, natural Bahasa Melayu. "
+                . "Keep proper nouns, organization names, and standard international terms (e.g. GDP, API) as commonly used in Malaysian business writing.\n\n";
+        }
+
+        return "OUTPUT LANGUAGE: Write the entire report in clear, professional English (all JSON string values).\n\n";
+    }
+
+    /**
+     * Language instruction for social-media-analysis JSON output (English or Bahasa Melayu).
+     */
+    protected function socialMediaReportLanguageInstruction(?string $reportLanguage): string
+    {
+        if ($reportLanguage === 'ms') {
+            return "OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). "
+                . "Every JSON string value—title, executive_summary, all nested section text, risk fields, recommendations, personality and activity fields, indicators, assessments, etc.—must be in professional, natural Bahasa Melayu. "
+                . "Keep proper nouns, platform names, usernames, and standard international terms as commonly used in Malaysian professional writing.\n\n";
+        }
+
+        return "OUTPUT LANGUAGE: Write the entire report in clear, professional English (all JSON string values).\n\n";
+    }
+
+    protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null, $target = null, $reportLanguage = null)
     {
         // Handle social media analysis differently
         if ($analysisType === 'social-media-analysis') {
-            return $this->createSocialMediaAnalysisPrompt($text);
+            return $this->createSocialMediaAnalysisPrompt($text, $reportLanguage);
         }
         
         $prompt = "You are a world-class AI prediction analyst with expertise in comprehensive future forecasting and strategic analysis. You are known for providing exceptionally detailed, thorough, and complex analysis that rivals top-tier consulting firms like McKinsey, BCG, and Bain. Your analysis should be comprehensive, nuanced, and deeply insightful.\n\n";
+        if ($analysisType === 'prediction-analysis') {
+            $prompt .= $this->predictionReportLanguageInstruction($reportLanguage);
+        }
         $prompt .= "Text to analyze: {$text}\n\n";
         
         if ($target) {
@@ -503,7 +534,7 @@ class ChatGPTService implements AIServiceInterface
     /**
      * Create prompt for social media analysis
      */
-    protected function createSocialMediaAnalysisPrompt($text)
+    protected function createSocialMediaAnalysisPrompt($text, $reportLanguage = null)
     {
         // Extract analysis type from text (professional or political)
         $analysisType = 'professional';
@@ -513,6 +544,7 @@ class ChatGPTService implements AIServiceInterface
         
         if ($analysisType === 'political') {
             $prompt = "You are an expert political profile analyst specializing in analyzing political views and political involvement based on social media data. Your task is to analyze the following social media profile data across multiple platforms to assess the person's political views, political involvement, political activities, and political engagement.\n\n";
+            $prompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
             $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
             $prompt .= "Analyze the person's POLITICAL PROFILE focusing on:\n\n";
             $prompt .= "- Political views: What are their political opinions, ideologies, and stances on political issues?\n";
@@ -525,6 +557,7 @@ class ChatGPTService implements AIServiceInterface
             $prompt .= "- Political influence: What is their level of political influence and reach?\n\n";
         } else {
             $prompt = "You are an expert professional profile analyst specializing in comprehensive social media profile assessment for recruitment, hiring, and professional evaluation purposes. Please analyze the following social media profile data across multiple platforms and provide a detailed, professional assessment.\n\n";
+            $prompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
             $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
             $prompt .= "Provide a comprehensive professional analysis covering the following areas:\n\n";
         }

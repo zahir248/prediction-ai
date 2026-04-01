@@ -2,7 +2,25 @@
     $data = $analysis['political_alignment_indicators'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
     $overview = $data['overview'] ?? '';
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+
+    $alignmentLabels = [
+        'ideological_alignment' => $__smMs ? 'Penjajaran Ideologi' : 'Ideological Alignment',
+        'party_alignment' => $__smMs ? 'Penjajaran Parti' : 'Party Alignment',
+        'value_consistency' => $__smMs ? 'Konsisten Nilai' : 'Value Consistency',
+    ];
+    $alignmentDefaults = [
+        'ideological_alignment' => $__smMs
+            ? 'Perihal bagaimana ideologi calon sejajar dengan falsafah politik tertentu.'
+            : 'Description of how the candidate\'s ideology aligns with specific political philosophies.',
+        'party_alignment' => $__smMs
+            ? 'Perihal afiliasi parti calon dan petunjuk sokongan.'
+            : 'Description of the candidate\'s party affiliation and support indicators.',
+        'value_consistency' => $__smMs
+            ? 'Perihal kekonsistenan nilai dan prinsip politik calon.'
+            : 'Description of the consistency of the candidate\'s political values and principles.',
+    ];
+
     // Helper function to convert text/number to score
     if (!function_exists('politicalAlignment_getScore')) {
         function politicalAlignment_getScore($value) {
@@ -21,18 +39,18 @@
     $dimensions = [
         'ideological_alignment' => [
             'score' => politicalAlignment_getScore($data['ideological_alignment_level'] ?? $data['ideological_alignment'] ?? null),
-            'description' => $data['ideological_alignment'] ?? 'Description of how the candidate\'s ideology aligns with specific political philosophies.',
-            'label' => 'Ideological Alignment'
+            'description' => $data['ideological_alignment'] ?? $alignmentDefaults['ideological_alignment'],
+            'label' => $alignmentLabels['ideological_alignment'],
         ],
         'party_alignment' => [
             'score' => politicalAlignment_getScore($data['party_alignment_level'] ?? $data['party_alignment'] ?? null),
-            'description' => $data['party_alignment'] ?? 'Description of the candidate\'s party affiliation and support indicators.',
-            'label' => 'Party Alignment'
+            'description' => $data['party_alignment'] ?? $alignmentDefaults['party_alignment'],
+            'label' => $alignmentLabels['party_alignment'],
         ],
         'value_consistency' => [
             'score' => politicalAlignment_getScore($data['value_consistency_level'] ?? $data['value_consistency'] ?? null),
-            'description' => $data['value_consistency'] ?? 'Description of the consistency of the candidate\'s political values and principles.',
-            'label' => 'Value Consistency'
+            'description' => $data['value_consistency'] ?? $alignmentDefaults['value_consistency'],
+            'label' => $alignmentLabels['value_consistency'],
         ]
     ];
     
@@ -68,10 +86,10 @@
 
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Political Alignment Indicators</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Political Alignment Indicators', 'Petunjuk Penjajaran Politik') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -148,7 +166,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Political Alignment Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Political Alignment Radar Chart', 'Carta radar penjajaran politik') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -203,12 +221,13 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('.radar-chart-svg');
+        const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             tooltip.style.opacity = '0';
@@ -302,14 +321,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['overall_alignment']) && is_string($data['overall_alignment']))
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Overall Alignment:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Overall Alignment:', 'Penjajaran Keseluruhan:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['overall_alignment'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['strengths']) && is_array($data['strengths']) && count($data['strengths']) > 0)
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Strengths:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Strengths:', 'Kekuatan:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['strengths'] as $strength)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">
@@ -322,7 +341,7 @@
             
             @if(isset($data['concerns']) && is_array($data['concerns']) && count($data['concerns']) > 0)
                 <div>
-                    <strong style="color: #374151;">Concerns:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Concerns:', 'Kebimbangan:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['concerns'] as $concern)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

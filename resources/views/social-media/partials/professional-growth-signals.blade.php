@@ -2,25 +2,46 @@
     $data = $analysis['professional_growth_signals'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
     $overview = $data['overview'] ?? $data['summary'] ?? $data['description'] ?? '';
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+    $sliderScaleLow = $__smMs ? 'Rendah' : 'Low';
+    $sliderScaleMedium = $__smMs ? 'Sederhana' : 'Medium';
+    $sliderScaleStrong = $__smMs ? 'Kuat' : 'Strong';
+
+    $growthLabels = [
+        'learning_initiative' => $__smMs ? 'Inisiatif Pembelajaran' : 'Learning Initiative',
+        'skill_development' => $__smMs ? 'Pembangunan Kemahiran' : 'Skill Development',
+        'mentorship_activity' => $__smMs ? 'Aktiviti Bimbingan' : 'Mentorship Activity',
+    ];
+    $growthDefaults = [
+        'learning_initiative' => $__smMs
+            ? 'Bukti pembelajaran aktif dan pembangunan kemahiran.'
+            : 'Evidence of active learning and skill development.',
+        'skill_development' => $__smMs
+            ? 'Bukti pembangunan kemahiran dan pembelajaran.'
+            : 'Evidence of skill development and learning.',
+        'mentorship_activity' => $__smMs
+            ? 'Bukti aktiviti membimbing atau mencari bimbingan.'
+            : 'Evidence of mentoring activities or seeking mentorship.',
+    ];
+
     // Extract indicators with slider values
     $indicators = [
         'learning_initiative' => [
-            'label' => 'Learning Initiative',
+            'label' => $growthLabels['learning_initiative'],
             'value' => $data['learning_initiative_level'] ?? $data['learning_initiative'] ?? $data['adaptability'] ?? null,
-            'description' => $data['learning_initiative'] ?? $data['adaptability'] ?? 'Evidence of active learning and skill development.',
+            'description' => $data['learning_initiative'] ?? $data['adaptability'] ?? $growthDefaults['learning_initiative'],
             'color_scheme' => 'yellow-green' // Yellow to Green
         ],
         'skill_development' => [
-            'label' => 'Skill Development',
+            'label' => $growthLabels['skill_development'],
             'value' => $data['skill_development_level'] ?? $data['skill_development'] ?? null,
-            'description' => $data['skill_development'] ?? 'Evidence of skill development and learning.',
+            'description' => $data['skill_development'] ?? $growthDefaults['skill_development'],
             'color_scheme' => 'blue-purple' // Light Blue to Purple
         ],
         'mentorship_activity' => [
-            'label' => 'Mentorship Activity',
+            'label' => $growthLabels['mentorship_activity'],
             'value' => $data['mentorship_activity_level'] ?? $data['mentorship'] ?? $data['knowledge_sharing'] ?? null,
-            'description' => $data['mentorship_activity'] ?? $data['mentorship'] ?? $data['knowledge_sharing'] ?? 'Evidence of mentoring activities or seeking mentorship.',
+            'description' => $data['mentorship_activity'] ?? $data['mentorship'] ?? $data['knowledge_sharing'] ?? $growthDefaults['mentorship_activity'],
             'color_scheme' => 'pink-red' // Pink to Red
         ]
     ];
@@ -104,10 +125,10 @@
 <div class="professional-growth-container" style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Professional Growth Signals</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Professional Growth Signals', 'Isyarat Pertumbuhan Profesional') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -124,17 +145,17 @@
         $dimensions = [
             'learning_initiative' => [
                 'score' => growthSignals_getSliderValue($indicators['learning_initiative']['value']),
-                'label' => 'Learning Initiative',
+                'label' => $indicators['learning_initiative']['label'],
                 'description' => $indicators['learning_initiative']['description']
             ],
             'skill_development' => [
                 'score' => growthSignals_getSliderValue($indicators['skill_development']['value']),
-                'label' => 'Skill Development',
+                'label' => $indicators['skill_development']['label'],
                 'description' => $indicators['skill_development']['description']
             ],
             'mentorship_activity' => [
                 'score' => growthSignals_getSliderValue($indicators['mentorship_activity']['value']),
-                'label' => 'Mentorship Activity',
+                'label' => $indicators['mentorship_activity']['label'],
                 'description' => $indicators['mentorship_activity']['description']
             ]
         ];
@@ -235,7 +256,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Professional Growth Signals Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Professional Growth Signals Radar Chart', 'Carta radar isyarat pertumbuhan profesional') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -314,12 +335,13 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('.radar-chart-svg');
+        const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             tooltip.style.opacity = '0';
@@ -400,7 +422,9 @@
         @foreach($indicators as $key => $indicator)
             @php
                 $sliderValue = growthSignals_getSliderValue($indicator['value']);
-                $sliderLabel = growthSignals_getSliderLabel($sliderValue);
+                $sliderLabel = $__smMs
+                    ? ($sliderValue <= 30 ? $sliderScaleLow : ($sliderValue <= 60 ? $sliderScaleMedium : $sliderScaleStrong))
+                    : growthSignals_getSliderLabel($sliderValue);
                 $gradient = growthSignals_getSliderGradient($sliderValue, $indicator['color_scheme']);
                 $handleColor = growthSignals_getSliderHandleColor($sliderValue, $indicator['color_scheme']);
                 
@@ -437,16 +461,16 @@
                     
                     // Labels
                     $sliderSvg .= sprintf(
-                        '<text x="0" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif">Low</text>',
-                        $trackY - 12
+                        '<text x="0" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif">%s</text>',
+                        $trackY - 12, htmlspecialchars($sliderScaleLow)
                     );
                     $sliderSvg .= sprintf(
-                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="middle">Medium</text>',
-                        $sliderWidth / 2, $trackY - 12
+                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="middle">%s</text>',
+                        $sliderWidth / 2, $trackY - 12, htmlspecialchars($sliderScaleMedium)
                     );
                     $sliderSvg .= sprintf(
-                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="end">Strong</text>',
-                        $sliderWidth, $trackY - 12
+                        '<text x="%s" y="%s" fill="#94a3b8" font-size="11" font-weight="600" font-family="Arial, sans-serif" text-anchor="end">%s</text>',
+                        $sliderWidth, $trackY - 12, htmlspecialchars($sliderScaleStrong)
                     );
                     
                     $sliderSvg .= '</svg>';
@@ -462,7 +486,7 @@
                 <div style="margin-bottom: 12px;">
                     @if($isPdfExport)
                         <!-- For PDF: Use SVG -->
-                        <img src="{{ $sliderSvgDataUri }}" alt="{{ $indicator['label'] }} Slider" style="width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto;" />
+                        <img src="{{ $sliderSvgDataUri }}" alt="{{ $indicator['label'] }} {{ $__ui('slider', 'gelangsar') }}" style="width: 100%; max-width: 400px; height: auto; display: block; margin: 0 auto;" />
                     @else
                         <!-- For Web: Use CSS-based slider -->
                         <div style="position: relative; height: 12px; background: linear-gradient(to right, #f1f5f9 0%, #e2e8f0 100%); border-radius: 8px; overflow: visible; box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);">
@@ -486,9 +510,9 @@
                             
                             <!-- Labels above slider track -->
                             <div style="position: absolute; left: 0; top: -24px; width: 100%; display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
-                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Low</span>
-                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Medium</span>
-                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Strong</span>
+                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">{{ $sliderScaleLow }}</span>
+                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">{{ $sliderScaleMedium }}</span>
+                                <span style="font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">{{ $sliderScaleStrong }}</span>
                             </div>
                         </div>
                     @endif
@@ -517,14 +541,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['growth_trajectory']) && is_string($data['growth_trajectory']))
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Growth Trajectory:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Growth Trajectory:', 'Trajektori Pertumbuhan:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['growth_trajectory'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['indicators']) && is_array($data['indicators']) && count($data['indicators']) > 0)
                 <div>
-                    <strong style="color: #374151;">Indicators:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Indicators:', 'Petunjuk:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['indicators'] as $indicator)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

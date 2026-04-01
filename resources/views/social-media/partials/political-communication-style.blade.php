@@ -2,7 +2,33 @@
     $data = $analysis['political_communication_style'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
     $overview = $data['overview'] ?? '';
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+
+    $polCommLabels = [
+        'persuasiveness' => $__smMs ? 'Kepersuaan' : 'Persuasiveness',
+        'authenticity' => $__smMs ? 'Autentik' : 'Authenticity',
+        'diplomacy' => $__smMs ? 'Diplomasi' : 'Diplomacy',
+        'emotional_appeal' => $__smMs ? 'Tarikan Emosi' : 'Emotional Appeal',
+        'polarization' => $__smMs ? 'Pempolarisasian' : 'Polarization',
+    ];
+    $polCommDefaults = [
+        'persuasiveness' => $__smMs
+            ? 'Perihal keupayaan meyakinkan dan mempengaruhi wacana politik.'
+            : 'Description of the ability to persuade and influence political discourse.',
+        'authenticity' => $__smMs
+            ? 'Perihal ketulusan dan kesungguhan dalam komunikasi politik.'
+            : 'Description of genuineness and sincerity in political communication.',
+        'diplomacy' => $__smMs
+            ? 'Perihal kemahiran komunikasi diplomatik dan merapatkan jurang.'
+            : 'Description of diplomatic communication skills and ability to bridge divides.',
+        'emotional_appeal' => $__smMs
+            ? 'Perihal keupayaan berhubung dengan audiens pada peringkat emosi.'
+            : 'Description of the ability to connect with the audience on an emotional level.',
+        'polarization' => $__smMs
+            ? 'Perihal kecenderungan mencipta perpecahan atau perpaduan dalam mesej politik.'
+            : 'Description of the tendency to create divisiveness or unity in political messaging.',
+    ];
+
     // Helper function to convert text/number to score
     if (!function_exists('politicalComm_getScore')) {
         function politicalComm_getScore($value) {
@@ -21,28 +47,28 @@
     $dimensions = [
         'persuasiveness' => [
             'score' => politicalComm_getScore($data['persuasiveness_score'] ?? $data['persuasiveness'] ?? null),
-            'description' => $data['persuasiveness'] ?? 'Description of the ability to persuade and influence political discourse.',
-            'label' => 'Persuasiveness'
+            'description' => $data['persuasiveness'] ?? $polCommDefaults['persuasiveness'],
+            'label' => $polCommLabels['persuasiveness'],
         ],
         'authenticity' => [
             'score' => politicalComm_getScore($data['authenticity_score'] ?? $data['authenticity'] ?? null),
-            'description' => $data['authenticity'] ?? 'Description of genuineness and sincerity in political communication.',
-            'label' => 'Authenticity'
+            'description' => $data['authenticity'] ?? $polCommDefaults['authenticity'],
+            'label' => $polCommLabels['authenticity'],
         ],
         'diplomacy' => [
             'score' => politicalComm_getScore($data['diplomacy_score'] ?? $data['diplomacy'] ?? null),
-            'description' => $data['diplomacy'] ?? 'Description of diplomatic communication skills and ability to bridge divides.',
-            'label' => 'Diplomacy'
+            'description' => $data['diplomacy'] ?? $polCommDefaults['diplomacy'],
+            'label' => $polCommLabels['diplomacy'],
         ],
         'emotional_appeal' => [
             'score' => politicalComm_getScore($data['emotional_appeal_score'] ?? $data['emotional_appeal'] ?? null),
-            'description' => $data['emotional_appeal'] ?? 'Description of the ability to connect with the audience on an emotional level.',
-            'label' => 'Emotional Appeal'
+            'description' => $data['emotional_appeal'] ?? $polCommDefaults['emotional_appeal'],
+            'label' => $polCommLabels['emotional_appeal'],
         ],
         'polarization' => [
             'score' => politicalComm_getScore($data['polarization_level'] ?? $data['polarization'] ?? null),
-            'description' => $data['polarization'] ?? 'Description of the tendency to create divisiveness or unity in political messaging.',
-            'label' => 'Polarization'
+            'description' => $data['polarization'] ?? $polCommDefaults['polarization'],
+            'label' => $polCommLabels['polarization'],
         ]
     ];
     
@@ -78,10 +104,10 @@
 
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Political Communication Style</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Political Communication Style', 'Gaya Komunikasi Politik') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -94,7 +120,7 @@
     
     @if(isset($data['rhetoric_analysis']) && is_string($data['rhetoric_analysis']))
         <div style="margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; border-left: 4px solid #667eea; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-            <strong style="color: #374151;">Rhetoric Analysis:</strong>
+            <strong style="color: #374151;">{{ $__ui('Rhetoric Analysis:', 'Analisis Retorik:') }}</strong>
             <p style="color: #64748b; line-height: 1.6; margin: 8px 0 0 0;">
                 {{ $data['rhetoric_analysis'] }}
             </p>
@@ -167,7 +193,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Political Communication Style Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Political Communication Style Radar Chart', 'Carta radar gaya komunikasi politik') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -222,12 +248,13 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('.radar-chart-svg');
+        const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             tooltip.style.opacity = '0';
@@ -321,14 +348,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['overall_assessment']) && is_string($data['overall_assessment']))
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Overall Assessment:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Overall Assessment:', 'Penilaian Keseluruhan:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['overall_assessment'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['communication_strengths']) && is_array($data['communication_strengths']) && count($data['communication_strengths']) > 0)
                 <div>
-                    <strong style="color: #374151;">Communication Strengths:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Communication Strengths:', 'Kekuatan Komunikasi:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['communication_strengths'] as $strength)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

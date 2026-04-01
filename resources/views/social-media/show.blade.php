@@ -45,6 +45,7 @@
                     <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                         @php
                             $analysisType = $socialMediaAnalysis->ai_analysis['analysis_type'] ?? 'professional';
+                            $reportLang = $socialMediaAnalysis->ai_analysis['report_language'] ?? 'en';
                         @endphp
                         <span style="padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; 
                             @if($analysisType === 'political') 
@@ -53,6 +54,9 @@
                                 background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe;
                             @endif">
                             {{ ucfirst($analysisType) }} Analysis
+                        </span>
+                        <span style="padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0;">
+                            {{ $reportLang === 'ms' ? 'Bahasa Melayu' : 'English' }}
                         </span>
                         <span style="padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; 
                             @if($socialMediaAnalysis->status === 'completed') 
@@ -151,6 +155,24 @@
                 <!-- NUJUM Analysis Results -->
                 @php
                     $analysis = $socialMediaAnalysis->ai_analysis;
+                    $__reportLangMs = (($analysis['report_language'] ?? 'en') === 'ms');
+                    $__ui = function (string $en, string $ms) use ($__reportLangMs): string {
+                        return $__reportLangMs ? $ms : $en;
+                    };
+                    $__riskLevelUi = function (?string $level) use ($__reportLangMs): string {
+                        if ($level === null || $level === '') {
+                            return '';
+                        }
+                        if (!$__reportLangMs) {
+                            return $level;
+                        }
+                        return match (trim($level)) {
+                            'High' => 'Tinggi',
+                            'Medium' => 'Sederhana',
+                            'Low' => 'Rendah',
+                            default => $level,
+                        };
+                    };
                 @endphp
                 
                 <div style="margin-bottom: 32px;">
@@ -161,7 +183,7 @@
                     <!-- Executive Summary -->
                     @if(isset($analysis['executive_summary']) && is_string($analysis['executive_summary']))
                         <div class="social-executive-summary" style="margin-bottom: 32px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white;">
-                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: white;">Executive Summary & Risk Assessment</h3>
+                            <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: white;">{{ $__ui('Executive Summary & Risk Assessment', 'Ringkasan Eksekutif & Penilaian Risiko') }}</h3>
                             <p style="color: rgba(255,255,255,0.95); line-height: 1.8; margin: 0; word-wrap: break-word; overflow-wrap: break-word;">{{ $analysis['executive_summary'] }}</p>
                         </div>
                     @endif
@@ -169,28 +191,38 @@
                     <!-- Risk Assessment -->
                     @if(isset($analysis['risk_assessment']))
                         <div style="margin-bottom: 32px; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-                            <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">Risk Assessment</h3>
+                            <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 16px;">{{ $__ui('Risk Assessment', 'Penilaian Risiko') }}</h3>
                             
                             @if(isset($analysis['risk_assessment']['overall_risk_level']) && is_string($analysis['risk_assessment']['overall_risk_level']))
                                 @php
-                                    $riskColor = $analysis['risk_assessment']['overall_risk_level'] === 'High' ? '#ef4444' : 
-                                                ($analysis['risk_assessment']['overall_risk_level'] === 'Medium' ? '#f59e0b' : '#10b981');
+                                    $rawLevel = $analysis['risk_assessment']['overall_risk_level'];
+                                    $t = trim($rawLevel);
+                                    $normLevel = match ($t) {
+                                        'Tinggi' => 'High',
+                                        'High' => 'High',
+                                        'Sederhana' => 'Medium',
+                                        'Medium' => 'Medium',
+                                        'Rendah' => 'Low',
+                                        'Low' => 'Low',
+                                        default => $t,
+                                    };
+                                    $riskColor = $normLevel === 'High' ? '#ef4444' : ($normLevel === 'Medium' ? '#f59e0b' : '#10b981');
                                 @endphp
                                 <div style="margin-bottom: 16px;">
-                                    <strong style="color: #374151;">Overall Risk Level:</strong> 
-                                    <span style="color: {{ $riskColor }}; font-weight: 600;">{{ $analysis['risk_assessment']['overall_risk_level'] }}</span>
+                                    <strong style="color: #374151;">{{ $__ui('Overall Risk Level:', 'Tahap Risiko Keseluruhan:') }}</strong> 
+                                    <span style="color: {{ $riskColor }}; font-weight: 600;">{{ $__riskLevelUi($rawLevel) }}</span>
                                 </div>
                             @endif
                             
                             @if(isset($analysis['risk_assessment']['risk_factors']) && is_array($analysis['risk_assessment']['risk_factors']))
                                 <div style="margin-bottom: 16px;">
-                                    <strong style="color: #374151;">Risk Factors:</strong>
+                                    <strong style="color: #374151;">{{ $__ui('Risk Factors:', 'Faktor Risiko:') }}</strong>
                                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                                         @foreach($analysis['risk_assessment']['risk_factors'] as $risk)
                                             <li style="margin-bottom: 8px; color: #64748b; line-height: 1.6;">
                                                 @if(is_array($risk))
-                                                    <strong>{{ $risk['risk'] ?? 'Risk' }}</strong>
-                                                    @if(isset($risk['level'])) <span style="color: #ef4444;">({{ $risk['level'] }})</span>@endif
+                                                    <strong>{{ $risk['risk'] ?? $__ui('Risk', 'Risiko') }}</strong>
+                                                    @if(isset($risk['level'])) <span style="color: #ef4444;">({{ $__riskLevelUi($risk['level']) }})</span>@endif
                                                     @if(isset($risk['description']))<br><span style="font-size: 13px;">{{ $risk['description'] }}</span>@endif
                                                 @else
                                                     {{ $risk }}
@@ -203,7 +235,7 @@
                             
                             @if(isset($analysis['risk_assessment']['red_flags']) && is_array($analysis['risk_assessment']['red_flags']))
                                 <div style="margin-bottom: 16px; padding: 12px; background: #fef2f2; border-left: 4px solid #ef4444; border-radius: 6px;">
-                                    <strong style="color: #991b1b;">Red Flags:</strong>
+                                    <strong style="color: #991b1b;">{{ $__ui('Red Flags:', 'Bendera Merah:') }}</strong>
                                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                                         @foreach($analysis['risk_assessment']['red_flags'] as $flag)
                                             <li style="margin-bottom: 4px; color: #991b1b;">
@@ -220,7 +252,7 @@
                             
                             @if(isset($analysis['risk_assessment']['positive_indicators']) && is_array($analysis['risk_assessment']['positive_indicators']))
                                 <div style="padding: 12px; background: #f0fdf4; border-left: 4px solid #10b981; border-radius: 6px;">
-                                    <strong style="color: #166534;">Positive Indicators:</strong>
+                                    <strong style="color: #166534;">{{ $__ui('Positive Indicators:', 'Petunjuk Positif:') }}</strong>
                                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                                         @foreach($analysis['risk_assessment']['positive_indicators'] as $indicator)
                                             <li style="margin-bottom: 4px; color: #166534;">
@@ -269,12 +301,12 @@
 
                         <!-- Career Profile -->
                         @if(isset($analysis['career_profile']))
-                            @include('social-media.partials.analysis-section', ['title' => 'Career Profile & Growth Signals', 'data' => $analysis['career_profile']])
+                            @include('social-media.partials.analysis-section', ['analysis' => $analysis, 'title' => $__ui('Career Profile & Growth Signals', 'Profil Kerjaya & Isyarat Pertumbuhan'), 'data' => $analysis['career_profile']])
                         @endif
                     @elseif($analysisType === 'political')
                         <!-- Political Profile -->
                         @if(isset($analysis['political_profile']))
-                            @include('social-media.partials.analysis-section', ['title' => 'Political Profile', 'data' => $analysis['political_profile']])
+                            @include('social-media.partials.analysis-section', ['analysis' => $analysis, 'title' => $__ui('Political Profile', 'Profil Politik'), 'data' => $analysis['political_profile']])
                         @endif
 
                         <!-- Political Engagement Indicators -->
@@ -299,7 +331,7 @@
 
                         <!-- Political Career Profile -->
                         @if(isset($analysis['political_career_profile']))
-                            @include('social-media.partials.analysis-section', ['title' => 'Political Career Profile', 'data' => $analysis['political_career_profile']])
+                            @include('social-media.partials.analysis-section', ['analysis' => $analysis, 'title' => $__ui('Political Career Profile', 'Profil Kerjaya Politik'), 'data' => $analysis['political_career_profile']])
                         @endif
                     @endif
 
@@ -311,7 +343,7 @@
                     <!-- Overall Assessment -->
                     @if(isset($analysis['overall_assessment']) && is_string($analysis['overall_assessment']))
                         <div class="social-overall-assessment" style="margin-bottom: 32px; padding: 24px; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); border-radius: 12px; border: 2px solid #667eea; page-break-before: always; break-before: page;">
-                            <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">Overall Assessment</h3>
+                            <h3 style="font-size: 18px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">{{ $__ui('Overall Assessment', 'Penilaian Keseluruhan') }}</h3>
                             <p style="color: #374151; line-height: 1.8; margin: 0; word-wrap: break-word; overflow-wrap: break-word;">{{ $analysis['overall_assessment'] }}</p>
                         </div>
                     @endif
@@ -319,7 +351,7 @@
                     <!-- Recommendations -->
                     @if(isset($analysis['recommendations']) && is_array($analysis['recommendations']))
                         <div style="margin-bottom: 32px; padding: 24px; background: #f0fdf4; border-radius: 12px; border: 1px solid #86efac;">
-                            <h3 style="font-size: 18px; font-weight: 600; color: #166534; margin-bottom: 16px;">Recommendations</h3>
+                            <h3 style="font-size: 18px; font-weight: 600; color: #166534; margin-bottom: 16px;">{{ $__ui('Recommendations', 'Cadangan') }}</h3>
                             <ul style="margin: 0; padding-left: 20px;">
                                 @foreach($analysis['recommendations'] as $rec)
                                     <li style="margin-bottom: 8px; color: #166534; line-height: 1.6;">
@@ -337,16 +369,22 @@
                     <!-- Metadata -->
                     <div style="margin-top: 32px; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
                         @if(isset($analysis['confidence_level']) && is_string($analysis['confidence_level']))
-                            <div style="margin-bottom: 4px;"><strong>Confidence Level:</strong> {{ $analysis['confidence_level'] }}</div>
+                            <div style="margin-bottom: 4px;"><strong>{{ $__ui('Confidence Level:', 'Tahap Keyakinan:') }}</strong> {{ $analysis['confidence_level'] }}</div>
                         @endif
                         @if($socialMediaAnalysis->created_at)
-                            <div style="margin-bottom: 4px;"><strong>Analysis Date:</strong> {{ $socialMediaAnalysis->created_at->format('M d, Y \a\t g:i A') }}</div>
+                            <div style="margin-bottom: 4px;"><strong>{{ $__ui('Analysis Date:', 'Tarikh Analisis:') }}</strong> {{ $socialMediaAnalysis->created_at->format('M d, Y \a\t g:i A') }}</div>
+                        @endif
+                        @php
+                            $__smReportLang = $analysis['report_language'] ?? null;
+                        @endphp
+                        @if($__smReportLang)
+                            <div style="margin-bottom: 4px;"><strong>{{ $__ui('Report language:', 'Bahasa laporan:') }}</strong> {{ $__smReportLang === 'ms' ? 'Bahasa Melayu' : 'English' }}</div>
                         @endif
                         @if(isset($analysis['data_quality']) && is_string($analysis['data_quality']))
-                            <div style="margin-bottom: 4px;"><strong>Data Quality:</strong> {{ $analysis['data_quality'] }}</div>
+                            <div style="margin-bottom: 4px;"><strong>{{ $__ui('Data Quality:', 'Kualiti Data:') }}</strong> {{ $analysis['data_quality'] }}</div>
                         @endif
                         @if(isset($analysis['limitations']) && is_string($analysis['limitations']))
-                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;"><strong>Limitations:</strong> {{ $analysis['limitations'] }}</div>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;"><strong>{{ $__ui('Limitations:', 'Had:') }}</strong> {{ $analysis['limitations'] }}</div>
                         @endif
                     </div>
                 </div>
@@ -529,11 +567,7 @@
          return;
      }
      
-     // Initialize selected platforms - all unchecked by default
-     window.reAnalyzeSelectedPlatforms = {};
-     availablePlatforms.forEach(platform => {
-         window.reAnalyzeSelectedPlatforms[platform.key] = false;
-     });
+    window.reAnalyzeSelectedPlatform = null;
      
     // Initialize analysis type (default to professional)
     window.reAnalyzeAnalysisType = 'professional';
@@ -542,7 +576,7 @@
     let html = `
         <div style="padding: 0;">
             <h3 style="font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center;">Re-analyze Profile</h3>
-            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Select analysis type and platforms to include</p>
+            <p style="color: #64748b; margin-bottom: 24px; text-align: center; font-size: 14px;">Select analysis type and one platform to include</p>
             
             <!-- Analysis Type Selection -->
             <div style="margin-bottom: 32px;">
@@ -579,28 +613,28 @@
                 </div>
             </div>
             
+            <!-- Report Language -->
+            <div style="margin-bottom: 24px;">
+                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 15px;">Report Language</label>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <label style="flex: 1; min-width: 120px; padding: 12px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <input type="radio" name="reAnalyzeReportLanguage" value="en" style="width: 18px; height: 18px; accent-color: #667eea;">
+                        <span style="font-weight: 500; color: #1e293b;">English</span>
+                    </label>
+                    <label style="flex: 1; min-width: 120px; padding: 12px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                        <input type="radio" name="reAnalyzeReportLanguage" value="ms" style="width: 18px; height: 18px; accent-color: #667eea;">
+                        <span style="font-weight: 500; color: #1e293b;">Bahasa Melayu</span>
+                    </label>
+                </div>
+            </div>
+            
             <!-- Platform Selection -->
             <div style="margin-bottom: 24px;">
-                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 15px;">Select Platforms</label>
+                <label style="display: block; font-weight: 600; color: #1e293b; margin-bottom: 12px; font-size: 15px;">Select Platform</label>
                 <div style="display: flex; flex-direction: column; gap: 16px;">
     `;
      
-     // Add "Select All" option
-     html += `
-         <div style="padding: 16px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
-              onclick="toggleReAnalyzeSelectAll()" 
-              onmouseover="this.style.borderColor='#667eea'; this.style.background='#f0f4ff';" 
-              onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc';">
-             <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                 <input type="checkbox" id="reAnalyzeSelectAllCheckbox" onchange="toggleReAnalyzeSelectAll()" 
-                        style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
-                 <span style="font-weight: 600; color: #1e293b; font-size: 15px;">Select All Platforms</span>
-             </label>
-         </div>
-     `;
-     
-     // Add individual platform checkboxes
-     availablePlatforms.forEach(platform => {
+     availablePlatforms.forEach((platform) => {
          let platformIconSVG = '';
          if (platform.key === 'facebook') {
              platformIconSVG = '<svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: #1877F2;"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>';
@@ -613,12 +647,12 @@
         }
          
          html += `
-             <div style="padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
-                  onclick="toggleReAnalyzePlatform('${platform.key}')" 
-                  onmouseover="this.style.borderColor='#667eea'; this.style.boxShadow='0 2px 8px rgba(102, 126, 234, 0.1)';" 
-                  onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+             <div class="reanalyze-platform-row" data-platform-key="${platform.key}" style="padding: 16px; background: #ffffff; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.3s ease;" 
+                  onclick="selectReAnalyzePlatform('${platform.key}')" 
+                  onmouseover="if(window.reAnalyzeSelectedPlatform !== '${platform.key}') { this.style.borderColor='#9ca3af'; }" 
+                  onmouseout="reAnalyzePlatformHoverOut(this, '${platform.key}')">
                  <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
-                     <input type="checkbox" id="reAnalyze_platform_${platform.key}" onchange="toggleReAnalyzePlatform('${platform.key}')" 
+                     <input type="radio" name="reAnalyzePlatform" id="reAnalyze_platform_${platform.key}" value="${platform.key}" onchange="selectReAnalyzePlatform('${platform.key}')" 
                             style="width: 20px; height: 20px; margin-right: 12px; cursor: pointer; accent-color: #667eea;">
                      <div style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">${platformIconSVG}</div>
                      <span style="font-weight: 600; color: #1e293b; font-size: 15px; flex: 1;">${platform.name}</span>
@@ -651,33 +685,23 @@
      modalContent.innerHTML = html;
  }
 
- function toggleReAnalyzeSelectAll() {
-     const selectAllCheckbox = document.getElementById('reAnalyzeSelectAllCheckbox');
-     const isChecked = selectAllCheckbox.checked;
-     
-     // Update all platform checkboxes
-     Object.keys(window.reAnalyzeSelectedPlatforms || {}).forEach(platform => {
-         window.reAnalyzeSelectedPlatforms[platform] = isChecked;
-         const checkbox = document.getElementById(`reAnalyze_platform_${platform}`);
-         if (checkbox) {
-             checkbox.checked = isChecked;
-         }
-     });
- }
+function selectReAnalyzePlatform(platformKey) {
+    window.reAnalyzeSelectedPlatform = platformKey;
+    const radio = document.getElementById(`reAnalyze_platform_${platformKey}`);
+    if (radio) radio.checked = true;
+    document.querySelectorAll('.reanalyze-platform-row').forEach(row => {
+        const key = row.getAttribute('data-platform-key');
+        const sel = key === platformKey;
+        row.style.borderColor = sel ? '#667eea' : '#e2e8f0';
+        row.style.background = sel ? '#f0f4ff' : '#ffffff';
+    });
+}
 
- function toggleReAnalyzePlatform(platform) {
-     const checkbox = document.getElementById(`reAnalyze_platform_${platform}`);
-     if (checkbox) {
-         window.reAnalyzeSelectedPlatforms[platform] = checkbox.checked;
-         
-         // Update "Select All" checkbox based on individual selections
-         const selectAllCheckbox = document.getElementById('reAnalyzeSelectAllCheckbox');
-         if (selectAllCheckbox) {
-             const allSelected = Object.values(window.reAnalyzeSelectedPlatforms).every(selected => selected);
-             selectAllCheckbox.checked = allSelected;
-         }
-     }
- }
+function reAnalyzePlatformHoverOut(rowEl, platformKey) {
+    const sel = window.reAnalyzeSelectedPlatform === platformKey;
+    rowEl.style.borderColor = sel ? '#667eea' : '#e2e8f0';
+    rowEl.style.background = sel ? '#f0f4ff' : '#ffffff';
+}
 
 function selectReAnalyzeType(type) {
     window.reAnalyzeAnalysisType = type;
@@ -706,35 +730,39 @@ function selectReAnalyzeType(type) {
 }
 
 function proceedWithReAnalyze() {
-    // Check if at least one platform is selected
-    const hasSelection = Object.values(window.reAnalyzeSelectedPlatforms || {}).some(selected => selected);
-    if (!hasSelection) {
-        alert('Please select at least one platform to analyze.');
+    const checked = document.querySelector('input[name="reAnalyzePlatform"]:checked');
+    if (!checked) {
+        alert('Please select a platform to analyze.');
         return;
     }
-    
-    // Get selected platforms
-    const selectedPlatforms = Object.keys(window.reAnalyzeSelectedPlatforms || {}).filter(
-        platform => window.reAnalyzeSelectedPlatforms[platform]
-    );
+    const langRadio = document.querySelector('input[name="reAnalyzeReportLanguage"]:checked');
+    if (!langRadio) {
+        alert('Please select a report language.');
+        return;
+    }
+    const selectedPlatforms = [checked.value];
     
     // Get analysis type
     const analysisType = window.reAnalyzeAnalysisType || 'professional';
     
     // Start re-analysis with selected platforms and analysis type
-    reAnalyze(selectedPlatforms, analysisType);
+    reAnalyze(selectedPlatforms, analysisType, langRadio.value);
 }
 
 function closeReAnalyzeModal() {
     document.getElementById('reAnalyzeModal').style.display = 'none';
     document.body.style.overflow = '';
     currentReAnalyzeId = null;
-    window.reAnalyzeSelectedPlatforms = {};
+    window.reAnalyzeSelectedPlatform = null;
     window.reAnalyzeAnalysisType = 'professional';
 }
 
-async function reAnalyze(selectedPlatforms = null, analysisType = 'professional') {
+async function reAnalyze(selectedPlatforms = null, analysisType = 'professional', reportLanguage = null) {
     if (!currentReAnalyzeId) return;
+    if (!reportLanguage) {
+        alert('Please select a report language.');
+        return;
+    }
     
     // Update modal content to show loading
     const modalContent = document.getElementById('reAnalyzeModalContent');
@@ -743,7 +771,7 @@ async function reAnalyze(selectedPlatforms = null, analysisType = 'professional'
             <div style="text-align: center; padding: 40px 20px;">
                 <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
                 <h3 style="font-size: 20px; font-weight: 600; color: #1e293b; margin-bottom: 12px;">Re-analyzing...</h3>
-                <p style="color: #64748b; margin-bottom: 24px;">Please wait while we analyze the selected platforms.</p>
+                <p style="color: #64748b; margin-bottom: 24px;">Please wait while we analyze the selected platform.</p>
                 <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
             </div>
         `;
@@ -758,7 +786,8 @@ async function reAnalyze(selectedPlatforms = null, analysisType = 'professional'
             },
             body: JSON.stringify({
                 selected_platforms: selectedPlatforms || null,
-                analysis_type: analysisType || 'professional'
+                analysis_type: analysisType || 'professional',
+                report_language: reportLanguage
             })
         });
 

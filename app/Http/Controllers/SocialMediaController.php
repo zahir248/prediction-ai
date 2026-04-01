@@ -499,10 +499,14 @@ class SocialMediaController extends Controller
         // Get selected platforms and analysis type from request
         $selectedPlatforms = $request->input('selected_platforms', null);
         $analysisType = $request->input('analysis_type', 'professional');
+        $reportLanguage = $request->input('report_language', 'en');
         
         // Validate analysis type
         if (!in_array($analysisType, ['professional', 'political'])) {
             $analysisType = 'professional';
+        }
+        if (!in_array($reportLanguage, ['en', 'ms'], true)) {
+            $reportLanguage = 'en';
         }
         
         // Filter platform data based on selected platforms
@@ -540,7 +544,7 @@ class SocialMediaController extends Controller
             $aiService = \App\Services\AIServiceFactory::create();
 
             // Perform AI analysis (pass analytics for tracking)
-            $aiResult = $aiService->analyzeText($analysisText, 'social-media-analysis', null, null, $analytics, null);
+            $aiResult = $aiService->analyzeText($analysisText, 'social-media-analysis', null, null, $analytics, null, $reportLanguage);
 
             $endTime = microtime(true);
             $processingTime = $endTime - $startTime;
@@ -568,9 +572,10 @@ class SocialMediaController extends Controller
                 $analysisResult = $aiResult;
             }
 
-            // Store analysis type in result if it's an array
+            // Store analysis type and report language in result if it's an array
             if (is_array($analysisResult)) {
                 $analysisResult['analysis_type'] = $analysisType;
+                $analysisResult['report_language'] = $reportLanguage;
             }
 
             // Update analysis record
@@ -586,6 +591,7 @@ class SocialMediaController extends Controller
                 'new_analysis_id' => $newAnalysis->id,
                 'username' => $username,
                 'analysis_type' => $analysisType,
+                'report_language' => $reportLanguage,
                 'processing_time' => $processingTime
             ]);
 
@@ -688,7 +694,8 @@ class SocialMediaController extends Controller
             'username' => 'required|string',
             'platform_data' => 'nullable|array',
             'use_existing' => 'nullable|boolean',
-            'analysis_type' => 'nullable|in:professional,political'
+            'analysis_type' => 'nullable|in:professional,political',
+            'report_language' => 'nullable|in:en,ms',
         ]);
 
         $startTime = microtime(true);
@@ -696,6 +703,10 @@ class SocialMediaController extends Controller
         $useExisting = $request->input('use_existing', false);
         $platformData = $request->input('platform_data');
         $analysisType = $request->input('analysis_type', 'professional');
+        $reportLanguage = $request->input('report_language', 'en');
+        if (!in_array($reportLanguage, ['en', 'ms'], true)) {
+            $reportLanguage = 'en';
+        }
         
         // Validate analysis type
         if (!in_array($analysisType, ['professional', 'political'])) {
@@ -824,7 +835,8 @@ class SocialMediaController extends Controller
                 null,
                 null,
                 $analytics,
-                null
+                null,
+                $reportLanguage
             );
 
             // Calculate processing time
@@ -838,9 +850,10 @@ class SocialMediaController extends Controller
                 ]);
             }
             
-            // Store analysis type in result if it's an array
+            // Store analysis type and report language in result if it's an array
             if (is_array($result)) {
                 $result['analysis_type'] = $analysisType;
+                $result['report_language'] = $reportLanguage;
             }
 
             // Update analysis record with results

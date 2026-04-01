@@ -1,7 +1,7 @@
 @php
     $data = $analysis['activity_overview'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? null;
-    $overview = $data['overview'] ?? $data['summary'] ?? $data['description'] ?? 'Professional activity timeline highlights consistent engagement and content sharing. Key recent activities include:';
+    $overview = $data['overview'] ?? $data['summary'] ?? $data['description'] ?? $__ui('Professional activity timeline highlights consistent engagement and content sharing. Key recent activities include:', 'Garisan masa aktiviti profesional menonjolkan penglibatan konsisten dan perkongsian kandungan. Aktiviti terkini termasuk:');
     
     // Extract posts from platform_data
     $allPosts = [];
@@ -129,10 +129,10 @@
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Activity Overview & Behavioral Patterns</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Activity Overview & Behavioral Patterns', 'Gambaran Aktiviti & Corak Tingkah Laku') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -147,39 +147,39 @@
     <!-- Activity Analysis Details -->
     @if(isset($data['posting_frequency']) || isset($data['content_types']) || isset($data['peak_activity_times']) || isset($data['engagement_patterns']) || isset($data['behavioral_consistency']))
         <div style="margin-bottom: 32px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-            <h4 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Activity Analysis</h4>
+            <h4 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Activity Analysis', 'Analisis Aktiviti') }}</h4>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                 @if(isset($data['posting_frequency']) && is_string($data['posting_frequency']))
                     <div>
-                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">Posting Frequency:</strong>
+                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">{{ $__ui('Posting Frequency:', 'Kekerapan Siaran:') }}</strong>
                         <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0;">{{ $data['posting_frequency'] }}</p>
                     </div>
                 @endif
                 
                 @if(isset($data['content_types']) && is_string($data['content_types']))
                     <div>
-                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">Content Types:</strong>
+                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">{{ $__ui('Content Types:', 'Jenis Kandungan:') }}</strong>
                         <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0;">{{ $data['content_types'] }}</p>
                     </div>
                 @endif
                 
                 @if(isset($data['peak_activity_times']) && is_string($data['peak_activity_times']))
                     <div>
-                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">Peak Activity Times:</strong>
+                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">{{ $__ui('Peak Activity Times:', 'Waktu Puncak Aktiviti:') }}</strong>
                         <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0;">{{ $data['peak_activity_times'] }}</p>
                     </div>
                 @endif
                 
                 @if(isset($data['engagement_patterns']) && is_string($data['engagement_patterns']))
                     <div>
-                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">Engagement Patterns:</strong>
+                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">{{ $__ui('Engagement Patterns:', 'Corak Penglibatan:') }}</strong>
                         <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0;">{{ $data['engagement_patterns'] }}</p>
                     </div>
                 @endif
                 
                 @if(isset($data['behavioral_consistency']) && is_string($data['behavioral_consistency']))
                     <div>
-                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">Behavioral Consistency:</strong>
+                        <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 6px;">{{ $__ui('Behavioral Consistency:', 'Konsisten Tingkah Laku:') }}</strong>
                         <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0;">{{ $data['behavioral_consistency'] }}</p>
                     </div>
                 @endif
@@ -187,7 +187,7 @@
             
             @if(isset($data['notable_patterns']) && is_array($data['notable_patterns']) && count($data['notable_patterns']) > 0)
                 <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e2e8f0; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                    <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 12px;">Notable Patterns:</strong>
+                    <strong style="color: #374151; font-size: 16px; display: block; margin-bottom: 12px;">{{ $__ui('Notable Patterns:', 'Corak Ketara:') }}</strong>
                     <ul style="margin: 0; padding-left: 20px; color: #64748b; font-size: 16px; line-height: 1.8;">
                         @foreach($data['notable_patterns'] as $pattern)
                             <li style="margin-bottom: 6px;">

@@ -1,39 +1,65 @@
 @php
     $data = $analysis['work_ethic_indicators'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
-    
-    // Extract scores for the 5 dimensions
+    $__workEthicMs = (($analysis['report_language'] ?? 'en') === 'ms');
+
+    $workEthicLabels = [
+        'consistency' => $__workEthicMs ? 'Konsisten' : 'Consistency',
+        'follow_through' => $__workEthicMs ? 'Tindakan susulan' : 'Follow-through',
+        'collaboration' => $__workEthicMs ? 'Kolaborasi' : 'Collaboration',
+        'initiative' => $__workEthicMs ? 'Inisiatif' : 'Initiative',
+        'productivity' => $__workEthicMs ? 'Produktiviti' : 'Productivity',
+    ];
+    $workEthicDefaults = [
+        'consistency' => $__workEthicMs
+            ? 'Penilaian kekonsistenan siaran dan corak aktiviti.'
+            : 'Assessment of posting consistency and activity patterns.',
+        'follow_through' => $__workEthicMs
+            ? 'Bukti melengkapkan tugas dan menepati komitmen.'
+            : 'Evidence of completing tasks and following through on commitments.',
+        'collaboration' => $__workEthicMs
+            ? 'Petunjuk kerja berpasukan dan tingkah laku kolaboratif.'
+            : 'Indicators of teamwork and collaborative behavior.',
+        'initiative' => $__workEthicMs
+            ? 'Tanda tingkah laku proaktif dan tindakan berdikari.'
+            : 'Signs of proactive behavior and self-directed action.',
+        'productivity' => $__workEthicMs
+            ? 'Tanda produktiviti dan aktiviti profesional.'
+            : 'Signs of productivity and professional activity.',
+    ];
+
+    // Extract scores for the 5 dimensions (labels + default blurbs follow report_language)
     $dimensions = [
         'consistency' => [
             'score' => $data['consistency_score'] ?? $data['consistency'] ?? null,
-            'description' => $data['consistency'] ?? $data['consistency_description'] ?? 'Assessment of posting consistency and activity patterns.',
+            'description' => $data['consistency'] ?? $data['consistency_description'] ?? $workEthicDefaults['consistency'],
             'icon' => '📅',
-            'label' => 'Consistency'
+            'label' => $workEthicLabels['consistency'],
         ],
         'follow_through' => [
             'score' => $data['follow_through_score'] ?? $data['follow_through'] ?? $data['followthrough'] ?? null,
-            'description' => $data['follow_through'] ?? $data['follow_through_description'] ?? $data['followthrough'] ?? 'Evidence of completing tasks and following through on commitments.',
+            'description' => $data['follow_through'] ?? $data['follow_through_description'] ?? $data['followthrough'] ?? $workEthicDefaults['follow_through'],
             'icon' => '✅',
-            'label' => 'Follow-through'
+            'label' => $workEthicLabels['follow_through'],
         ],
         'collaboration' => [
             'score' => $data['collaboration_score'] ?? $data['collaboration'] ?? null,
-            'description' => $data['collaboration'] ?? $data['collaboration_description'] ?? 'Indicators of teamwork and collaborative behavior.',
+            'description' => $data['collaboration'] ?? $data['collaboration_description'] ?? $workEthicDefaults['collaboration'],
             'icon' => '🤝',
-            'label' => 'Collaboration'
+            'label' => $workEthicLabels['collaboration'],
         ],
         'initiative' => [
             'score' => $data['initiative_score'] ?? $data['initiative'] ?? null,
-            'description' => $data['initiative'] ?? $data['initiative_description'] ?? 'Signs of proactive behavior and self-directed action.',
+            'description' => $data['initiative'] ?? $data['initiative_description'] ?? $workEthicDefaults['initiative'],
             'icon' => '💡',
-            'label' => 'Initiative'
+            'label' => $workEthicLabels['initiative'],
         ],
         'productivity' => [
             'score' => $data['productivity_score'] ?? $data['productivity'] ?? $data['productivity_signals'] ?? null,
-            'description' => $data['productivity'] ?? $data['productivity_signals'] ?? $data['productivity_description'] ?? 'Signs of productivity and professional activity.',
+            'description' => $data['productivity'] ?? $data['productivity_signals'] ?? $data['productivity_description'] ?? $workEthicDefaults['productivity'],
             'icon' => '⚡',
-            'label' => 'Productivity'
-        ]
+            'label' => $workEthicLabels['productivity'],
+        ],
     ];
     
     // Try to extract numeric scores from descriptions if scores aren't provided
@@ -103,17 +129,20 @@
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Work Ethic Indicators</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Work Ethic Indicators', 'Petunjuk Etika Kerja') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
     
     <!-- Introduction Text -->
     <p style="color: #64748b; line-height: 1.8; font-size: 16px; margin-bottom: 32px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-        Based on analysis of online activities and communication patterns, the following work ethic indicators have been assessed across five key dimensions:
+        {{ $__ui(
+            'Based on analysis of online activities and communication patterns, the following work ethic indicators have been assessed across five key dimensions:',
+            'Berdasarkan analisis aktiviti dalam talian dan corak komunikasi, petunjuk etika kerja berikut telah dinilai merentasi lima dimensi utama:'
+        ) }}
     </p>
     
     <!-- Radar Chart -->
@@ -183,7 +212,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Work Ethic Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Work Ethic Radar Chart', 'Carta radar etika kerja') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -388,13 +417,14 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('svg');
+        const scoreTooltipLabel = @json($__workEthicMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
             // Same tooltip format for both points and labels
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             // Make tooltip visible to calculate dimensions
@@ -510,14 +540,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb;">
             @if(isset($data['overall_assessment']) && is_string($data['overall_assessment']))
                 <div style="margin-bottom: 16px; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                    <strong style="color: #374151;">Overall Assessment:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Overall Assessment:', 'Penilaian Keseluruhan:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['overall_assessment'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['evidence']) && is_array($data['evidence']) && count($data['evidence']) > 0)
                 <div style="font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                    <strong style="color: #374151;">Evidence:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Evidence:', 'Bukti:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['evidence'] as $item)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">

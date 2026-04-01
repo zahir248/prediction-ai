@@ -3,33 +3,59 @@
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
     $overview = $data['overview'] ?? $data['summary'] ?? $data['description'] ?? '';
     $toneAnalysis = $data['tone_analysis'] ?? $data['communication_style'] ?? '';
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+
+    $bigFiveLabels = [
+        'openness' => $__smMs ? 'Keterbukaan' : 'Openness',
+        'conscientiousness' => $__smMs ? 'Teliti dan berdisiplin' : 'Conscientiousness',
+        'extraversion' => $__smMs ? 'Ekstroversi' : 'Extraversion',
+        'agreeableness' => $__smMs ? 'Keramahan' : 'Agreeableness',
+        'neuroticism' => $__smMs ? 'Neurotisisme' : 'Neuroticism',
+    ];
+    $bigFiveDefaults = [
+        'openness' => $__smMs
+            ? 'Keterbukaan terhadap pengalaman, kreativiti, dan rasa ingin tahu intelek.'
+            : 'Openness to experience, creativity, and intellectual curiosity.',
+        'conscientiousness' => $__smMs
+            ? 'Organisasi, kebolehpercayaan, dan disiplin kendiri.'
+            : 'Organization, dependability, and self-discipline.',
+        'extraversion' => $__smMs
+            ? 'Sosial, tegas, dan tenaga dalam situasi sosial.'
+            : 'Sociability, assertiveness, and energy in social situations.',
+        'agreeableness' => $__smMs
+            ? 'Kepercayaan, altruisme, kebaikan, dan kerjasama.'
+            : 'Trust, altruism, kindness, and cooperation.',
+        'neuroticism' => $__smMs
+            ? 'Kestabilan emosi dan ketahanan terhadap tekanan.'
+            : 'Emotional stability and resilience to stress.',
+    ];
+
     // Extract Big Five personality traits
     $traits = [
         'openness' => [
             'score' => $data['openness_score'] ?? $data['openness'] ?? null,
-            'description' => $data['openness'] ?? $data['openness_description'] ?? 'Openness to experience, creativity, and intellectual curiosity.',
-            'label' => 'Openness'
+            'description' => $data['openness'] ?? $data['openness_description'] ?? $bigFiveDefaults['openness'],
+            'label' => $bigFiveLabels['openness'],
         ],
         'conscientiousness' => [
             'score' => $data['conscientiousness_score'] ?? $data['conscientiousness'] ?? null,
-            'description' => $data['conscientiousness'] ?? $data['conscientiousness_description'] ?? 'Organization, dependability, and self-discipline.',
-            'label' => 'Conscientiousness'
+            'description' => $data['conscientiousness'] ?? $data['conscientiousness_description'] ?? $bigFiveDefaults['conscientiousness'],
+            'label' => $bigFiveLabels['conscientiousness'],
         ],
         'extraversion' => [
             'score' => $data['extraversion_score'] ?? $data['extraversion'] ?? null,
-            'description' => $data['extraversion'] ?? $data['extraversion_description'] ?? 'Sociability, assertiveness, and energy in social situations.',
-            'label' => 'Extraversion'
+            'description' => $data['extraversion'] ?? $data['extraversion_description'] ?? $bigFiveDefaults['extraversion'],
+            'label' => $bigFiveLabels['extraversion'],
         ],
         'agreeableness' => [
             'score' => $data['agreeableness_score'] ?? $data['agreeableness'] ?? null,
-            'description' => $data['agreeableness'] ?? $data['agreeableness_description'] ?? 'Trust, altruism, kindness, and cooperation.',
-            'label' => 'Agreeableness'
+            'description' => $data['agreeableness'] ?? $data['agreeableness_description'] ?? $bigFiveDefaults['agreeableness'],
+            'label' => $bigFiveLabels['agreeableness'],
         ],
         'neuroticism' => [
             'score' => $data['neuroticism_score'] ?? $data['neuroticism'] ?? null,
-            'description' => $data['neuroticism'] ?? $data['neuroticism_description'] ?? 'Emotional stability and resilience to stress.',
-            'label' => 'Neuroticism'
+            'description' => $data['neuroticism'] ?? $data['neuroticism_description'] ?? $bigFiveDefaults['neuroticism'],
+            'label' => $bigFiveLabels['neuroticism'],
         ]
     ];
     
@@ -105,14 +131,17 @@
         $communicationStrengths = $data['communication_strengths'];
     } else {
         // Build from available data
+        $tonePrefix = $__smMs ? 'Nada: ' : 'Tone: ';
+        $engPrefix = $__smMs ? 'Penglibatan: ' : 'Engagement: ';
+        $freqPrefix = $__smMs ? 'Kekerapan: ' : 'Frequency: ';
         if ($toneAnalysis) {
-            $communicationStrengths[] = 'Tone: ' . strtolower($toneAnalysis);
+            $communicationStrengths[] = $tonePrefix . strtolower($toneAnalysis);
         }
         if (isset($data['engagement_patterns']) && is_string($data['engagement_patterns'])) {
-            $communicationStrengths[] = 'Engagement: ' . strtolower($data['engagement_patterns']);
+            $communicationStrengths[] = $engPrefix . strtolower($data['engagement_patterns']);
         }
         if (isset($data['posting_frequency']) && is_string($data['posting_frequency'])) {
-            $communicationStrengths[] = 'Frequency: ' . strtolower($data['posting_frequency']);
+            $communicationStrengths[] = $freqPrefix . strtolower($data['posting_frequency']);
         }
     }
     
@@ -123,10 +152,10 @@
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <!-- Header -->
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Personality & Communication Snapshot</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Personality & Communication Snapshot', 'Gambaran Personaliti & Komunikasi') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -137,10 +166,15 @@
             @if($overview)
                 {{ $overview }}
             @else
-                Analysis of public communications suggests a balanced personality profile and effective communication style.
+                {{ $__ui(
+                    'Analysis of public communications suggests a balanced personality profile and effective communication style.',
+                    'Analisis komunikasi awam mencadangkan profil personaliti yang seimbang dan gaya komunikasi yang berkesan.'
+                ) }}
             @endif
             @if($toneAnalysis)
-                Tone analysis indicates a <span style="color: #10b981; font-weight: 600;">{{ strtolower($toneAnalysis) }}</span> in professional interactions.
+                {{ $__ui('Tone analysis indicates a', 'Analisis nada menunjukkan') }}
+                <span style="color: #10b981; font-weight: 600;">{{ strtolower($toneAnalysis) }}</span>
+                {{ $__ui(' tone in professional interactions.', ' dalam interaksi profesional.') }}
             @endif
         </p>
     @endif
@@ -211,7 +245,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Personality & Communication Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Personality & Communication Radar Chart', 'Carta radar personaliti & komunikasi') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -372,7 +406,7 @@
     @if(count($communicationStrengths) > 0)
         <div style="margin-top: 32px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
             <div style="margin-bottom: 12px;">
-                <h4 style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Communication Strengths:</h4>
+                <h4 style="font-size: 16px; font-weight: 600; color: #1e293b; margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Communication Strengths:', 'Kekuatan komunikasi:') }}</h4>
             </div>
             <ul style="margin: 0; padding-left: 20px; color: #64748b; font-size: 16px; line-height: 1.8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
                 @foreach($communicationStrengths as $strength)
@@ -405,13 +439,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const labels = document.querySelectorAll('.personality-label');
     const traits = @json($traits);
     const svg = document.querySelector('svg');
+    const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
     
     function showTooltip(event, key) {
         const trait = traits[key];
         if (!trait) return;
         
         // Same tooltip format for both points and labels
-        const tooltipText = trait.label + '\n\n' + trait.description + '\n\nScore: ' + trait.score + '/100';
+        const tooltipText = trait.label + '\n\n' + trait.description + '\n\n' + scoreTooltipLabel + ': ' + trait.score + '/100';
         tooltip.textContent = tooltipText;
         
         // Make tooltip visible to calculate dimensions

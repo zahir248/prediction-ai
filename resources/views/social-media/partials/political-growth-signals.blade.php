@@ -2,7 +2,25 @@
     $data = $analysis['political_growth_signals'] ?? [];
     $confidence = $data['confidence'] ?? $data['confidence_level'] ?? 75;
     $overview = $data['overview'] ?? '';
-    
+    $__smMs = (($analysis['report_language'] ?? 'en') === 'ms');
+
+    $polGrowthLabels = [
+        'political_development' => $__smMs ? 'Pembangunan Politik' : 'Political Development',
+        'influence_growth' => $__smMs ? 'Pertumbuhan Pengaruh' : 'Influence Growth',
+        'network_expansion' => $__smMs ? 'Pengembangan Rangkaian' : 'Network Expansion',
+    ];
+    $polGrowthDefaults = [
+        'political_development' => $__smMs
+            ? 'Perihal pertumbuhan pengetahuan politik dan kematangan.'
+            : 'Description of political knowledge growth and sophistication.',
+        'influence_growth' => $__smMs
+            ? 'Perihal bukti pengaruh politik dan capaian yang semakin meningkat.'
+            : 'Description of evidence of growing political influence and reach.',
+        'network_expansion' => $__smMs
+            ? 'Perihal pertumbuhan rangkaian politik dan hubungan.'
+            : 'Description of political network growth and connections.',
+    ];
+
     // Helper function to convert text/number to score
     if (!function_exists('politicalGrowth_getScore')) {
         function politicalGrowth_getScore($value) {
@@ -21,18 +39,18 @@
     $dimensions = [
         'political_development' => [
             'score' => politicalGrowth_getScore($data['political_development_level'] ?? $data['political_development'] ?? null),
-            'description' => $data['political_development'] ?? 'Description of political knowledge growth and sophistication.',
-            'label' => 'Political Development'
+            'description' => $data['political_development'] ?? $polGrowthDefaults['political_development'],
+            'label' => $polGrowthLabels['political_development'],
         ],
         'influence_growth' => [
             'score' => politicalGrowth_getScore($data['influence_growth_level'] ?? $data['influence_growth'] ?? null),
-            'description' => $data['influence_growth'] ?? 'Description of evidence of growing political influence and reach.',
-            'label' => 'Influence Growth'
+            'description' => $data['influence_growth'] ?? $polGrowthDefaults['influence_growth'],
+            'label' => $polGrowthLabels['influence_growth'],
         ],
         'network_expansion' => [
             'score' => politicalGrowth_getScore($data['network_expansion_level'] ?? $data['network_expansion'] ?? null),
-            'description' => $data['network_expansion'] ?? 'Description of political network growth and connections.',
-            'label' => 'Network Expansion'
+            'description' => $data['network_expansion'] ?? $polGrowthDefaults['network_expansion'],
+            'label' => $polGrowthLabels['network_expansion'],
         ]
     ];
     
@@ -68,10 +86,10 @@
 
 <div style="margin-bottom: 32px; padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
     <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">Political Growth Signals</h3>
+        <h3 style="font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 12px 0; letter-spacing: -0.02em; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">{{ $__ui('Political Growth Signals', 'Isyarat Pertumbuhan Politik') }}</h3>
         @if($confidence)
             <span style="background: #f1f5f9; color: #64748b; padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 500; display: inline-block; margin-top: 6px; border: 1px solid #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-                Confidence: {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
+                {{ $__ui('Confidence:', 'Keyakinan:') }} {{ is_numeric($confidence) ? $confidence . '%' : $confidence }}
             </span>
         @endif
     </div>
@@ -148,7 +166,7 @@
         <div class="radar-chart-wrapper" style="position: relative; width: 100%; max-width: 400px; padding: 20px; margin: 0 auto; text-align: center;">
             @if($isPdfExport)
                 <!-- For PDF: Use img tag with base64 SVG -->
-                <img src="{{ $svgDataUri }}" alt="Political Growth Signals Radar Chart" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
+                <img src="{{ $svgDataUri }}" alt="{{ $__ui('Political Growth Signals Radar Chart', 'Carta radar isyarat pertumbuhan politik') }}" style="width: 100%; height: auto; max-width: 500px; margin: 0 auto; display: block;" />
             @else
                 <!-- For Web: Use inline SVG with interactivity -->
                 <svg class="radar-chart-svg" viewBox="0 0 500 500" style="width: 100%; height: auto; max-width: 500px; overflow: visible;">
@@ -203,12 +221,13 @@
         const labels = document.querySelectorAll('.radar-label');
         const dimensions = @json($dimensions);
         const svg = document.querySelector('.radar-chart-svg');
+        const scoreTooltipLabel = @json($__smMs ? 'Skor' : 'Score');
         
         function showTooltip(event, key) {
             const dim = dimensions[key];
             if (!dim) return;
             
-            const tooltipText = dim.label + '\n\n' + dim.description + '\n\nScore: ' + dim.score + '/100';
+            const tooltipText = dim.label + '\n\n' + dim.description + '\n\n' + scoreTooltipLabel + ': ' + dim.score + '/100';
             tooltip.textContent = tooltipText;
             
             tooltip.style.opacity = '0';
@@ -302,14 +321,14 @@
         <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
             @if(isset($data['political_trajectory']) && is_string($data['political_trajectory']))
                 <div style="margin-bottom: 16px;">
-                    <strong style="color: #374151;">Political Trajectory:</strong> 
+                    <strong style="color: #374151;">{{ $__ui('Political Trajectory:', 'Trajektori Politik:') }}</strong> 
                     <span style="color: #64748b; line-height: 1.6;">{{ $data['political_trajectory'] }}</span>
                 </div>
             @endif
             
             @if(isset($data['indicators']) && is_array($data['indicators']) && count($data['indicators']) > 0)
                 <div>
-                    <strong style="color: #374151;">Indicators:</strong>
+                    <strong style="color: #374151;">{{ $__ui('Indicators:', 'Petunjuk:') }}</strong>
                     <ul style="margin: 8px 0 0 20px; padding: 0;">
                         @foreach($data['indicators'] as $indicator)
                             <li style="margin-bottom: 4px; color: #64748b; line-height: 1.6;">
