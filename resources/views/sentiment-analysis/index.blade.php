@@ -268,12 +268,7 @@
                 <div style="background: #d1fae5; border: 1px solid #6ee7b7; color: #065f46; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 12px;">{{ session('status') }}</div>
             @endif
 
-            @guest
-                <div style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 14px; font-size: 13px; color: #92400e;">
-                    <p style="margin: 0 0 12px;">Log in to choose profiles and generate a comparison.</p>
-                    <a href="{{ route('login') }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Log in</a>
-                </div>
-            @else
+            @auth
                 @if ($completedAnalyses->count() < 2)
                     <div style="background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px;">
                         <h3 style="font-size: 13px; font-weight: 600; color: #374151; margin: 0 0 8px;">Need more profiles</h3>
@@ -283,55 +278,73 @@
                             <a href="{{ route('social-media.history') }}" style="text-align: center; padding: 10px 14px; border: 1px solid #e5e7eb; color: #64748b; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 12px;">Open profile history</a>
                         </div>
                     </div>
-                @else
-                    @if ($errors->any())
-                        <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 12px;">
-                            <ul style="margin: 0; padding-left: 16px;">
-                                @foreach ($errors->all() as $err)
-                                    <li>{{ $err }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+                @endif
+            @endauth
 
-                    <div id="sentimentFormSection">
+            @if (Auth::guest() || $completedAnalyses->count() >= 2)
+                @if (Auth::check() && $errors->any())
+                    <div style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin-bottom: 16px; font-size: 12px;">
+                        <ul style="margin: 0; padding-left: 16px;">
+                            @foreach ($errors->all() as $err)
+                                <li>{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                <div id="sentimentFormSection">
                     <form id="sentimentCompareForm" method="POST" action="{{ route('sentiment-analysis.compare') }}">
                         @csrf
-                        @php
-                            $sentimentAnalysisOptionLabels = $completedAnalyses->mapWithKeys(function ($row) {
-                                $pf = $row->found_platforms ?? [];
-                                $platformLabel = count($pf) > 0
-                                    ? collect($pf)->map(fn ($p) => ucfirst((string) $p))->implode(', ')
-                                    : '—';
-
-                                return [$row->id => $row->username.' ('.$platformLabel.')'];
-                            });
-                        @endphp
                         <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Profile selection</h2>
 
-                        <div style="margin-bottom: 18px;">
-                            <label for="analysis_a_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">First profile <span style="color: #dc2626;">*</span></label>
-                            <select name="analysis_a_id" id="analysis_a_id" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #ffffff;">
-                                <option value="" @selected(blank(old('analysis_a_id')))>Select first profile…</option>
-                                @foreach ($completedAnalyses as $a)
-                                    <option value="{{ $a->id }}" @selected((string) old('analysis_a_id') === (string) $a->id)>
-                                        {{ $sentimentAnalysisOptionLabels[$a->id] ?? $a->username }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                        @guest
+                            <div style="margin-bottom: 18px;">
+                                <label for="analysis_a_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">First profile <span style="color: #dc2626;">*</span></label>
+                                <select id="analysis_a_id" disabled aria-disabled="true" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #6b7280; cursor: not-allowed;">
+                                    <option value="">Log in to load your profiles…</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 18px;">
+                                <label for="analysis_b_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">Second profile <span style="color: #dc2626;">*</span></label>
+                                <select id="analysis_b_id" disabled aria-disabled="true" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #f9fafb; color: #6b7280; cursor: not-allowed;">
+                                    <option value="">Log in to load your profiles…</option>
+                                </select>
+                            </div>
+                        @else
+                            @php
+                                $sentimentAnalysisOptionLabels = $completedAnalyses->mapWithKeys(function ($row) {
+                                    $pf = $row->found_platforms ?? [];
+                                    $platformLabel = count($pf) > 0
+                                        ? collect($pf)->map(fn ($p) => ucfirst((string) $p))->implode(', ')
+                                        : '—';
 
-                        <div style="margin-bottom: 18px;">
-                            <label for="analysis_b_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">Second profile <span style="color: #dc2626;">*</span></label>
-                            <select name="analysis_b_id" id="analysis_b_id" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #ffffff;">
-                                <option value="" @selected(blank(old('analysis_b_id')))>Select second profile…</option>
-                                @foreach ($completedAnalyses as $a)
-                                    <option value="{{ $a->id }}" @selected((string) old('analysis_b_id') === (string) $a->id)>
-                                        {{ $sentimentAnalysisOptionLabels[$a->id] ?? $a->username }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
+                                    return [$row->id => $row->username.' ('.$platformLabel.')'];
+                                });
+                            @endphp
+                            <div style="margin-bottom: 18px;">
+                                <label for="analysis_a_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">First profile <span style="color: #dc2626;">*</span></label>
+                                <select name="analysis_a_id" id="analysis_a_id" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #ffffff;">
+                                    <option value="" @selected(blank(old('analysis_a_id')))>Select first profile…</option>
+                                    @foreach ($completedAnalyses as $a)
+                                        <option value="{{ $a->id }}" @selected((string) old('analysis_a_id') === (string) $a->id)>
+                                            {{ $sentimentAnalysisOptionLabels[$a->id] ?? $a->username }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div style="margin-bottom: 18px;">
+                                <label for="analysis_b_id" style="display: block; margin-bottom: 6px; font-weight: 600; color: #374151; font-size: 12px;">Second profile <span style="color: #dc2626;">*</span></label>
+                                <select name="analysis_b_id" id="analysis_b_id" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; background: #ffffff;">
+                                    <option value="" @selected(blank(old('analysis_b_id')))>Select second profile…</option>
+                                    @foreach ($completedAnalyses as $a)
+                                        <option value="{{ $a->id }}" @selected((string) old('analysis_b_id') === (string) $a->id)>
+                                            {{ $sentimentAnalysisOptionLabels[$a->id] ?? $a->username }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endguest
 
                         <div id="saReportLanguageSection" style="margin-bottom: 24px;">
                             <h2 style="font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb;">Report Language</h2>
@@ -355,12 +368,11 @@
                             </div>
                         </div>
                     </form>
-                    </div>
-                    <div id="sentimentPromptDetailsCard" style="display: none;">
-                        <div id="sentimentPromptDetailsContent"></div>
-                    </div>
-                @endif
-            @endguest
+                </div>
+                <div id="sentimentPromptDetailsCard" style="display: none;">
+                    <div id="sentimentPromptDetailsContent"></div>
+                </div>
+            @endif
         </div>
 
         <div class="floating-submit-container" id="sentimentFloatingSubmit">
@@ -371,7 +383,7 @@
                     <button type="button" class="floating-submit-btn" disabled>Generate</button>
                 @endif
             @else
-                <a href="{{ route('login') }}" class="floating-submit-btn" style="text-decoration: none;">Login to Generate</a>
+                <button type="submit" form="sentimentCompareForm" class="floating-submit-btn" id="sentimentGenerateBtn" disabled>Login to Generate</button>
             @endauth
         </div>
         <div class="floating-submit-container" id="sentimentPostResultActions" style="display: none;">
