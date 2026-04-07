@@ -18,12 +18,28 @@ class SentimentAnalysisController extends Controller
     {
         $completedAnalyses = collect();
         if (Auth::check()) {
+            // Avoid sorting huge JSON columns (MySQL sort buffer limits on shared hosts).
             $completedAnalyses = Auth::user()
                 ->socialMediaAnalyses()
                 ->where('status', SocialMediaAnalysis::STATUS_COMPLETED)
                 ->whereNotNull('ai_analysis')
                 ->orderByDesc('created_at')
-                ->get(['id', 'username', 'created_at', 'platform_data']);
+                ->get(['id', 'username', 'created_at']);
+
+            if ($completedAnalyses->isNotEmpty()) {
+                $platformById = SocialMediaAnalysis::query()
+                    ->where('user_id', Auth::id())
+                    ->whereIn('id', $completedAnalyses->pluck('id'))
+                    ->get(['id', 'platform_data'])
+                    ->keyBy('id');
+
+                foreach ($completedAnalyses as $analysis) {
+                    $row = $platformById->get($analysis->id);
+                    if ($row) {
+                        $analysis->setAttribute('platform_data', $row->platform_data);
+                    }
+                }
+            }
         }
 
         return view('sentiment-analysis.index', compact('completedAnalyses'));
