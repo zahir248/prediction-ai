@@ -27,6 +27,28 @@
         flex-direction: column;
         border-left: 1px solid #e5e7eb;
         position: relative;
+        min-height: 0;
+    }
+    #comparisonResultsEmpty {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+    }
+    #comparisonResultsContent {
+        flex: 1;
+        min-height: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    #comparisonResultsContent.comparison-results-content--centered {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
     .cursor-main.scrollable {
         overflow-y: auto;
@@ -309,8 +331,8 @@
 
     <div class="cursor-main scrollable" id="comparisonResultsPanel">
         <div class="cursor-main-content" id="comparisonResultsContent" style="display: none;"></div>
-        <div id="comparisonResultsEmpty" style="display: flex; align-items: center; justify-content: center; min-height: 280px; color: #9ca3af; font-size: 14px; padding: 24px;">
-            <div style="text-align: center;">
+        <div id="comparisonResultsEmpty" style="color: #9ca3af; font-size: 14px; padding: 24px;">
+            <div style="text-align: center; max-width: 100%;">
                 <i class="bi bi-emoji-smile" style="font-size: 48px; display: block; margin-bottom: 16px; opacity: 0.5;"></i>
                 <p style="margin: 0;">Select a comparison to view the report</p>
             </div>
@@ -412,9 +434,10 @@ function loadComparisonResults(comparisonId, tileElement) {
     const resultsContent = document.getElementById('comparisonResultsContent');
     const resultsEmpty = document.getElementById('comparisonResultsEmpty');
     resultsEmpty.style.display = 'none';
-    resultsContent.style.display = 'block';
+    resultsContent.style.display = 'flex';
     resultsContent.style.width = '100%';
-    resultsContent.innerHTML = '<div style="text-align: center; color: #64748b; padding: 48px;"><i class="bi bi-hourglass-split" style="font-size: 48px; display: block; margin-bottom: 16px; animation: spin 1s linear infinite;"></i><p>Loading report…</p></div>';
+    resultsContent.classList.add('comparison-results-content--centered');
+    resultsContent.innerHTML = '<div style="text-align: center; color: #64748b; padding: 24px;"><i class="bi bi-hourglass-split" style="font-size: 48px; display: block; margin-bottom: 16px; animation: spin 1s linear infinite;"></i><p style="margin:0;">Loading report…</p></div>';
 
     fetch('{{ url("/sentiment-analysis") }}/' + comparisonId + '/content-html', {
         method: 'GET',
@@ -428,6 +451,8 @@ function loadComparisonResults(comparisonId, tileElement) {
         return r.text();
     })
     .then(function(html) {
+        resultsContent.classList.remove('comparison-results-content--centered');
+        resultsContent.style.display = 'block';
         resultsContent.innerHTML = html;
         if (typeof window.initSentimentReportChartsFromDom === 'function') {
             setTimeout(function () {
@@ -436,7 +461,9 @@ function loadComparisonResults(comparisonId, tileElement) {
         }
     })
     .catch(function(err) {
-        resultsContent.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 48px;"><i class="bi bi-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 16px;"></i><p>Could not load comparison</p><p style="font-size: 12px; color: #9ca3af;">' + (err.message || '') + '</p></div>';
+        resultsContent.classList.add('comparison-results-content--centered');
+        resultsContent.style.display = 'flex';
+        resultsContent.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 24px; max-width: 100%;"><i class="bi bi-exclamation-triangle" style="font-size: 48px; display: block; margin-bottom: 16px;"></i><p style="margin:0 0 8px;">Could not load comparison</p><p style="font-size: 12px; color: #9ca3af; margin:0;">' + (err.message || '') + '</p></div>';
     });
 }
 
@@ -520,8 +547,10 @@ function deleteComparison() {
         }
         if (currentDisplayedComparisonId === id) {
             currentDisplayedComparisonId = null;
-            document.getElementById('comparisonResultsContent').style.display = 'none';
-            document.getElementById('comparisonResultsContent').innerHTML = '';
+            var rc = document.getElementById('comparisonResultsContent');
+            rc.classList.remove('comparison-results-content--centered');
+            rc.style.display = 'none';
+            rc.innerHTML = '';
             document.getElementById('comparisonResultsEmpty').style.display = 'flex';
         }
     })

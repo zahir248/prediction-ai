@@ -166,7 +166,7 @@
                         </div>
                     </div>
                 </div>
-                <a href="{{ route('sentiment-analysis.index') }}" style="display: block; padding: 12px 24px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35); margin-top: auto;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(124, 58, 237, 0.45)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.35)';">
+                <a href="{{ route('sentiment-analysis.index') }}" style="display: block; padding: 12px 24px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); margin-top: auto;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(102, 126, 234, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';">
                     Compare two profiles
                 </a>
             </div>
