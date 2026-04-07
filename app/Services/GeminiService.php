@@ -87,6 +87,14 @@ class GeminiService implements AIServiceInterface
             $this->currentPredictionHorizon = $predictionHorizon;
 
             $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary, $target, $reportLanguage);
+            $promptHadInvalidUtf8 = ! $this->isValidUtf8($prompt);
+            if ($promptHadInvalidUtf8) {
+                $prompt = $this->normalizeUtf8String($prompt);
+                Log::warning('Gemini prompt contained invalid UTF-8 bytes; normalized before request', [
+                    'analysis_type' => $analysisType,
+                    'prompt_length' => strlen($prompt),
+                ]);
+            }
 
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
@@ -113,16 +121,8 @@ class GeminiService implements AIServiceInterface
             // Increase output tokens for data-analysis and sentiment-comparison (large structured JSON + chart data)
             $maxOutputTokens = ($analysisType === 'data-analysis' || $analysisType === 'sentiment-comparison') ? 32768 : 16384;
 
-            $response = Http::timeout(300)->withOptions([
-                'verify' => $this->sslVerify, // Use the configured SSL verification option
-                'curl' => [
-                    CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
-                    CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
-                ],
-            ])->withHeaders([
-                'x-goog-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->post($this->baseUrl, [
+            // Build payload + JSON encode safely to avoid "Malformed UTF-8" failures
+            $payload = [
                 'contents' => [
                     [
                         'parts' => [
@@ -156,7 +156,21 @@ class GeminiService implements AIServiceInterface
                         'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                 ],
-            ]);
+            ];
+
+            $payload = $this->normalizeUtf8Recursive($payload);
+            $payloadJson = $this->jsonEncodeSafe($payload);
+
+            $response = Http::timeout(300)->withOptions([
+                'verify' => $this->sslVerify, // Use the configured SSL verification option
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
+                    CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
+                ],
+            ])->withHeaders([
+                'x-goog-api-key' => $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->withBody($payloadJson, 'application/json')->post($this->baseUrl);
 
             // Calculate API response time
             $apiResponseTime = round(microtime(true) - $apiStartTime, 3);
@@ -269,6 +283,57 @@ class GeminiService implements AIServiceInterface
 
             return $this->getFallbackResponse($analysisType);
         }
+    }
+
+    protected function isValidUtf8($value): bool
+    {
+        return is_string($value) ? mb_check_encoding($value, 'UTF-8') : true;
+    }
+
+    protected function normalizeUtf8String(string $value): string
+    {
+        if ($this->isValidUtf8($value)) {
+            return $value;
+        }
+
+        // Prefer iconv when available to strip invalid byte sequences.
+        if (function_exists('iconv')) {
+            $converted = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+            if (is_string($converted) && $converted !== '') {
+                return $converted;
+            }
+        }
+
+        // Fallback: substitute invalid sequences (best-effort).
+        return mb_convert_encoding($value, 'UTF-8', 'UTF-8');
+    }
+
+    protected function normalizeUtf8Recursive($value)
+    {
+        if (is_string($value)) {
+            return $this->normalizeUtf8String($value);
+        }
+
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                $value[$k] = $this->normalizeUtf8Recursive($v);
+            }
+
+            return $value;
+        }
+
+        return $value;
+    }
+
+    protected function jsonEncodeSafe($value): string
+    {
+        $json = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json === false) {
+            $msg = function_exists('json_last_error_msg') ? json_last_error_msg() : 'Unknown JSON encoding error';
+            throw new Exception('json_encode error: '.$msg);
+        }
+
+        return $json;
     }
 
     /**
