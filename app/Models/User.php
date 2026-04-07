@@ -67,6 +67,11 @@ class User extends Authenticatable
         return $this->hasMany(DataAnalysis::class);
     }
 
+    public function sentimentComparisons()
+    {
+        return $this->hasMany(SentimentComparison::class);
+    }
+
     /**
      * Get messages sent by this user
      */
@@ -137,9 +142,9 @@ class User extends Authenticatable
     public function getRoleWithOrganizationAttribute(): string
     {
         if ($this->organization) {
-            return ucfirst($this->role) . ' of ' . $this->organization;
+            return ucfirst($this->role).' of '.$this->organization;
         }
-        
+
         return ucfirst($this->role);
     }
 
@@ -156,7 +161,7 @@ class User extends Authenticatable
      */
     public function canCreateMoreClients(): bool
     {
-        if (!$this->isAdmin()) {
+        if (! $this->isAdmin()) {
             return false;
         }
 
@@ -177,7 +182,7 @@ class User extends Authenticatable
      */
     public function getRemainingClientSlots(): int
     {
-        if (!$this->isAdmin()) {
+        if (! $this->isAdmin()) {
             return 0;
         }
 
@@ -198,7 +203,7 @@ class User extends Authenticatable
      */
     public function getCurrentClientCount(): int
     {
-        if (!$this->isAdmin()) {
+        if (! $this->isAdmin()) {
             return 0;
         }
 

@@ -34,13 +34,13 @@
             <span id="typed-text"></span><span id="cursor" style="display: inline-block; width: 3px; height: 38px; background: #667eea; margin-left: 4px; animation: blink 1s infinite;"></span>
         </h1>
         <p style="font-size: 16px; color: #6b7280; line-height: 1.5; max-width: 640px; margin: 0 auto; font-weight: 400;">
-            Transform your data into actionable insights with our two powerful modules: Predictions Analysis and Social Media Analysis.
+            Transform your data into actionable insights with Predictions Analysis, Social Media Analysis, Data Analysis, and Sentiment Analysis.
         </p>
     </section>
 
     <!-- Main Modules Section -->
     <section style="max-width: 1200px; margin: 0 auto;">
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
             <!-- Predictions Analysis Module -->
             <div class="animate-card-left" style="background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); border-radius: 16px; padding: 32px; border: 1px solid #dbeafe; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateX(-30px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                 <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 10px; text-align: center;">
@@ -129,6 +129,47 @@
                     Start Social Media Analysis
                 </a>
             </div>
+
+            <!-- Sentiment Analysis Module -->
+            <div class="animate-card-right" style="background: linear-gradient(135deg, #f8fafc 0%, #fdf4ff 100%); border-radius: 16px; padding: 32px; border: 1px solid #e9d5ff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); transition: all 0.3s ease; display: flex; flex-direction: column; opacity: 0; transform: translateY(12px);" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
+                <h2 style="font-size: 24px; font-weight: 700; color: #111827; margin-bottom: 10px; text-align: center;">
+                    Sentiment Analysis
+                </h2>
+                <p style="font-size: 15px; color: #4b5563; line-height: 1.5; margin-bottom: 20px; text-align: center; min-height: 72px;">
+                    Compare emotional tone and sentiment across two profiles you have already analyzed. Ideal for side-by-side reputation or communication-style contrast.
+                </p>
+                <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; min-height: 120px; display: flex; align-items: center;">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: 100%;">
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #a855f7;">
+                                <path d="M12,17.5C14.33,17.5 16.3,16.04 17.11,14H6.89C7.7,16.04 9.67,17.5 12,17.5M8.5,11A1.5,1.5 0 0,0 10,9.5A1.5,1.5 0 0,0 8.5,8A1.5,1.5 0 0,0 7,9.5A1.5,1.5 0 0,0 8.5,11M15.5,11A1.5,1.5 0 0,0 17,9.5A1.5,1.5 0 0,0 15.5,8A1.5,1.5 0 0,0 14,9.5A1.5,1.5 0 0,0 15.5,11M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/>
+                            </svg>
+                            <span style="font-size: 13px; font-weight: 600; color: #374151;">Tone contrast</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #ec4899;">
+                                <path d="M12,21.35L10.55,20.03C5.4,15.36 2,12.27 2,8.5C2,5.41 4.42,3 7.5,3C9.24,3 10.91,3.81 12,5.08C13.09,3.81 14.76,3 16.5,3C19.58,3 22,5.41 22,8.5C22,12.27 18.6,15.36 13.45,20.03L12,21.35Z"/>
+                            </svg>
+                            <span style="font-size: 13px; font-weight: 600; color: #374151;">Positivity</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #6366f1;">
+                                <path d="M7,15H9C9,16.08 10.37,17 12,17C13.63,17 15,16.08 15,15C15,13.9 13.96,13.5 11.76,12.97C9.64,12.44 7,11.78 7,9C7,7.21 8.47,5.69 10.5,5.18V3H13.5V5.18C15.53,5.69 17,7.21 17,9H15C15,7.92 13.63,7 12,7C10.37,7 9,7.92 9,9C9,10.1 10.04,10.5 12.24,11.03C14.36,11.56 17,12.22 17,15C17,16.79 15.53,18.31 13.5,18.82V21H10.5V18.82C8.47,18.31 7,16.79 7,15Z"/>
+                            </svg>
+                            <span style="font-size: 13px; font-weight: 600; color: #374151;">Stakeholder view</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f9fafb; border-radius: 6px;">
+                            <svg viewBox="0 0 24 24" style="width: 18px; height: 18px; fill: #14b8a6;">
+                                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z"/>
+                            </svg>
+                            <span style="font-size: 13px; font-weight: 600; color: #374151;">Saved history</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('sentiment-analysis.index') }}" style="display: block; padding: 12px 24px; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; text-align: center; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35); margin-top: auto;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(124, 58, 237, 0.45)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(124, 58, 237, 0.35)';">
+                    Compare two profiles
+                </a>
+            </div>
         </div>
     </section>
     </div>
@@ -172,7 +213,7 @@
                     Advanced analysis in minutes, not weeks
                 </h3>
                 <p style="font-size: 15px; color: #6b7280; line-height: 1.6; margin-bottom: 20px;">
-                    NUJUM offers two powerful modules: Predictions Analysis for data-driven forecasting and Social Media Analysis for profile insights. Both powered by advanced technology to deliver comprehensive, actionable intelligence.
+                    NUJUM brings together Predictions Analysis, Social Media and Data Analysis, and Sentiment Analysis—so you can forecast, profile, and compare tone from one place.
                 </p>
                 <div style="background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
                     <div style="display: flex; align-items: center; gap: 12px;">

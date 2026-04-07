@@ -3,27 +3,33 @@
 namespace App\Services;
 
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class GeminiService implements AIServiceInterface
 {
     protected $apiKey;
+
     protected $baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
     protected $webScrapingService;
+
     protected $sslVerify;
+
     protected $currentPredictionHorizon;
+
     protected $enableTruncationDetection = true;
+
     protected $model = 'gemini-2.5-flash';
 
     public function __construct(WebScrapingService $webScrapingService)
     {
         $this->apiKey = config('services.gemini.api_key');
         $this->webScrapingService = $webScrapingService;
-        
+
         // Check if we should verify SSL (default to true for production)
-        $this->sslVerify = config('services.gemini.ssl_verify', !app()->environment('local', 'development'));
+        $this->sslVerify = config('services.gemini.ssl_verify', ! app()->environment('local', 'development'));
     }
 
     public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null, $reportLanguage = null)
@@ -32,12 +38,14 @@ class GeminiService implements AIServiceInterface
             // Validate API key
             if (empty($this->apiKey)) {
                 Log::error('Gemini API key not configured');
+
                 return $this->getFallbackResponse($analysisType);
             }
-            
+
             // Validate API key format (should start with AIza)
-            if (!str_starts_with($this->apiKey, 'AIza')) {
+            if (! str_starts_with($this->apiKey, 'AIza')) {
                 Log::error('Invalid Gemini API key format. Key should start with "AIza"');
+
                 return $this->getFallbackResponse($analysisType);
             }
 
@@ -45,84 +53,84 @@ class GeminiService implements AIServiceInterface
             $scrapedContent = null;
             $scrapingSummary = null;
             if ($sourceUrls && count($sourceUrls) > 0) {
-                Log::info("Starting to scrape " . count($sourceUrls) . " source URLs");
+                Log::info('Starting to scrape '.count($sourceUrls).' source URLs');
                 $scrapedContent = $this->webScrapingService->scrapeMultipleUrls($sourceUrls);
-                
+
                 // Create scraping summary for better user feedback
-                $successfulScrapes = array_filter($scrapedContent, fn($s) => $s['status'] === 'success');
-                $failedScrapes = array_filter($scrapedContent, fn($s) => $s['status'] === 'error');
-                
+                $successfulScrapes = array_filter($scrapedContent, fn ($s) => $s['status'] === 'success');
+                $failedScrapes = array_filter($scrapedContent, fn ($s) => $s['status'] === 'error');
+
                 $scrapingSummary = [
                     'total_urls' => count($sourceUrls),
                     'successful_scrapes' => count($successfulScrapes),
                     'failed_scrapes' => count($failedScrapes),
                     'success_rate' => count($sourceUrls) > 0 ? round((count($successfulScrapes) / count($sourceUrls)) * 100, 1) : 0,
-                    'failed_urls' => array_map(function($failed) {
+                    'failed_urls' => array_map(function ($failed) {
                         return [
                             'url' => $failed['url'],
                             'error' => $failed['error'] ?? 'Unknown error',
-                            'status_code' => $failed['status_code'] ?? null
+                            'status_code' => $failed['status_code'] ?? null,
                         ];
-                    }, $failedScrapes)
+                    }, $failedScrapes),
                 ];
-                
-                Log::info("Completed scraping URLs. Results: " . json_encode(array_column($scrapedContent, 'status')));
-                Log::info("Scraping summary: " . json_encode($scrapingSummary));
-                
+
+                Log::info('Completed scraping URLs. Results: '.json_encode(array_column($scrapedContent, 'status')));
+                Log::info('Scraping summary: '.json_encode($scrapingSummary));
+
                 // If no URLs were successfully scraped, provide warning
                 if (count($successfulScrapes) === 0) {
-                    Log::warning("No URLs were successfully scraped. All URLs may be inaccessible or blocked.");
+                    Log::warning('No URLs were successfully scraped. All URLs may be inaccessible or blocked.');
                 }
             }
 
             // Store the current prediction horizon for fallback responses
             $this->currentPredictionHorizon = $predictionHorizon;
-            
+
             $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary, $target, $reportLanguage);
-            
+
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
-            
+
             // Record start time for API request timing
             $apiStartTime = microtime(true);
-            
-            Log::info("Execution time limit set to: " . ini_get('max_execution_time') . " seconds");
-            Log::info("Memory limit: " . ini_get('memory_limit'));
-            Log::info("Starting Gemini API request at: " . now());
-            
-            Log::info("Sending request to Gemini API with prompt length: " . strlen($prompt));
-            Log::info("API Key configured: " . (!empty($this->apiKey) ? 'Yes (length: ' . strlen($this->apiKey) . ')' : 'No'));
-            Log::info("Request URL: " . $this->baseUrl);
-            Log::info("Authentication: Using x-goog-api-key header");
-            Log::info("Full request details:", [
+
+            Log::info('Execution time limit set to: '.ini_get('max_execution_time').' seconds');
+            Log::info('Memory limit: '.ini_get('memory_limit'));
+            Log::info('Starting Gemini API request at: '.now());
+
+            Log::info('Sending request to Gemini API with prompt length: '.strlen($prompt));
+            Log::info('API Key configured: '.(! empty($this->apiKey) ? 'Yes (length: '.strlen($this->apiKey).')' : 'No'));
+            Log::info('Request URL: '.$this->baseUrl);
+            Log::info('Authentication: Using x-goog-api-key header');
+            Log::info('Full request details:', [
                 'base_url' => $this->baseUrl,
                 'api_key_length' => strlen($this->apiKey),
                 'api_key_prefix' => substr($this->apiKey, 0, 10),
                 'ssl_verify' => $this->sslVerify,
-                'auth_method' => 'x-goog-api-key header'
+                'auth_method' => 'x-goog-api-key header',
             ]);
-            
-            // Increase output tokens for data-analysis to handle large datasets and multiple charts
-            $maxOutputTokens = ($analysisType === 'data-analysis') ? 32768 : 16384;
-            
+
+            // Increase output tokens for data-analysis and sentiment-comparison (large structured JSON + chart data)
+            $maxOutputTokens = ($analysisType === 'data-analysis' || $analysisType === 'sentiment-comparison') ? 32768 : 16384;
+
             $response = Http::timeout(300)->withOptions([
                 'verify' => $this->sslVerify, // Use the configured SSL verification option
                 'curl' => [
                     CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
                     CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
-                ]
+                ],
             ])->withHeaders([
                 'x-goog-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ])->post($this->baseUrl, [
                 'contents' => [
                     [
                         'parts' => [
                             [
-                                'text' => $prompt
-                            ]
-                        ]
-                    ]
+                                'text' => $prompt,
+                            ],
+                        ],
+                    ],
                 ],
                 'generationConfig' => [
                     'temperature' => 0.7,
@@ -133,126 +141,132 @@ class GeminiService implements AIServiceInterface
                 'safetySettings' => [
                     [
                         'category' => 'HARM_CATEGORY_HARASSMENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_HATE_SPEECH',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                    ]
-                ]
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
+                    ],
+                ],
             ]);
-            
+
             // Calculate API response time
             $apiResponseTime = round(microtime(true) - $apiStartTime, 3);
-            
+
             // Update analytics if provided
             if ($analytics) {
                 $this->updateAnalyticsWithApiResponse($analytics, $response, $apiResponseTime);
             }
-            
-            Log::info("Gemini API response received at: " . now());
-            Log::info("API response time: " . $apiResponseTime . " seconds");
-            Log::info("Response status: " . $response->status());
-            Log::info("Response body length: " . strlen($response->body()));
+
+            Log::info('Gemini API response received at: '.now());
+            Log::info('API response time: '.$apiResponseTime.' seconds');
+            Log::info('Response status: '.$response->status());
+            Log::info('Response body length: '.strlen($response->body()));
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
                     $result = $data['candidates'][0]['content']['parts'][0]['text'];
-                    
+
                     // Try to parse JSON response
                     $parsedResult = $this->parseJsonResponse($result);
-                    
+
                     if ($parsedResult) {
                         // Check if this is a partial response due to truncation
                         if (isset($parsedResult['status']) && $parsedResult['status'] === 'partial') {
-                            Log::warning("Received partial response, attempting retry with reduced prompt");
-                            
+                            Log::warning('Received partial response, attempting retry with reduced prompt');
+
                             // Try retry with reduced prompt if enabled and we haven't exceeded retry limit
                             if ($this->enableTruncationDetection) {
                                 $retryResult = $this->retryWithReducedPrompt($prompt, $scrapedContent, $sourceUrls, $analysisType, $predictionHorizon, $reportLanguage);
                                 if ($retryResult) {
-                                    Log::info("Retry successful, returning complete response");
+                                    Log::info('Retry successful, returning complete response');
+
                                     return $retryResult;
                                 }
                             }
-                            
-                            Log::warning("Retry failed, returning partial response");
+
+                            Log::warning('Retry failed, returning partial response');
                         }
-                        
+
                         // Extract confidence score from the AI response if available
                         $confidenceScore = $this->extractConfidenceFromAIResponse($parsedResult);
-                        
+
                         // Add API timing metadata
                         $parsedResult['api_metadata'] = [
                             'api_response_time' => $apiResponseTime,
                             'api_response_time_unit' => 'seconds',
                             'api_timestamp' => now()->toISOString(),
                             'model_version' => 'gemini-2.5-flash',
-                            'confidence_score' => $confidenceScore
+                            'confidence_score' => $confidenceScore,
                         ];
-                        
+
                         // Add scraping metadata to the result
                         if ($scrapedContent || $scrapingSummary) {
                             $parsedResult['scraping_metadata'] = [
                                 'total_sources' => count($sourceUrls),
-                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn ($s) => $s['status'] === 'success')),
                                 'scraped_at' => now()->toISOString(),
                                 'scraping_summary' => $scrapingSummary,
-                                'source_details' => array_map(function($source) {
+                                'source_details' => array_map(function ($source) {
                                     return [
                                         'url' => $source['url'],
                                         'title' => $source['title'] ?? 'N/A',
                                         'word_count' => $source['word_count'] ?? 0,
                                         'status' => $source['status'],
                                         'error' => $source['error'] ?? null,
-                                        'status_code' => $source['status_code'] ?? null
+                                        'status_code' => $source['status_code'] ?? null,
                                     ];
-                                }, $scrapedContent)
+                                }, $scrapedContent),
                             ];
                         }
-                        
+
                         return $parsedResult;
                     }
-                    
+
                     // If parsing failed, check if response appears truncated and try retry
                     if ($this->enableTruncationDetection && $this->isResponseTruncated($result)) {
-                        Log::warning("Response appears truncated, attempting retry with reduced prompt");
-                        
+                        Log::warning('Response appears truncated, attempting retry with reduced prompt');
+
                         $retryResult = $this->retryWithReducedPrompt($prompt, $scrapedContent, $sourceUrls, $analysisType, $predictionHorizon, $reportLanguage);
                         if ($retryResult) {
-                            Log::info("Retry successful, returning complete response");
+                            Log::info('Retry successful, returning complete response');
+
                             return $retryResult;
                         }
                     }
-                    
+
                     return $result;
                 }
-                
-                Log::error('Unexpected Gemini API response structure: ' . json_encode($data));
+
+                Log::error('Unexpected Gemini API response structure: '.json_encode($data));
+
                 return $this->getFallbackResponse($analysisType);
             }
-            
+
             // If SSL verification failed, try without SSL verification
             if ($response->status() === 0 && strpos($response->body(), 'SSL certificate problem') !== false) {
                 Log::warning('SSL verification failed, retrying without SSL verification');
+
                 return $this->retryWithoutSSLVerification($prompt, $scrapedContent, $sourceUrls, $analysisType);
             }
-            
-            Log::error('Gemini API request failed: ' . $response->status() . ' - ' . $response->body());
+
+            Log::error('Gemini API request failed: '.$response->status().' - '.$response->body());
+
             return $this->getFallbackResponse($analysisType);
-            
+
         } catch (\Exception $e) {
-            Log::error('Error in GeminiService: ' . $e->getMessage());
+            Log::error('Error in GeminiService: '.$e->getMessage());
+
             return $this->getFallbackResponse($analysisType);
         }
     }
@@ -269,7 +283,7 @@ class GeminiService implements AIServiceInterface
             'three_months' => 'Next 3 Months',
             'six_months' => 'Next 6 Months',
             'twelve_months' => 'Next 12 Months',
-            'two_years' => 'Next 2 Years'
+            'two_years' => 'Next 2 Years',
         ];
 
         return $horizonMap[$horizon] ?? 'Next Month';
@@ -281,9 +295,9 @@ class GeminiService implements AIServiceInterface
     protected function predictionReportLanguageInstruction(?string $reportLanguage): string
     {
         if ($reportLanguage === 'ms') {
-            return "OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). "
-                . "Every JSON string value—title, executive_summary, current_situation, all point/explanation fields, risks, recommendations, methodology, notes, source_analysis, etc.—must be in professional, natural Bahasa Melayu. "
-                . "Keep proper nouns, organization names, and standard international terms (e.g. GDP, API) as commonly used in Malaysian business writing.\n\n";
+            return 'OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). '
+                .'Every JSON string value—title, executive_summary, current_situation, all point/explanation fields, risks, recommendations, methodology, notes, source_analysis, etc.—must be in professional, natural Bahasa Melayu. '
+                ."Keep proper nouns, organization names, and standard international terms (e.g. GDP, API) as commonly used in Malaysian business writing.\n\n";
         }
 
         return "OUTPUT LANGUAGE: Write the entire report in clear, professional English (all JSON string values).\n\n";
@@ -295,12 +309,105 @@ class GeminiService implements AIServiceInterface
     protected function socialMediaReportLanguageInstruction(?string $reportLanguage): string
     {
         if ($reportLanguage === 'ms') {
-            return "OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). "
-                . "Every JSON string value—title, executive_summary, all nested section text, risk fields, recommendations, personality and activity fields, indicators, assessments, etc.—must be in professional, natural Bahasa Melayu. "
-                . "Keep proper nouns, platform names, usernames, and standard international terms as commonly used in Malaysian professional writing.\n\n";
+            return 'OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). '
+                .'Every JSON string value—title, executive_summary, all nested section text, risk fields, recommendations, personality and activity fields, indicators, assessments, etc.—must be in professional, natural Bahasa Melayu. '
+                ."Keep proper nouns, platform names, usernames, and standard international terms as commonly used in Malaysian professional writing.\n\n";
         }
 
         return "OUTPUT LANGUAGE: Write the entire report in clear, professional English (all JSON string values).\n\n";
+    }
+
+    /**
+     * Prompt for comparing sentiment between two completed social media profile analyses (JSON input).
+     */
+    protected function createSentimentComparisonPrompt(string $text, ?string $reportLanguage): string
+    {
+        $prompt = 'You are an expert in communication sentiment, emotional tone, and comparative discourse analysis. '
+            .'You receive two completed social media PROFILE ANALYSES (structured JSON from prior NUJUM assessments). '
+            ."Produce a formal comparative sentiment REPORT matching enterprise analytics style: numbered sections, quantitative chart support, and clear methodology.\n\n";
+        $prompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
+        $prompt .= "INPUT (two analyses to compare):\n{$text}\n\n";
+        $prompt .= 'Return ONLY valid JSON (no markdown fences). All numeric scores MUST be integers 0-100 (inclusive) for charting. '
+            ."If the input lacks data for a metric, infer a best-effort estimate from the analyses and state uncertainty in narrative text—not as null.\n\n";
+        $prompt .= "Required JSON structure (all top-level keys):\n";
+        $prompt .= "{\n";
+        $prompt .= "  \"title\": \"[Report title with both usernames + Sentiment Comparison]\",\n";
+        $prompt .= "  \"executive_summary\": \"[Section 1: 4-6 sentences — headline contrast, business relevance]\",\n";
+        $prompt .= "  \"scope_and_methodology\": \"[Section 2: data scope, what was compared, limitations of indirect/summary-based inference, NUJUM-style transparency]\",\n";
+        $prompt .= "  \"profile_a_username\": \"[from input profile_a]\",\n";
+        $prompt .= "  \"profile_b_username\": \"[from input profile_b]\",\n";
+        $prompt .= "  \"profile_a_sentiment\": {\n";
+        $prompt .= "    \"dominant_tone\": \"[string]\",\n";
+        $prompt .= "    \"positivity_assessment\": \"[string]\",\n";
+        $prompt .= "    \"emotional_themes\": [\"theme1\", \"theme2\"],\n";
+        $prompt .= "    \"controversy_or_conflict_level\": \"[Low/Medium/High + brief reason]\",\n";
+        $prompt .= "    \"audience_facing_mood\": \"[string]\",\n";
+        $prompt .= "    \"sentiment_score_0_100\": 0\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"profile_b_sentiment\": { same shape as profile_a_sentiment },\n";
+        $prompt .= "  \"overall_sentiment\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 3: synthesis of valence, tone, emotional posture]\",\n";
+        $prompt .= "    \"polarity_index\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"positive_ratio\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"neutral_ratio\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"negative_ratio\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"note\": \"[Ratios should sum to ~100 per profile; adjust if needed]\"\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"trend_analysis\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 4: momentum, consistency, stability of tone — inferred from analyses]\",\n";
+        $prompt .= "    \"dimensions\": [\n";
+        $prompt .= "      { \"label\": \"Consistency\", \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "      { \"label\": \"Engagement warmth\", \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "      { \"label\": \"Stability\", \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "      { \"label\": \"Momentum (inferred)\", \"profile_a\": 0-100, \"profile_b\": 0-100 }\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"key_topics\": [\n";
+        $prompt .= "    { \"topic\": \"[short label]\", \"salience_a\": 0-100, \"salience_b\": 0-100 }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"sentiment_drivers\": [\n";
+        $prompt .= "    { \"driver\": \"[factor]\", \"influence_a\": 0-100, \"influence_b\": 0-100, \"note\": \"[one line]\" }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"mentions_volume\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 7: relative visibility / posting intensity / reach signals inferred from analyses]\",\n";
+        $prompt .= "    \"relative_volume_a\": 0-100,\n";
+        $prompt .= "    \"relative_volume_b\": 0-100\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"comparison\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 8: head-to-head]\",\n";
+        $prompt .= "    \"matrix\": [\n";
+        $prompt .= "      { \"dimension\": \"[e.g. Warmth]\", \"profile_a\": \"[brief]\", \"profile_b\": \"[brief]\" }\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"platform_analysis\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 9: by platform if inferable; else clearly state not separable from input]\",\n";
+        $prompt .= "    \"platforms\": [\n";
+        $prompt .= "      { \"platform\": \"[name]\", \"profile_a_note\": \"[brief]\", \"profile_b_note\": \"[brief]\" }\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"risk_alert\": {\n";
+        $prompt .= "    \"level\": \"Low|Medium|High\",\n";
+        $prompt .= "    \"summary\": \"[Section 10 lead]\",\n";
+        $prompt .= "    \"alerts\": [\"[specific risk or watch item]\"]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"recommendations\": [\"[Section 11: actionable bullet]\", \"...\"],\n";
+        $prompt .= "  \"side_by_side_summary\": \"[Short paragraph — may echo comparison.narrative]\",\n";
+        $prompt .= "  \"key_differences\": [\n";
+        $prompt .= "    { \"aspect\": \"[string]\", \"profile_a\": \"[brief]\", \"profile_b\": \"[brief]\" }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"similarities\": [\"[string]\"],\n";
+        $prompt .= "  \"comparative_insights\": [\n";
+        $prompt .= "    { \"point\": \"[string]\", \"explanation\": \"[string]\" }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"stakeholder_takeaways\": [\"[string]\"],\n";
+        $prompt .= "  \"methodology\": \"[one paragraph — may align with scope_and_methodology]\",\n";
+        $prompt .= "  \"limitations\": \"[string]\",\n";
+        $prompt .= "  \"note\": \"[interpretation caution]\"\n";
+        $prompt .= "}\n\n";
+        $prompt .= 'RULES: Base claims only on supplied analyses. Use balanced professional language. Include at least 4 key_topics and 4 sentiment_drivers. '
+            .'Ensure polarity_index and sentiment scores reflect the same story as narratives.';
+
+        return $prompt;
     }
 
     protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null, $target = null, $reportLanguage = null)
@@ -309,31 +416,35 @@ class GeminiService implements AIServiceInterface
         if ($analysisType === 'social-media-analysis') {
             return $this->createSocialMediaAnalysisPrompt($text, $reportLanguage);
         }
-        
+
+        if ($analysisType === 'sentiment-comparison') {
+            return $this->createSentimentComparisonPrompt($text, $reportLanguage);
+        }
+
         $prompt = "You are an expert AI prediction analyst specializing in comprehensive future forecasting and strategic analysis. Please analyze the following text and provide a detailed, professional prediction analysis similar to high-quality consulting reports.\n\n";
         if ($analysisType === 'prediction-analysis') {
             $prompt .= $this->predictionReportLanguageInstruction($reportLanguage);
         }
         $prompt .= "Text to analyze: {$text}\n\n";
-        
+
         if ($target) {
             $prompt .= "TARGET: {$target}\n";
             $prompt .= "Focus analysis on how predictions, risks, and implications affect {$target}.\n\n";
         }
-        
+
         if ($predictionHorizon) {
             $horizonText = $this->getHorizonText($predictionHorizon);
             $prompt .= "HORIZON: {$horizonText}\n";
             $prompt .= "Tailor all predictions and assessments to this timeframe.\n\n";
         }
-        
+
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= "IMPORTANT: You have been provided with the following additional sources that contain relevant context, data, or background information:\n";
-            
+
             foreach ($sourceUrls as $index => $url) {
-                $prompt .= "- Source " . ($index + 1) . ": {$url}\n";
+                $prompt .= '- Source '.($index + 1).": {$url}\n";
             }
-            
+
             // Add scraping summary if available
             if (isset($scrapingSummary) && $scrapingSummary) {
                 $prompt .= "\nSCRAPING SUMMARY:\n";
@@ -341,7 +452,7 @@ class GeminiService implements AIServiceInterface
                 $prompt .= "Successfully scraped: {$scrapingSummary['successful_scrapes']}\n";
                 $prompt .= "Failed to scrape: {$scrapingSummary['failed_scrapes']}\n";
                 $prompt .= "Success rate: {$scrapingSummary['success_rate']}%\n";
-                
+
                 if ($scrapingSummary['failed_scrapes'] > 0) {
                     $prompt .= "\nFAILED URLS (These could not be accessed due to anti-bot protection, server errors, or other issues):\n";
                     foreach ($scrapingSummary['failed_urls'] as $failed) {
@@ -354,17 +465,17 @@ class GeminiService implements AIServiceInterface
                     $prompt .= "\nNote: For failed URLs, rely on your existing knowledge about the topic or source.\n";
                 }
             }
-            
+
             // Add actual scraped content if available
             if ($scrapedContent && count($scrapedContent) > 0) {
                 $prompt .= "\nACTUAL CONTENT FROM SUCCESSFULLY SCRAPED SOURCES:\n";
                 $prompt .= "The following is the real content extracted from the accessible URLs. Use this actual data in your analysis:\n\n";
-                
+
                 foreach ($scrapedContent as $index => $source) {
-                    if ($source['status'] === 'success' && !empty($source['content'])) {
-                        $prompt .= "=== SOURCE " . ($index + 1) . " ===\n";
+                    if ($source['status'] === 'success' && ! empty($source['content'])) {
+                        $prompt .= '=== SOURCE '.($index + 1)." ===\n";
                         $prompt .= "URL: {$source['url']}\n";
-                        if (!empty($source['title'])) {
+                        if (! empty($source['title'])) {
                             $prompt .= "Title: {$source['title']}\n";
                         }
                         $prompt .= "Content: {$source['content']}\n";
@@ -373,14 +484,14 @@ class GeminiService implements AIServiceInterface
                     }
                 }
             }
-            
+
             $prompt .= "\nSOURCE INTEGRATION:\n";
             $prompt .= "1. Reference sources when supporting predictions\n";
             $prompt .= "2. Use 'Source 1...', 'Source 2...' format\n";
             $prompt .= "3. Include 'Source Analysis' section\n";
             $prompt .= "4. Cite specific facts/numbers from sources\n\n";
         }
-        
+
         $prompt .= "Provide analysis in this JSON structure:\n";
         $prompt .= "{\n";
         $prompt .= "  \"title\": \"[Topic + Time Period + Focus]\",\n";
@@ -508,13 +619,13 @@ class GeminiService implements AIServiceInterface
         $prompt .= "  \"success_metrics\": [\n";
         $prompt .= "    \"[How to measure success of predictions]\",\n";
         $prompt .= "    \"[How to measure success of predictions]\"\n";
-        $prompt .= "  ]";
-        
+        $prompt .= '  ]';
+
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= ",\n";
-            $prompt .= "  \"source_analysis\": \"[Detailed explanation of how each provided source influenced your analysis and predictions. Use specific examples and show direct connections between source information and conclusions.]\"";
+            $prompt .= '  "source_analysis": "[Detailed explanation of how each provided source influenced your analysis and predictions. Use specific examples and show direct connections between source information and conclusions.]"';
         }
-        
+
         $prompt .= "\n}\n\n";
         $prompt .= "INSTRUCTIONS:\n";
         $prompt .= "1. Be specific and actionable\n";
@@ -527,7 +638,7 @@ class GeminiService implements AIServiceInterface
         $prompt .= "8. Consider opportunities and threats\n";
         $prompt .= "9. Base analysis on logical reasoning\n";
         $prompt .= "10. Ensure comprehensive and professional analysis\n";
-        
+
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= "11. Cite sources using 'Source 1...', 'Source 2...'\n";
             $prompt .= "12. Show connections between sources and predictions\n";
@@ -537,9 +648,9 @@ class GeminiService implements AIServiceInterface
                 $prompt .= "15. Reference specific facts and numbers\n";
             }
         }
-        
+
         $prompt .= "\nGenerate high-quality, professional prediction analysis suitable for executive decision-making.";
-        
+
         return $prompt;
     }
 
@@ -553,7 +664,7 @@ class GeminiService implements AIServiceInterface
         if (stripos($text, 'ANALYSIS TYPE: POLITICAL') !== false || stripos($text, 'political profile') !== false) {
             $analysisType = 'political';
         }
-        
+
         if ($analysisType === 'political') {
             $prompt = "You are an expert political profile analyst specializing in analyzing political views and political involvement based on social media data. Your task is to analyze the following social media profile data across multiple platforms to assess the person's political views, political involvement, political activities, and political engagement.\n\n";
             $prompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
@@ -573,7 +684,7 @@ class GeminiService implements AIServiceInterface
             $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
             $prompt .= "Provide a comprehensive professional analysis covering the following areas:\n\n";
         }
-        
+
         if ($analysisType === 'political') {
             $prompt .= "Provide analysis in this JSON structure:\n";
             $prompt .= "{\n";
@@ -621,7 +732,7 @@ class GeminiService implements AIServiceInterface
         }
         $prompt .= "    ]\n";
         $prompt .= "  },\n";
-        
+
         if ($analysisType === 'political') {
             $prompt .= "  \"political_profile\": {\n";
             $prompt .= "    \"political_affiliation_score\": [A numeric score from 0-100 representing political alignment clarity and strength],\n";
@@ -780,7 +891,7 @@ class GeminiService implements AIServiceInterface
         $prompt .= "      \"[Notable behavioral patterns observed]\"\n";
         $prompt .= "    ]\n";
         $prompt .= "  },\n";
-        
+
         if ($analysisType === 'political') {
             $prompt .= "  \"political_communication_style\": {\n";
             $prompt .= "    \"confidence\": [Numeric value 0-100 for confidence in political communication assessment],\n";
@@ -861,7 +972,7 @@ class GeminiService implements AIServiceInterface
         $prompt .= "  \"data_quality\": \"[Assessment of data quality and completeness]\",\n";
         $prompt .= "  \"limitations\": \"[Any limitations or caveats to the analysis]\"\n";
         $prompt .= "}\n\n";
-        
+
         if ($analysisType === 'political') {
             $prompt .= "INSTRUCTIONS:\n";
             $prompt .= "1. Focus EXCLUSIVELY on political views and political involvement based on the social media data\n";
@@ -883,7 +994,7 @@ class GeminiService implements AIServiceInterface
             $prompt .= "17. CRITICAL: If political data is limited, provide contextual analysis: what does the absence of political content indicate? What can be inferred from their general content, interests, or connections?\n";
             $prompt .= "18. CRITICAL: For every field, provide a substantive assessment - use low scores (0-30) if no political indicators are found, but still provide descriptive analysis explaining why\n";
             $prompt .= "19. CRITICAL: Even with minimal data, provide scores and descriptions - a score of 0-20 with explanation is better than 'N/A'\n\n";
-            
+
             $prompt .= "Generate a high-quality, COMPREHENSIVE political profile analysis focusing on political views and political involvement. Always provide meaningful analysis for every field, even when data is limited. Use low scores and descriptive explanations rather than 'N/A' or 'Not applicable'.";
         } else {
             $prompt .= "INSTRUCTIONS:\n";
@@ -897,10 +1008,10 @@ class GeminiService implements AIServiceInterface
             $prompt .= "8. Consider privacy and ethical boundaries\n";
             $prompt .= "9. Provide actionable insights for decision-making\n";
             $prompt .= "10. Ensure comprehensive coverage of all requested analysis areas\n\n";
-            
-            $prompt .= "Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.";
+
+            $prompt .= 'Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.';
         }
-        
+
         return $prompt;
     }
 
@@ -915,53 +1026,55 @@ class GeminiService implements AIServiceInterface
                 if (preg_match('/\{.*\}/s', $text, $matches)) {
                     $jsonString = $matches[0];
                 } else {
-                    Log::warning("No JSON structure found in response");
+                    Log::warning('No JSON structure found in response');
+
                     return ['raw_response' => $text];
                 }
             }
-            
+
             // Check if JSON appears truncated and try to fix it
-            if (!$this->isValidJson($jsonString)) {
-                Log::warning("JSON appears invalid/truncated, attempting to fix...");
-                Log::info("Original JSON length: " . strlen($jsonString));
-                Log::info("JSON preview: " . substr($jsonString, -200)); // Show end of JSON
-                
+            if (! $this->isValidJson($jsonString)) {
+                Log::warning('JSON appears invalid/truncated, attempting to fix...');
+                Log::info('Original JSON length: '.strlen($jsonString));
+                Log::info('JSON preview: '.substr($jsonString, -200)); // Show end of JSON
+
                 // Try multiple repair strategies
                 $jsonString = $this->repairJsonWithMultipleStrategies($jsonString);
-                Log::info("Repaired JSON length: " . strlen($jsonString));
-                
+                Log::info('Repaired JSON length: '.strlen($jsonString));
+
                 // If still not valid, try to extract partial content
-                if (!$this->isValidJson($jsonString)) {
-                    Log::warning("JSON repair failed, attempting to extract partial content");
+                if (! $this->isValidJson($jsonString)) {
+                    Log::warning('JSON repair failed, attempting to extract partial content');
                     $partialResult = $this->extractPartialContent($jsonString);
                     if ($partialResult) {
                         return $partialResult;
                     }
                 }
             }
-            
+
             $decoded = json_decode($jsonString, true);
-            
+
             if (json_last_error() === JSON_ERROR_NONE) {
                 return $decoded;
             } else {
-                Log::error("JSON decode error: " . json_last_error_msg());
-                Log::error("JSON string: " . substr($jsonString, 0, 500) . "...");
-                
+                Log::error('JSON decode error: '.json_last_error_msg());
+                Log::error('JSON string: '.substr($jsonString, 0, 500).'...');
+
                 // Try one more repair attempt with error-specific fixes
                 $finalRepair = $this->repairJsonByErrorType($jsonString, json_last_error());
                 if ($finalRepair && $this->isValidJson($finalRepair)) {
                     $decoded = json_decode($finalRepair, true);
                     if (json_last_error() === JSON_ERROR_NONE) {
-                        Log::info("JSON successfully repaired after error-specific fixes");
+                        Log::info('JSON successfully repaired after error-specific fixes');
+
                         return $decoded;
                     }
                 }
             }
         } catch (\Exception $e) {
-            Log::error("Exception in parseJsonResponse: " . $e->getMessage());
+            Log::error('Exception in parseJsonResponse: '.$e->getMessage());
         }
-        
+
         // If no valid JSON found, return the text as is
         return ['raw_response' => $text];
     }
@@ -969,6 +1082,7 @@ class GeminiService implements AIServiceInterface
     private function isValidJson($jsonString)
     {
         json_decode($jsonString);
+
         return json_last_error() === JSON_ERROR_NONE;
     }
 
@@ -976,7 +1090,7 @@ class GeminiService implements AIServiceInterface
     {
         // Remove any trailing incomplete content
         $jsonString = rtrim($jsonString);
-        
+
         // If string ends with incomplete quote, remove trailing content back to last complete quote
         if (preg_match('/.*"[^"]*$/s', $jsonString)) {
             // Find the last complete quoted string
@@ -985,54 +1099,55 @@ class GeminiService implements AIServiceInterface
                 $jsonString = substr($jsonString, 0, $lastQuotePos + 1);
             }
         }
-        
+
         // Remove any trailing comma
         $jsonString = rtrim($jsonString, ',');
-        
+
         // Count braces and brackets to close properly
         $openBraces = substr_count($jsonString, '{');
         $closeBraces = substr_count($jsonString, '}');
         $openBrackets = substr_count($jsonString, '[');
         $closeBrackets = substr_count($jsonString, ']');
-        
+
         // Close any open arrays first
         while ($openBrackets > $closeBrackets) {
             $jsonString .= ']';
             $closeBrackets++;
         }
-        
+
         // Close any open objects
         while ($openBraces > $closeBraces) {
             $jsonString .= '}';
             $closeBraces++;
         }
-        
-        Log::info("JSON fix: Added " . ($closeBraces - substr_count($jsonString, '}') + ($openBraces - $closeBraces)) . " closing braces");
-        
+
+        Log::info('JSON fix: Added '.($closeBraces - substr_count($jsonString, '}') + ($openBraces - $closeBraces)).' closing braces');
+
         return $jsonString;
     }
 
     private function repairJsonWithMultipleStrategies($jsonString)
     {
-        Log::info("Applying multiple JSON repair strategies...");
-        
+        Log::info('Applying multiple JSON repair strategies...');
+
         // Strategy 1: Basic truncation fix
         $repaired = $this->fixTruncatedJson($jsonString);
-        
+
         // Strategy 2: Fix common syntax errors
         $repaired = $this->fixSyntaxErrors($repaired);
-        
+
         // Strategy 3: Fix UTF-8 encoding issues
         $repaired = $this->fixUtf8Errors($repaired);
-        
+
         // Strategy 4: Repair unbalanced braces and brackets
         $repaired = $this->repairUnbalancedBraces($repaired);
-        
+
         // Strategy 5: Remove trailing commas and fix incomplete strings
         $repaired = $this->removeTrailingCommas($repaired);
         $repaired = $this->fixIncompleteStrings($repaired);
-        
-        Log::info("Multiple repair strategies completed");
+
+        Log::info('Multiple repair strategies completed');
+
         return $repaired;
     }
 
@@ -1040,14 +1155,14 @@ class GeminiService implements AIServiceInterface
     {
         // Check for common signs of truncation
         $truncationIndicators = [
-            'incomplete' => !preg_match('/\}$/', $response), // Missing closing brace
+            'incomplete' => ! preg_match('/\}$/', $response), // Missing closing brace
             'unclosed_quotes' => substr_count($response, '"') % 2 !== 0, // Odd number of quotes
             'unclosed_brackets' => substr_count($response, '[') !== substr_count($response, ']'), // Unbalanced brackets
             'unclosed_braces' => substr_count($response, '{') !== substr_count($response, '}'), // Unbalanced braces
             'ends_with_comma' => preg_match('/,\s*$/', $response), // Ends with comma
             'incomplete_string' => preg_match('/"[^"]*$/', $response), // Incomplete string at end
         ];
-        
+
         $isTruncated = false;
         foreach ($truncationIndicators as $indicator => $value) {
             if ($value) {
@@ -1055,37 +1170,37 @@ class GeminiService implements AIServiceInterface
                 $isTruncated = true;
             }
         }
-        
+
         return $isTruncated;
     }
 
     private function retryWithReducedPrompt($originalPrompt, $scrapedContent, $sourceUrls, $analysisType, $predictionHorizon, $reportLanguage = null)
     {
         try {
-            Log::info("Retrying with reduced prompt to avoid truncation");
-            
+            Log::info('Retrying with reduced prompt to avoid truncation');
+
             // Create a simplified prompt with fewer requirements
             $reducedPrompt = $this->createReducedPrompt($originalPrompt, $predictionHorizon, $reportLanguage);
-            
+
             // Reduce maxOutputTokens to ensure complete response
             $response = Http::timeout(300)->withOptions([
                 'verify' => $this->sslVerify,
                 'curl' => [
                     CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
                     CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
-                ]
+                ],
             ])->withHeaders([
                 'x-goog-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ])->post($this->baseUrl, [
                 'contents' => [
                     [
                         'parts' => [
                             [
-                                'text' => $reducedPrompt
-                            ]
-                        ]
-                    ]
+                                'text' => $reducedPrompt,
+                            ],
+                        ],
+                    ],
                 ],
                 'generationConfig' => [
                     'temperature' => 0.7,
@@ -1096,32 +1211,32 @@ class GeminiService implements AIServiceInterface
                 'safetySettings' => [
                     [
                         'category' => 'HARM_CATEGORY_HARASSMENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_HATE_SPEECH',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                    ]
-                ]
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
+                    ],
+                ],
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
                     $result = $data['candidates'][0]['content']['parts'][0]['text'];
-                    
+
                     // Try to parse JSON response
                     $parsedResult = $this->parseJsonResponse($result);
-                    
+
                     if ($parsedResult) {
                         // Add metadata indicating this was a retry
                         $parsedResult['api_metadata'] = [
@@ -1129,29 +1244,31 @@ class GeminiService implements AIServiceInterface
                             'api_response_time_unit' => 'seconds',
                             'api_timestamp' => now()->toISOString(),
                             'model_version' => 'gemini-2.5-flash',
-                            'note' => 'Response from retry with reduced prompt to avoid truncation'
+                            'note' => 'Response from retry with reduced prompt to avoid truncation',
                         ];
-                        
+
                         // Add scraping metadata
                         if ($scrapedContent) {
                             $parsedResult['scraping_metadata'] = [
                                 'total_sources' => count($sourceUrls),
-                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn ($s) => $s['status'] === 'success')),
                                 'scraped_at' => now()->toISOString(),
-                                'note' => 'Retry response - some metadata may be simplified'
+                                'note' => 'Retry response - some metadata may be simplified',
                             ];
                         }
-                        
+
                         return $parsedResult;
                     }
                 }
             }
-            
-            Log::warning("Retry with reduced prompt also failed");
+
+            Log::warning('Retry with reduced prompt also failed');
+
             return null;
-            
+
         } catch (\Exception $e) {
-            Log::error("Error in retry with reduced prompt: " . $e->getMessage());
+            Log::error('Error in retry with reduced prompt: '.$e->getMessage());
+
             return null;
         }
     }
@@ -1173,29 +1290,29 @@ class GeminiService implements AIServiceInterface
                     $socialMediaData = preg_replace('/\n\nINSTRUCTIONS:.*$/s', '', $socialMediaData);
                 }
             }
-            
+
             // Determine analysis type
             $analysisType = 'professional';
             if (stripos($originalPrompt, 'ANALYSIS TYPE: POLITICAL') !== false || stripos($originalPrompt, 'political profile') !== false) {
                 $analysisType = 'political';
             }
-            
+
             if ($analysisType === 'political') {
                 $reducedPrompt = "You are an expert political profile analyst. Analyze the following social media profile data to assess the person's political views and political involvement. Focus on their political opinions, political activities, political engagement, and political affiliations based on their social media content.\n\n";
             } else {
                 $reducedPrompt = "You are an expert professional profile analyst. Please analyze the following social media profile data and provide a professional assessment.\n\n";
             }
-            
+
             $reducedPrompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
-            
+
             // Truncate social media data if it's too long (keep first 12000 chars to leave room for prompt and response)
             $truncatedData = trim($socialMediaData);
             if (strlen($truncatedData) > 12000) {
-                $truncatedData = substr($truncatedData, 0, 12000) . "\n\n[Note: Data truncated to ensure complete analysis response]";
+                $truncatedData = substr($truncatedData, 0, 12000)."\n\n[Note: Data truncated to ensure complete analysis response]";
             }
-            
-            $reducedPrompt .= "SOCIAL MEDIA PROFILE DATA:\n" . $truncatedData . "\n\n";
-            
+
+            $reducedPrompt .= "SOCIAL MEDIA PROFILE DATA:\n".$truncatedData."\n\n";
+
             $reducedPrompt .= "Provide analysis in this COMPREHENSIVE JSON structure focusing on POLITICAL VIEWS and POLITICAL INVOLVEMENT (include ALL sections with FULL DETAIL):\n";
             $reducedPrompt .= "{\n";
             $reducedPrompt .= '  "title": "[Profile Analysis Title]",\n';
@@ -1321,25 +1438,25 @@ class GeminiService implements AIServiceInterface
             $reducedPrompt .= "- Use low scores (0-30) with descriptive explanations when political indicators are absent\n";
             $reducedPrompt .= "- Provide contextual analysis: what does the absence of political content indicate?\n";
             $reducedPrompt .= "- For every field, provide substantive assessment - even if it's 'Limited political indicators found; profile appears apolitical based on available content'\n";
-            $reducedPrompt .= "- Always provide scores and descriptions - never leave fields empty or use placeholder text";
-            
+            $reducedPrompt .= '- Always provide scores and descriptions - never leave fields empty or use placeholder text';
+
             return $reducedPrompt;
         }
-        
+
         // Original logic for prediction analysis
         // Create a simplified version of the prompt that's less likely to cause truncation
         $reducedPrompt = "You are an expert AI prediction analyst. Please analyze the following text and provide a prediction analysis.\n\n";
-        
+
         // Extract the main text to analyze (first part of original prompt)
         if (preg_match('/Text to analyze: (.*?)(?=\n\n|$)/s', $originalPrompt, $matches)) {
-            $reducedPrompt .= "Text to analyze: " . $matches[1] . "\n\n";
+            $reducedPrompt .= 'Text to analyze: '.$matches[1]."\n\n";
         }
-        
+
         if ($predictionHorizon) {
             $horizonText = $this->getHorizonText($predictionHorizon);
             $reducedPrompt .= "PREDICTION HORIZON: {$horizonText}\n\n";
         }
-        
+
         $reducedPrompt .= "Please provide your analysis in this JSON structure:\n";
         $reducedPrompt .= "{\n";
         $reducedPrompt .= '  "title": "Analysis Title",\n';
@@ -1349,8 +1466,8 @@ class GeminiService implements AIServiceInterface
         $reducedPrompt .= '  "risk_assessment": [{"risk": "Risk description", "level": "Medium", "mitigation": "Mitigation strategy"}],\n';
         $reducedPrompt .= '  "recommendations": ["Recommendation 1", "Recommendation 2"]\n';
         $reducedPrompt .= "}\n\n";
-        $reducedPrompt .= "Focus on the most important insights and keep responses concise but complete.";
-        
+        $reducedPrompt .= 'Focus on the most important insights and keep responses concise but complete.';
+
         return $reducedPrompt;
     }
 
@@ -1359,17 +1476,17 @@ class GeminiService implements AIServiceInterface
         try {
             // Try to extract what we can from the partial JSON
             $partialData = [];
-            
+
             // Extract title if available
             if (preg_match('/"title"\s*:\s*"([^"]+)"/', $jsonString, $matches)) {
                 $partialData['title'] = $matches[1];
             }
-            
+
             // Extract executive summary if available
             if (preg_match('/"executive_summary"\s*:\s*"([^"]+)"/', $jsonString, $matches)) {
                 $partialData['executive_summary'] = $matches[1];
             }
-            
+
             // Extract key factors if available
             if (preg_match('/"key_factors"\s*:\s*\[(.*?)\]/s', $jsonString, $matches)) {
                 $factors = $this->extractArrayItems($matches[1]);
@@ -1377,7 +1494,7 @@ class GeminiService implements AIServiceInterface
                     $partialData['key_factors'] = $factors;
                 }
             }
-            
+
             // Extract predictions if available
             if (preg_match('/"predictions"\s*:\s*\[(.*?)\]/s', $jsonString, $matches)) {
                 $predictions = $this->extractArrayItems($matches[1]);
@@ -1385,16 +1502,17 @@ class GeminiService implements AIServiceInterface
                     $partialData['predictions'] = $predictions;
                 }
             }
-            
-            if (!empty($partialData)) {
+
+            if (! empty($partialData)) {
                 $partialData['note'] = 'This is a partial response due to API truncation. Some content may be incomplete.';
                 $partialData['status'] = 'partial';
+
                 return $partialData;
             }
         } catch (\Exception $e) {
-            Log::warning("Failed to extract partial content: " . $e->getMessage());
+            Log::warning('Failed to extract partial content: '.$e->getMessage());
         }
-        
+
         return null;
     }
 
@@ -1405,24 +1523,32 @@ class GeminiService implements AIServiceInterface
         $inQuotes = false;
         $braceCount = 0;
         $bracketCount = 0;
-        
+
         for ($i = 0; $i < strlen($arrayString); $i++) {
             $char = $arrayString[$i];
-            
-            if ($char === '"' && ($i === 0 || $arrayString[$i-1] !== '\\')) {
-                $inQuotes = !$inQuotes;
+
+            if ($char === '"' && ($i === 0 || $arrayString[$i - 1] !== '\\')) {
+                $inQuotes = ! $inQuotes;
             }
-            
-            if (!$inQuotes) {
-                if ($char === '{') $braceCount++;
-                if ($char === '}') $braceCount--;
-                if ($char === '[') $bracketCount++;
-                if ($char === ']') $bracketCount--;
+
+            if (! $inQuotes) {
+                if ($char === '{') {
+                    $braceCount++;
+                }
+                if ($char === '}') {
+                    $braceCount--;
+                }
+                if ($char === '[') {
+                    $bracketCount++;
+                }
+                if ($char === ']') {
+                    $bracketCount--;
+                }
             }
-            
-            if ($char === ',' && !$inQuotes && $braceCount === 0 && $bracketCount === 0) {
+
+            if ($char === ',' && ! $inQuotes && $braceCount === 0 && $bracketCount === 0) {
                 $item = trim($currentItem);
-                if (!empty($item)) {
+                if (! empty($item)) {
                     $items[] = $this->cleanString($item);
                 }
                 $currentItem = '';
@@ -1430,13 +1556,13 @@ class GeminiService implements AIServiceInterface
                 $currentItem .= $char;
             }
         }
-        
+
         // Add the last item
         $item = trim($currentItem);
-        if (!empty($item)) {
+        if (! empty($item)) {
             $items[] = $this->cleanString($item);
         }
-        
+
         return $items;
     }
 
@@ -1447,6 +1573,7 @@ class GeminiService implements AIServiceInterface
         if (preg_match('/^"(.*)"$/', $str, $matches)) {
             $str = $matches[1];
         }
+
         return $str;
     }
 
@@ -1469,7 +1596,7 @@ class GeminiService implements AIServiceInterface
         // Fix common syntax errors
         $jsonString = preg_replace('/,\s*([}\]])/', '$1', $jsonString); // Remove trailing commas
         $jsonString = preg_replace('/\s+/', ' ', $jsonString); // Normalize whitespace
-        
+
         return $jsonString;
     }
 
@@ -1484,7 +1611,7 @@ class GeminiService implements AIServiceInterface
         // Remove invalid UTF-8 characters
         $jsonString = mb_convert_encoding($jsonString, 'UTF-8', 'UTF-8');
         $jsonString = preg_replace('/[\x00-\x1F\x7F]/', '', $jsonString);
-        
+
         return $jsonString;
     }
 
@@ -1495,24 +1622,82 @@ class GeminiService implements AIServiceInterface
         $closeBraces = substr_count($jsonString, '}');
         $openBrackets = substr_count($jsonString, '[');
         $closeBrackets = substr_count($jsonString, ']');
-        
+
         // Close arrays first
         while ($openBrackets > $closeBrackets) {
             $jsonString .= ']';
             $closeBrackets++;
         }
-        
+
         // Close objects
         while ($openBraces > $closeBraces) {
             $jsonString .= '}';
             $closeBraces++;
         }
-        
+
         return $jsonString;
     }
 
     protected function getFallbackResponse($analysisType)
     {
+        if ($analysisType === 'sentiment-comparison') {
+            return [
+                'title' => 'Sentiment Comparison Unavailable',
+                'executive_summary' => 'The sentiment comparison could not be generated due to a technical issue. Please try again.',
+                'profile_a_username' => '',
+                'profile_b_username' => '',
+                'profile_a_sentiment' => [
+                    'dominant_tone' => 'Unknown',
+                    'positivity_assessment' => 'Unable to assess.',
+                    'emotional_themes' => [],
+                    'controversy_or_conflict_level' => 'Unknown',
+                    'audience_facing_mood' => 'Unknown',
+                    'sentiment_score_0_100' => 50,
+                ],
+                'profile_b_sentiment' => [
+                    'dominant_tone' => 'Unknown',
+                    'positivity_assessment' => 'Unable to assess.',
+                    'emotional_themes' => [],
+                    'controversy_or_conflict_level' => 'Unknown',
+                    'audience_facing_mood' => 'Unknown',
+                    'sentiment_score_0_100' => 50,
+                ],
+                'scope_and_methodology' => 'Comparison could not be completed.',
+                'overall_sentiment' => [
+                    'narrative' => 'Unavailable.',
+                    'polarity_index' => ['profile_a' => 50, 'profile_b' => 50],
+                    'positive_ratio' => ['profile_a' => 33, 'profile_b' => 33],
+                    'neutral_ratio' => ['profile_a' => 34, 'profile_b' => 34],
+                    'negative_ratio' => ['profile_a' => 33, 'profile_b' => 33],
+                    'note' => '',
+                ],
+                'trend_analysis' => ['narrative' => 'Unavailable.', 'dimensions' => []],
+                'key_topics' => [],
+                'sentiment_drivers' => [],
+                'mentions_volume' => ['narrative' => 'Unavailable.', 'relative_volume_a' => 50, 'relative_volume_b' => 50],
+                'comparison' => ['narrative' => 'Unavailable.', 'matrix' => []],
+                'platform_analysis' => ['narrative' => 'Unavailable.', 'platforms' => []],
+                'risk_alert' => ['level' => 'Medium', 'summary' => 'Analysis failed.', 'alerts' => ['Retry the comparison.']],
+                'recommendations' => ['Retry the comparison or contact support.'],
+                'side_by_side_summary' => 'Analysis failed.',
+                'key_differences' => [],
+                'similarities' => [],
+                'comparative_insights' => [],
+                'stakeholder_takeaways' => ['Retry the comparison or contact support if the issue persists.'],
+                'methodology' => 'Fallback response',
+                'limitations' => 'No model output received.',
+                'note' => 'System error.',
+                'status' => 'error',
+                'api_metadata' => [
+                    'api_response_time' => 0.0,
+                    'api_response_time_unit' => 'seconds',
+                    'api_timestamp' => now()->toISOString(),
+                    'model_version' => 'gemini-2.5-flash',
+                    'confidence_score' => 0.0,
+                ],
+            ];
+        }
+
         return [
             'title' => 'Analysis Failed - Fallback Response',
             'executive_summary' => 'Due to technical difficulties, a comprehensive analysis could not be generated. Please try again or contact support.',
@@ -1527,8 +1712,8 @@ class GeminiService implements AIServiceInterface
                     'probability' => 'Very Likely',
                     'impact' => 'Severe',
                     'timeline' => 'Immediate',
-                    'mitigation' => 'Retry analysis or contact technical support'
-                ]
+                    'mitigation' => 'Retry analysis or contact technical support',
+                ],
             ],
             'recommendations' => ['Retry the analysis', 'Check system status', 'Contact support if problem persists'],
             'strategic_implications' => ['Analysis system requires attention'],
@@ -1548,8 +1733,8 @@ class GeminiService implements AIServiceInterface
                 'api_timestamp' => now()->toISOString(),
                 'model_version' => 'gemini-2.5-flash',
                 'note' => 'Fallback response - timing may not be accurate',
-                'confidence_score' => 0.50 // Very low confidence for error fallback responses
-            ]
+                'confidence_score' => 0.50, // Very low confidence for error fallback responses
+            ],
         ];
     }
 
@@ -1557,11 +1742,13 @@ class GeminiService implements AIServiceInterface
     {
         // If we have structured JSON data, use it directly
         if (is_array($result) && isset($result['title'])) {
-            // Ensure all required fields are present
-            $result = $this->ensureCompleteStructure($result, $text);
+            if ($analysisType !== 'sentiment-comparison') {
+                $result = $this->ensureCompleteStructure($result, $text);
+            }
+
             return $result;
         }
-        
+
         // If we have raw response, try to parse it
         if (isset($result['raw_response'])) {
             $parsedResult = $this->parseRawResponse($result['raw_response'], $text);
@@ -1569,7 +1756,7 @@ class GeminiService implements AIServiceInterface
                 return $parsedResult;
             }
         }
-        
+
         // If we can't parse the response, return a comprehensive basic structure
         return $this->createComprehensiveFallback($text);
     }
@@ -1577,49 +1764,49 @@ class GeminiService implements AIServiceInterface
     protected function ensureCompleteStructure($result, $text = null)
     {
         $defaults = [
-            'title' => $result['title'] ?? "AI-Generated Prediction Analysis for " . substr($text ?? '', 0, 50),
-            'executive_summary' => $result['executive_summary'] ?? "Comprehensive AI analysis completed using advanced AI models. This analysis provides strategic insights and future predictions based on advanced pattern recognition and trend analysis.",
+            'title' => $result['title'] ?? 'AI-Generated Prediction Analysis for '.substr($text ?? '', 0, 50),
+            'executive_summary' => $result['executive_summary'] ?? 'Comprehensive AI analysis completed using advanced AI models. This analysis provides strategic insights and future predictions based on advanced pattern recognition and trend analysis.',
             'prediction_horizon' => $result['prediction_horizon'] ?? $this->getHorizonText($this->currentPredictionHorizon ?? 'next_month'),
-            'current_situation' => $result['current_situation'] ?? "Analysis provided by AI model with comprehensive data processing and trend analysis.",
-            'key_factors' => $result['key_factors'] ?? ["AI-powered analysis", "Advanced pattern recognition", "Comprehensive trend analysis", "Strategic forecasting", "Data-driven insights", "Future scenario modeling"],
-            'predictions' => $result['predictions'] ?? ["AI-generated predictions with timeline analysis", "Strategic forecasting with probability assessment", "Trend-based future outcomes", "Risk-adjusted predictions", "Opportunity identification", "Threat assessment and timeline", "Market evolution predictions", "Technology adoption forecasts", "Policy impact analysis", "Economic trend projections"],
+            'current_situation' => $result['current_situation'] ?? 'Analysis provided by AI model with comprehensive data processing and trend analysis.',
+            'key_factors' => $result['key_factors'] ?? ['AI-powered analysis', 'Advanced pattern recognition', 'Comprehensive trend analysis', 'Strategic forecasting', 'Data-driven insights', 'Future scenario modeling'],
+            'predictions' => $result['predictions'] ?? ['AI-generated predictions with timeline analysis', 'Strategic forecasting with probability assessment', 'Trend-based future outcomes', 'Risk-adjusted predictions', 'Opportunity identification', 'Threat assessment and timeline', 'Market evolution predictions', 'Technology adoption forecasts', 'Policy impact analysis', 'Economic trend projections'],
             'risk_assessment' => $result['risk_assessment'] ?? [
                 [
-                    'risk' => "Data quality and availability limitations",
+                    'risk' => 'Data quality and availability limitations',
                     'level' => 'Medium',
                     'probability' => 'Possible',
                     'impact' => 'Moderate',
                     'timeline' => 'Ongoing',
-                    'mitigation' => 'Continuous data validation and multiple source verification'
+                    'mitigation' => 'Continuous data validation and multiple source verification',
                 ],
                 [
-                    'risk' => "External factor unpredictability",
+                    'risk' => 'External factor unpredictability',
                     'level' => 'High',
                     'probability' => 'Likely',
                     'impact' => 'Significant',
                     'timeline' => 'Next 3-6 months',
-                    'mitigation' => 'Regular monitoring and adaptive strategy adjustment'
+                    'mitigation' => 'Regular monitoring and adaptive strategy adjustment',
                 ],
                 [
-                    'risk' => "Model accuracy limitations",
+                    'risk' => 'Model accuracy limitations',
                     'level' => 'Low',
                     'probability' => 'Unlikely',
                     'impact' => 'Minimal',
                     'timeline' => 'Long-term',
-                    'mitigation' => 'Continuous model improvement and validation'
-                ]
+                    'mitigation' => 'Continuous model improvement and validation',
+                ],
             ],
-            'recommendations' => $result['recommendations'] ?? ["Implement continuous monitoring systems", "Establish regular review cycles", "Develop contingency plans", "Build stakeholder communication channels", "Create success measurement frameworks", "Establish risk mitigation protocols", "Develop adaptive strategy frameworks", "Implement feedback loops"],
-            'strategic_implications' => $result['strategic_implications'] ?? ["Strategic planning implications", "Resource allocation considerations", "Risk management requirements", "Stakeholder engagement needs", "Performance measurement frameworks", "Adaptive strategy requirements"],
+            'recommendations' => $result['recommendations'] ?? ['Implement continuous monitoring systems', 'Establish regular review cycles', 'Develop contingency plans', 'Build stakeholder communication channels', 'Create success measurement frameworks', 'Establish risk mitigation protocols', 'Develop adaptive strategy frameworks', 'Implement feedback loops'],
+            'strategic_implications' => $result['strategic_implications'] ?? ['Strategic planning implications', 'Resource allocation considerations', 'Risk management requirements', 'Stakeholder engagement needs', 'Performance measurement frameworks', 'Adaptive strategy requirements'],
             'confidence_level' => $result['confidence_level'] ?? 'High (90-95%)/Medium (75-89%)/Low (60-74%)',
             'methodology' => $result['methodology'] ?? 'AI-powered analysis using advanced AI models for comprehensive future forecasting. Includes pattern recognition, trend analysis, and strategic scenario modeling.',
-            'data_sources' => $result['data_sources'] ?? ["AI pattern recognition", "Trend analysis algorithms", "Historical data modeling", "External factor assessment"],
-            'assumptions' => $result['assumptions'] ?? ["Current trends continue", "No major external disruptions", "Data quality remains consistent", "Model accuracy maintains current levels"],
+            'data_sources' => $result['data_sources'] ?? ['AI pattern recognition', 'Trend analysis algorithms', 'Historical data modeling', 'External factor assessment'],
+            'assumptions' => $result['assumptions'] ?? ['Current trends continue', 'No major external disruptions', 'Data quality remains consistent', 'Model accuracy maintains current levels'],
             'note' => $result['note'] ?? 'This analysis was generated by AI with comprehensive processing. Review all predictions and recommendations in context of your specific situation.',
             'analysis_date' => $result['analysis_date'] ?? now()->format('Y-m-d'),
             'next_review' => $result['next_review'] ?? now()->addMonths(3)->format('Y-m-d'),
-            'critical_timeline' => $result['critical_timeline'] ?? "Monitor key predictions monthly, review assumptions quarterly",
-            'success_metrics' => $result['success_metrics'] ?? ["Prediction accuracy rate", "Recommendation implementation success", "Risk mitigation effectiveness", "Strategic goal achievement"]
+            'critical_timeline' => $result['critical_timeline'] ?? 'Monitor key predictions monthly, review assumptions quarterly',
+            'success_metrics' => $result['success_metrics'] ?? ['Prediction accuracy rate', 'Recommendation implementation success', 'Risk mitigation effectiveness', 'Strategic goal achievement'],
         ];
 
         // Merge provided results with defaults
@@ -1629,117 +1816,117 @@ class GeminiService implements AIServiceInterface
     protected function createComprehensiveFallback($text)
     {
         return [
-            'title' => "Comprehensive AI Prediction Analysis for " . substr($text, 0, 50),
-            'executive_summary' => "This comprehensive analysis provides strategic insights and future predictions based on advanced AI analysis using state-of-the-art AI models. The analysis covers key trends, risks, opportunities, and strategic recommendations for informed decision-making.",
+            'title' => 'Comprehensive AI Prediction Analysis for '.substr($text, 0, 50),
+            'executive_summary' => 'This comprehensive analysis provides strategic insights and future predictions based on advanced AI analysis using state-of-the-art AI models. The analysis covers key trends, risks, opportunities, and strategic recommendations for informed decision-making.',
             'prediction_horizon' => $this->getHorizonText($this->currentPredictionHorizon ?? 'next_month'),
-            'current_situation' => "Analysis completed using advanced AI algorithms with comprehensive data processing and trend analysis capabilities. The system leverages multiple data points to identify patterns and generate strategic insights.",
+            'current_situation' => 'Analysis completed using advanced AI algorithms with comprehensive data processing and trend analysis capabilities. The system leverages multiple data points to identify patterns and generate strategic insights.',
             'key_factors' => [
-                "AI-powered comprehensive analysis",
-                "Advanced pattern recognition algorithms", 
-                "Strategic trend analysis and forecasting",
-                "Risk assessment and mitigation planning",
-                "Opportunity identification and evaluation",
-                "Strategic recommendation generation"
+                'AI-powered comprehensive analysis',
+                'Advanced pattern recognition algorithms',
+                'Strategic trend analysis and forecasting',
+                'Risk assessment and mitigation planning',
+                'Opportunity identification and evaluation',
+                'Strategic recommendation generation',
             ],
             'predictions' => [
-                "AI-generated strategic predictions with timeline analysis",
-                "Comprehensive future scenario modeling with probability assessment",
-                "Trend-based outcome forecasting with risk adjustment",
-                "Strategic opportunity identification with implementation timeline",
-                "Threat assessment with mitigation strategy development",
-                "Market evolution prediction with competitive analysis",
-                "Technology adoption forecasting with impact assessment",
-                "Policy and regulatory impact analysis with timeline",
-                "Economic trend projection with strategic implications",
-                "Organizational change prediction with readiness assessment"
+                'AI-generated strategic predictions with timeline analysis',
+                'Comprehensive future scenario modeling with probability assessment',
+                'Trend-based outcome forecasting with risk adjustment',
+                'Strategic opportunity identification with implementation timeline',
+                'Threat assessment with mitigation strategy development',
+                'Market evolution prediction with competitive analysis',
+                'Technology adoption forecasting with impact assessment',
+                'Policy and regulatory impact analysis with timeline',
+                'Economic trend projection with strategic implications',
+                'Organizational change prediction with readiness assessment',
             ],
             'risk_assessment' => [
                 [
-                    'risk' => "Data quality and availability limitations affecting prediction accuracy",
+                    'risk' => 'Data quality and availability limitations affecting prediction accuracy',
                     'level' => 'Medium',
                     'probability' => 'Possible',
                     'impact' => 'Moderate',
                     'timeline' => 'Ongoing',
-                    'mitigation' => 'Implement continuous data validation and multiple source verification protocols'
+                    'mitigation' => 'Implement continuous data validation and multiple source verification protocols',
                 ],
                 [
-                    'risk' => "External factor unpredictability impacting forecast reliability",
+                    'risk' => 'External factor unpredictability impacting forecast reliability',
                     'level' => 'High',
                     'probability' => 'Likely',
                     'impact' => 'Significant',
                     'timeline' => 'Next 3-6 months',
-                    'mitigation' => 'Establish regular monitoring systems and adaptive strategy adjustment frameworks'
+                    'mitigation' => 'Establish regular monitoring systems and adaptive strategy adjustment frameworks',
                 ],
                 [
-                    'risk' => "Model accuracy limitations in complex scenarios",
+                    'risk' => 'Model accuracy limitations in complex scenarios',
                     'level' => 'Low',
                     'probability' => 'Unlikely',
                     'impact' => 'Minimal',
                     'timeline' => 'Long-term',
-                    'mitigation' => 'Continuous model improvement and validation processes'
+                    'mitigation' => 'Continuous model improvement and validation processes',
                 ],
                 [
-                    'risk' => "Stakeholder resistance to AI-generated recommendations",
+                    'risk' => 'Stakeholder resistance to AI-generated recommendations',
                     'level' => 'Medium',
                     'probability' => 'Possible',
                     'impact' => 'Moderate',
                     'timeline' => 'Implementation phase',
-                    'mitigation' => 'Develop comprehensive change management and communication strategies'
+                    'mitigation' => 'Develop comprehensive change management and communication strategies',
                 ],
                 [
-                    'risk' => "Resource constraints limiting implementation of recommendations",
+                    'risk' => 'Resource constraints limiting implementation of recommendations',
                     'level' => 'High',
                     'probability' => 'Likely',
                     'impact' => 'Significant',
                     'timeline' => 'Next 1-3 months',
-                    'mitigation' => 'Prioritize recommendations by impact and resource requirements'
-                ]
+                    'mitigation' => 'Prioritize recommendations by impact and resource requirements',
+                ],
             ],
             'recommendations' => [
-                "Implement comprehensive monitoring and tracking systems for all predictions",
-                "Establish regular review cycles with stakeholder engagement",
-                "Develop detailed contingency plans for identified high-risk scenarios",
-                "Build robust stakeholder communication and engagement channels",
-                "Create measurable success metrics and performance frameworks",
-                "Establish proactive risk mitigation protocols and response systems",
-                "Develop adaptive strategy frameworks for changing circumstances",
-                "Implement continuous feedback loops for strategy improvement"
+                'Implement comprehensive monitoring and tracking systems for all predictions',
+                'Establish regular review cycles with stakeholder engagement',
+                'Develop detailed contingency plans for identified high-risk scenarios',
+                'Build robust stakeholder communication and engagement channels',
+                'Create measurable success metrics and performance frameworks',
+                'Establish proactive risk mitigation protocols and response systems',
+                'Develop adaptive strategy frameworks for changing circumstances',
+                'Implement continuous feedback loops for strategy improvement',
             ],
             'strategic_implications' => [
-                "Strategic planning requires integration of AI insights with human judgment",
-                "Resource allocation must consider both opportunities and risk mitigation",
-                "Risk management becomes integral to strategic decision-making",
-                "Stakeholder engagement is critical for successful implementation",
-                "Performance measurement frameworks must include prediction accuracy",
-                "Adaptive strategy development is essential for long-term success"
+                'Strategic planning requires integration of AI insights with human judgment',
+                'Resource allocation must consider both opportunities and risk mitigation',
+                'Risk management becomes integral to strategic decision-making',
+                'Stakeholder engagement is critical for successful implementation',
+                'Performance measurement frameworks must include prediction accuracy',
+                'Adaptive strategy development is essential for long-term success',
             ],
             'confidence_level' => 'High (85-90%)',
             'methodology' => 'AI-powered comprehensive analysis using advanced AI models for strategic future forecasting. Includes advanced pattern recognition, trend analysis, risk assessment, and strategic scenario modeling with continuous validation.',
             'data_sources' => [
-                "Advanced AI pattern recognition algorithms",
-                "Comprehensive trend analysis and forecasting models",
-                "Historical data modeling and validation",
-                "External factor assessment and impact analysis",
-                "Stakeholder input and expert knowledge integration"
+                'Advanced AI pattern recognition algorithms',
+                'Comprehensive trend analysis and forecasting models',
+                'Historical data modeling and validation',
+                'External factor assessment and impact analysis',
+                'Stakeholder input and expert knowledge integration',
             ],
             'assumptions' => [
-                "Current trends and patterns continue within reasonable bounds",
-                "No major external disruptions occur during the prediction period",
-                "Data quality and availability remain consistent with current levels",
-                "Model accuracy maintains current performance standards",
-                "Stakeholder engagement and implementation capacity remain stable"
+                'Current trends and patterns continue within reasonable bounds',
+                'No major external disruptions occur during the prediction period',
+                'Data quality and availability remain consistent with current levels',
+                'Model accuracy maintains current performance standards',
+                'Stakeholder engagement and implementation capacity remain stable',
             ],
             'note' => 'This comprehensive analysis was generated by AI with advanced processing capabilities. All predictions, recommendations, and risk assessments should be reviewed in the context of your specific organizational situation and external environment.',
             'analysis_date' => now()->format('Y-m-d'),
             'next_review' => now()->addMonths(3)->format('Y-m-d'),
-            'critical_timeline' => "Monitor key predictions monthly, review assumptions quarterly, and conduct comprehensive strategy review every 6 months",
+            'critical_timeline' => 'Monitor key predictions monthly, review assumptions quarterly, and conduct comprehensive strategy review every 6 months',
             'success_metrics' => [
-                "Prediction accuracy rate and timeline adherence",
-                "Recommendation implementation success and impact measurement",
-                "Risk mitigation effectiveness and response time",
-                "Strategic goal achievement and performance improvement",
-                "Stakeholder satisfaction and engagement levels"
-            ]
+                'Prediction accuracy rate and timeline adherence',
+                'Recommendation implementation success and impact measurement',
+                'Risk mitigation effectiveness and response time',
+                'Strategic goal achievement and performance improvement',
+                'Stakeholder satisfaction and engagement levels',
+            ],
         ];
     }
 
@@ -1747,7 +1934,7 @@ class GeminiService implements AIServiceInterface
     {
         // Try to extract structured information from raw text
         $result = [
-            'title' => "AI-Generated Prediction Analysis for " . substr($text, 0, 50),
+            'title' => 'AI-Generated Prediction Analysis for '.substr($text, 0, 50),
             'executive_summary' => $this->extractSection($rawResponse, 'executive summary', 'summary'),
             'current_situation' => $this->extractSection($rawResponse, 'current situation', 'situation'),
             'key_factors' => $this->extractListSection($rawResponse, 'key factors', 'factors'),
@@ -1765,10 +1952,10 @@ class GeminiService implements AIServiceInterface
                 'api_response_time_unit' => 'seconds',
                 'api_timestamp' => now()->toISOString(),
                 'model_version' => 'gemini-2.5-flash',
-                'note' => 'Fallback response - timing may not be accurate'
-            ]
+                'note' => 'Fallback response - timing may not be accurate',
+            ],
         ];
-        
+
         return $result;
     }
 
@@ -1776,33 +1963,35 @@ class GeminiService implements AIServiceInterface
     {
         $sectionTitle = strtolower($sectionTitle);
         $fallbackTitle = strtolower($fallbackTitle);
-        
+
         $start = strpos($text, "{$sectionTitle}:");
         if ($start === false) {
             $start = strpos($text, "{$fallbackTitle}:");
         }
-        
+
         if ($start !== false) {
             $start += strlen("{$sectionTitle}:");
             $end = strpos($text, "\n", $start);
             if ($end === false) {
                 $end = strlen($text);
             }
+
             return trim(substr($text, $start, $end - $start));
         }
+
         return null;
     }
-    
+
     protected function extractListSection($text, $sectionTitle, $fallbackTitle)
     {
         $sectionTitle = strtolower($sectionTitle);
         $fallbackTitle = strtolower($fallbackTitle);
-        
+
         $start = strpos($text, "{$sectionTitle}:");
         if ($start === false) {
             $start = strpos($text, "{$fallbackTitle}:");
         }
-        
+
         if ($start !== false) {
             $start += strlen("{$sectionTitle}:");
             $end = strpos($text, "\n", $start);
@@ -1810,20 +1999,22 @@ class GeminiService implements AIServiceInterface
                 $end = strlen($text);
             }
             $listText = trim(substr($text, $start, $end - $start));
-            
+
             $items = [];
             $lines = explode("\n", $listText);
             foreach ($lines as $line) {
                 $line = trim($line);
-                if (!empty($line)) {
+                if (! empty($line)) {
                     $items[] = $line;
                 }
             }
+
             return $items;
         }
+
         return null;
     }
-    
+
     protected function extractRiskAssessment($text)
     {
         $risks = [];
@@ -1836,12 +2027,13 @@ class GeminiService implements AIServiceInterface
                     'level' => 'Medium',
                     'probability' => 'Likely',
                     'impact' => 'Moderate',
-                    'mitigation' => 'N/A'
+                    'mitigation' => 'N/A',
                 ];
-                
+
                 $risks[] = $risk;
             }
         }
+
         return $risks;
     }
 
@@ -1852,33 +2044,33 @@ class GeminiService implements AIServiceInterface
                 return [
                     'success' => false,
                     'message' => 'Gemini API key not configured',
-                    'status_code' => 0
+                    'status_code' => 0,
                 ];
             }
 
             // Test with a simple prompt
             $testPrompt = "Hello, this is a test message. Please respond with 'Test successful'.";
             $result = $this->analyzeText($testPrompt, 'test');
-            
+
             if (isset($result['status']) && $result['status'] === 'error') {
                 return [
                     'success' => false,
-                    'message' => 'Gemini API test failed: ' . ($result['note'] ?? 'Unknown error'),
-                    'status_code' => 0
+                    'message' => 'Gemini API test failed: '.($result['note'] ?? 'Unknown error'),
+                    'status_code' => 0,
                 ];
             }
-            
+
             return [
                 'success' => true,
                 'message' => 'Gemini API connection successful',
-                'status_code' => 200
+                'status_code' => 200,
             ];
-            
+
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Gemini API connection error: ' . $e->getMessage(),
-                'status_code' => 0
+                'message' => 'Gemini API connection error: '.$e->getMessage(),
+                'status_code' => 0,
             ];
         }
     }
@@ -1889,43 +2081,43 @@ class GeminiService implements AIServiceInterface
         if (app()->environment('local', 'development')) {
             return;
         }
-        
-        $cacheKey = 'gemini_rate_limit_' . $this->model;
+
+        $cacheKey = 'gemini_rate_limit_'.$this->model;
         $currentTime = time();
-        
+
         // Get current usage from cache
         $usage = cache()->get($cacheKey, [
             'minute_count' => 0,
             'minute_start' => $currentTime,
             'day_count' => 0,
-            'day_start' => $currentTime
+            'day_start' => $currentTime,
         ]);
-        
+
         // Reset counters if needed
         if ($currentTime - $usage['minute_start'] >= 60) {
             $usage['minute_count'] = 0;
             $usage['minute_start'] = $currentTime;
         }
-        
+
         if ($currentTime - $usage['day_start'] >= 86400) {
             $usage['day_count'] = 0;
             $usage['day_start'] = $currentTime;
         }
-        
+
         // Check limits (conservative estimates for free tier)
         if ($usage['minute_count'] >= 10) { // Leave buffer
             $waitTime = 60 - ($currentTime - $usage['minute_start']);
             throw new Exception("Rate limit exceeded. Please wait {$waitTime} seconds before trying again.");
         }
-        
+
         if ($usage['day_count'] >= 1400) { // Leave buffer
-            throw new Exception("Daily rate limit exceeded. Please try again tomorrow or upgrade your plan.");
+            throw new Exception('Daily rate limit exceeded. Please try again tomorrow or upgrade your plan.');
         }
-        
+
         // Increment counters
         $usage['minute_count']++;
         $usage['day_count']++;
-        
+
         // Store updated usage
         cache()->put($cacheKey, $usage, 86400); // Cache for 24 hours
     }
@@ -1936,15 +2128,16 @@ class GeminiService implements AIServiceInterface
             'prediction-analysis' => [
                 'name' => 'Advanced Prediction Analysis',
                 'model' => 'gemini-2.5-flash',
-                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using advanced AI models for comprehensive future forecasting and strategic insights across any topic or domain'
-            ]
+                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using advanced AI models for comprehensive future forecasting and strategic insights across any topic or domain',
+            ],
         ];
     }
-    
+
     public function clearRateLimits()
     {
-        $cacheKey = 'gemini_rate_limit_' . $this->model;
+        $cacheKey = 'gemini_rate_limit_'.$this->model;
         cache()->forget($cacheKey);
+
         return true;
     }
 
@@ -1956,13 +2149,13 @@ class GeminiService implements AIServiceInterface
         try {
             $responseData = $response->json();
             $outputTokens = 0;
-            
+
             // Estimate output tokens from response
             if (isset($responseData['candidates'][0]['content']['parts'][0]['text'])) {
                 $responseText = $responseData['candidates'][0]['content']['parts'][0]['text'];
                 $outputTokens = (int) ceil(strlen($responseText) / 4); // Rough approximation
             }
-            
+
             // Update analytics with API response data
             $analytics->update([
                 'output_tokens' => $outputTokens,
@@ -1970,23 +2163,23 @@ class GeminiService implements AIServiceInterface
                 'http_status_code' => $response->status(),
                 'retry_attempts' => $analytics->retry_attempts ?? 0,
             ]);
-            
+
             // Calculate total tokens and cost
             $analytics->calculateTotalTokens();
             $analytics->calculateEstimatedCost();
             $analytics->save();
-            
+
             Log::info('Analytics updated with API response data', [
                 'analytics_id' => $analytics->id,
                 'output_tokens' => $outputTokens,
                 'total_tokens' => $analytics->total_tokens,
-                'estimated_cost' => $analytics->estimated_cost
+                'estimated_cost' => $analytics->estimated_cost,
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Failed to update analytics with API response', [
                 'analytics_id' => $analytics->id ?? 'unknown',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -1994,26 +2187,26 @@ class GeminiService implements AIServiceInterface
     protected function retryWithoutSSLVerification($prompt, $scrapedContent, $sourceUrls, $analysisType)
     {
         try {
-            Log::info("Retrying Gemini API request without SSL verification");
-            
+            Log::info('Retrying Gemini API request without SSL verification');
+
             $response = Http::timeout(300)->withOptions([
                 'verify' => false,
                 'curl' => [
                     CURLOPT_SSL_VERIFYPEER => false,
                     CURLOPT_SSL_VERIFYHOST => false,
-                ]
+                ],
             ])->withHeaders([
                 'x-goog-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ])->post($this->baseUrl, [
                 'contents' => [
                     [
                         'parts' => [
                             [
-                                'text' => $prompt
-                            ]
-                        ]
-                    ]
+                                'text' => $prompt,
+                            ],
+                        ],
+                    ],
                 ],
                 'generationConfig' => [
                     'temperature' => 0.7,
@@ -2024,66 +2217,69 @@ class GeminiService implements AIServiceInterface
                 'safetySettings' => [
                     [
                         'category' => 'HARM_CATEGORY_HARASSMENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_HATE_SPEECH',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                    ]
-                ]
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
+                    ],
+                ],
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
                     $result = $data['candidates'][0]['content']['parts'][0]['text'];
-                    
+
                     // Try to parse JSON response
                     $parsedResult = $this->parseJsonResponse($result);
-                    
+
                     if ($parsedResult) {
                         // Add scraping metadata to the result
                         if ($scrapedContent) {
                             $parsedResult['scraping_metadata'] = [
                                 'total_sources' => count($sourceUrls),
-                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn ($s) => $s['status'] === 'success')),
                                 'scraped_at' => now()->toISOString(),
-                                'source_details' => array_map(function($source) {
+                                'source_details' => array_map(function ($source) {
                                     return [
                                         'url' => $source['url'],
                                         'title' => $source['title'] ?? 'N/A',
                                         'word_count' => $source['word_count'] ?? 0,
                                         'status' => $source['status'],
-                                        'error' => $source['error'] ?? null
+                                        'error' => $source['error'] ?? null,
                                     ];
-                                }, $scrapedContent)
+                                }, $scrapedContent),
                             ];
                         }
-                        
+
                         return $parsedResult;
                     }
-                    
+
                     return $result;
                 }
-                
-                Log::error('Unexpected Gemini API response structure on retry: ' . json_encode($data));
+
+                Log::error('Unexpected Gemini API response structure on retry: '.json_encode($data));
+
                 return $this->getFallbackResponse($analysisType);
             }
-            
-            Log::error('Gemini API retry request failed: ' . $response->status() . ' - ' . $response->body());
+
+            Log::error('Gemini API retry request failed: '.$response->status().' - '.$response->body());
+
             return $this->getFallbackResponse($analysisType);
-            
+
         } catch (\Exception $e) {
-            Log::error('Error in SSL retry: ' . $e->getMessage());
+            Log::error('Error in SSL retry: '.$e->getMessage());
+
             return $this->getFallbackResponse($analysisType);
         }
     }
@@ -2110,10 +2306,10 @@ class GeminiService implements AIServiceInterface
     {
         // Remove trailing commas before closing braces and brackets
         $jsonString = preg_replace('/,\s*([}\]])/s', '$1', $jsonString);
-        
+
         // Remove trailing comma at the very end
         $jsonString = rtrim($jsonString, ',');
-        
+
         return $jsonString;
     }
 
@@ -2127,7 +2323,7 @@ class GeminiService implements AIServiceInterface
                 $jsonString = substr($jsonString, 0, $lastQuotePos + 1);
             }
         }
-        
+
         return $jsonString;
     }
 
@@ -2140,20 +2336,21 @@ class GeminiService implements AIServiceInterface
             // Validate API key
             if (empty($this->apiKey)) {
                 Log::error('Gemini API key not configured');
+
                 return "I'm sorry, but the AI service is not properly configured. Please contact support.";
             }
 
             // Build conversation context with system instruction
-            $systemInstruction = "You are a helpful AI assistant for NUJUM, an AI-powered analysis platform. You help users with questions about predictions analysis, social media analysis, data analysis, and general platform usage. Be friendly, concise, and helpful. Keep responses conversational and under 200 words unless the user asks for detailed information.";
-            
+            $systemInstruction = 'You are a helpful AI assistant for NUJUM, an AI-powered analysis platform. You help users with questions about predictions analysis, social media analysis, data analysis, and general platform usage. Be friendly, concise, and helpful. Keep responses conversational and under 200 words unless the user asks for detailed information.';
+
             // Build contents array with only current message
             $contents = [
                 [
                     'parts' => [
-                        ['text' => $message]
+                        ['text' => $message],
                     ],
-                    'role' => 'user'
-                ]
+                    'role' => 'user',
+                ],
             ];
 
             $response = Http::timeout(60)->withOptions([
@@ -2161,16 +2358,16 @@ class GeminiService implements AIServiceInterface
                 'curl' => [
                     CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
                     CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
-                ]
+                ],
             ])->withHeaders([
                 'x-goog-api-key' => $this->apiKey,
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ])->post($this->baseUrl, [
                 'contents' => $contents,
                 'systemInstruction' => [
                     'parts' => [
-                        ['text' => $systemInstruction]
-                    ]
+                        ['text' => $systemInstruction],
+                    ],
                 ],
                 'generationConfig' => [
                     'temperature' => 0.7,
@@ -2181,38 +2378,41 @@ class GeminiService implements AIServiceInterface
                 'safetySettings' => [
                     [
                         'category' => 'HARM_CATEGORY_HARASSMENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_HATE_SPEECH',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
                     ],
                     [
                         'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE'
-                    ]
-                ]
+                        'threshold' => 'BLOCK_MEDIUM_AND_ABOVE',
+                    ],
+                ],
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
                     return trim($data['candidates'][0]['content']['parts'][0]['text']);
                 }
-                
-                Log::error('Unexpected Gemini chat response structure: ' . json_encode($data));
+
+                Log::error('Unexpected Gemini chat response structure: '.json_encode($data));
+
                 return "I'm sorry, I encountered an issue processing your message. Please try again.";
             }
 
-            Log::error('Gemini chat API error: ' . $response->body());
+            Log::error('Gemini chat API error: '.$response->body());
+
             return "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
         } catch (\Exception $e) {
-            Log::error('Gemini chat exception: ' . $e->getMessage());
+            Log::error('Gemini chat exception: '.$e->getMessage());
+
             return "I'm sorry, something went wrong. Please try again later.";
         }
     }

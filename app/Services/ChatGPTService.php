@@ -2,27 +2,30 @@
 
 namespace App\Services;
 
-use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
 
 class ChatGPTService implements AIServiceInterface
 {
     protected $apiKey;
+
     protected $baseUrl = 'https://api.openai.com/v1/chat/completions';
+
     protected $webScrapingService;
+
     protected $sslVerify;
+
     protected $currentPredictionHorizon;
+
     protected $model = 'gpt-4o';
 
     public function __construct(WebScrapingService $webScrapingService)
     {
         $this->apiKey = config('services.chatgpt.api_key');
         $this->webScrapingService = $webScrapingService;
-        
+
         // Check if we should verify SSL (default to true for production)
-        $this->sslVerify = config('services.chatgpt.ssl_verify', !app()->environment('local', 'development'));
+        $this->sslVerify = config('services.chatgpt.ssl_verify', ! app()->environment('local', 'development'));
     }
 
     public function analyzeText($text, $analysisType = 'prediction-analysis', $sourceUrls = null, $predictionHorizon = null, $analytics = null, $target = null, $reportLanguage = null)
@@ -31,12 +34,14 @@ class ChatGPTService implements AIServiceInterface
             // Validate API key
             if (empty($this->apiKey)) {
                 Log::error('ChatGPT API key not configured');
+
                 return $this->getFallbackResponse($analysisType);
             }
-            
+
             // Validate API key format (should start with sk-)
-            if (!str_starts_with($this->apiKey, 'sk-')) {
+            if (! str_starts_with($this->apiKey, 'sk-')) {
                 Log::error('Invalid ChatGPT API key format. Key should start with "sk-"');
+
                 return $this->getFallbackResponse($analysisType);
             }
 
@@ -44,93 +49,99 @@ class ChatGPTService implements AIServiceInterface
             $scrapedContent = null;
             $scrapingSummary = null;
             if ($sourceUrls && count($sourceUrls) > 0) {
-                Log::info("Starting to scrape " . count($sourceUrls) . " source URLs");
+                Log::info('Starting to scrape '.count($sourceUrls).' source URLs');
                 $scrapedContent = $this->webScrapingService->scrapeMultipleUrls($sourceUrls);
-                
+
                 // Create scraping summary for better user feedback
-                $successfulScrapes = array_filter($scrapedContent, fn($s) => $s['status'] === 'success');
-                $failedScrapes = array_filter($scrapedContent, fn($s) => $s['status'] === 'error');
-                
+                $successfulScrapes = array_filter($scrapedContent, fn ($s) => $s['status'] === 'success');
+                $failedScrapes = array_filter($scrapedContent, fn ($s) => $s['status'] === 'error');
+
                 $scrapingSummary = [
                     'total_urls' => count($sourceUrls),
                     'successful_scrapes' => count($successfulScrapes),
                     'failed_scrapes' => count($failedScrapes),
                     'success_rate' => count($sourceUrls) > 0 ? round((count($successfulScrapes) / count($sourceUrls)) * 100, 1) : 0,
-                    'failed_urls' => array_map(function($failed) {
+                    'failed_urls' => array_map(function ($failed) {
                         return [
                             'url' => $failed['url'],
                             'error' => $failed['error'] ?? 'Unknown error',
-                            'status_code' => $failed['status_code'] ?? null
+                            'status_code' => $failed['status_code'] ?? null,
                         ];
-                    }, $failedScrapes)
+                    }, $failedScrapes),
                 ];
-                
-                Log::info("Completed scraping URLs. Results: " . json_encode(array_column($scrapedContent, 'status')));
-                Log::info("Scraping summary: " . json_encode($scrapingSummary));
-                
+
+                Log::info('Completed scraping URLs. Results: '.json_encode(array_column($scrapedContent, 'status')));
+                Log::info('Scraping summary: '.json_encode($scrapingSummary));
+
                 // If no URLs were successfully scraped, provide warning
                 if (count($successfulScrapes) === 0) {
-                    Log::warning("No URLs were successfully scraped. All URLs may be inaccessible or blocked.");
+                    Log::warning('No URLs were successfully scraped. All URLs may be inaccessible or blocked.');
                 }
             }
 
             // Store the current prediction horizon for fallback responses
             $this->currentPredictionHorizon = $predictionHorizon;
-            
+
             $prompt = $this->createAnalysisPrompt($text, $analysisType, $sourceUrls, $scrapedContent, $predictionHorizon, $scrapingSummary, $target, $reportLanguage);
-            
+
             // Set execution time limit to 5 minutes for long AI requests
             set_time_limit(300);
-            
+
             // Record start time for API request timing
             $apiStartTime = microtime(true);
-            
-            Log::info("Execution time limit set to: " . ini_get('max_execution_time') . " seconds");
-            Log::info("Memory limit: " . ini_get('memory_limit'));
-            Log::info("Starting ChatGPT API request at: " . now());
-            
-            Log::info("Sending request to ChatGPT API with prompt length: " . strlen($prompt));
-            Log::info("API Key configured: " . (!empty($this->apiKey) ? 'Yes (length: ' . strlen($this->apiKey) . ')' : 'No'));
-            Log::info("Request URL: " . $this->baseUrl);
-            Log::info("Authentication: Using Bearer token");
-            
+
+            Log::info('Execution time limit set to: '.ini_get('max_execution_time').' seconds');
+            Log::info('Memory limit: '.ini_get('memory_limit'));
+            Log::info('Starting ChatGPT API request at: '.now());
+
+            Log::info('Sending request to ChatGPT API with prompt length: '.strlen($prompt));
+            Log::info('API Key configured: '.(! empty($this->apiKey) ? 'Yes (length: '.strlen($this->apiKey).')' : 'No'));
+            Log::info('Request URL: '.$this->baseUrl);
+            Log::info('Authentication: Using Bearer token');
+
+            $maxCompletionTokens = match ($analysisType) {
+                'data-analysis' => 16000,
+                'sentiment-comparison' => 12000,
+                default => 6000,
+            };
+
             $response = Http::timeout(300)->withOptions([
                 'verify' => $this->sslVerify,
                 'curl' => [
                     CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
                     CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
-                ]
+                ],
             ])->withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json'
+                'Authorization' => 'Bearer '.$this->apiKey,
+                'Content-Type' => 'application/json',
             ])->post($this->baseUrl, [
                 'model' => $this->model,
                 'messages' => [
                     [
                         'role' => 'user',
-                        'content' => $prompt
-                    ]
+                        'content' => $prompt,
+                    ],
                 ],
                 'temperature' => 1,
-                'max_completion_tokens' => 6000
+                'max_completion_tokens' => $maxCompletionTokens,
             ]);
-            
+
             // Calculate API response time
             $apiResponseTime = round(microtime(true) - $apiStartTime, 3);
-            
+
             // Update analytics if provided
             if ($analytics) {
                 $this->updateAnalyticsWithApiResponse($analytics, $response, $apiResponseTime);
             }
-            
-            Log::info("ChatGPT API response received at: " . now());
-            Log::info("API response time: " . $apiResponseTime . " seconds");
-            Log::info("Response status: " . $response->status());
-            Log::info("Response body length: " . strlen($response->body()));
+
+            Log::info('ChatGPT API response received at: '.now());
+            Log::info('API response time: '.$apiResponseTime.' seconds');
+            Log::info('Response status: '.$response->status());
+            Log::info('Response body length: '.strlen($response->body()));
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 // Debug: Log the full response structure
                 Log::info('ChatGPT API response structure debug', [
                     'response_keys' => array_keys($data),
@@ -142,60 +153,60 @@ class ChatGPTService implements AIServiceInterface
                     'message_keys' => isset($data['choices'][0]['message']) ? array_keys($data['choices'][0]['message']) : 'N/A',
                     'has_content' => isset($data['choices'][0]['message']['content']),
                     'content_length' => isset($data['choices'][0]['message']['content']) ? strlen($data['choices'][0]['message']['content']) : 0,
-                    'content_preview' => isset($data['choices'][0]['message']['content']) ? substr($data['choices'][0]['message']['content'], 0, 200) : 'N/A'
+                    'content_preview' => isset($data['choices'][0]['message']['content']) ? substr($data['choices'][0]['message']['content'], 0, 200) : 'N/A',
                 ]);
-                
+
                 if (isset($data['choices'][0]['message']['content'])) {
                     $result = $data['choices'][0]['message']['content'];
-                    
+
                     // Debug: Log the actual content received
                     Log::info('ChatGPT API content received', [
                         'content_length' => strlen($result),
                         'content_type' => gettype($result),
                         'content_preview' => substr($result, 0, 500),
                         'is_empty' => empty($result),
-                        'is_null' => is_null($result)
+                        'is_null' => is_null($result),
                     ]);
-                    
+
                     // Try to parse JSON response
                     $parsedResult = $this->parseJsonResponse($result);
-                    
+
                     if ($parsedResult) {
                         // Extract confidence score from the AI response if available
                         $confidenceScore = $this->extractConfidenceFromAIResponse($parsedResult);
-                        
+
                         // Add API timing metadata
                         $parsedResult['api_metadata'] = [
                             'api_response_time' => $apiResponseTime,
                             'api_response_time_unit' => 'seconds',
                             'api_timestamp' => now()->toISOString(),
                             'model_version' => $this->model,
-                            'confidence_score' => $confidenceScore
+                            'confidence_score' => $confidenceScore,
                         ];
-                        
+
                         // Add scraping metadata to the result
                         if ($scrapedContent || $scrapingSummary) {
                             $parsedResult['scraping_metadata'] = [
                                 'total_sources' => count($sourceUrls),
-                                'successfully_scraped' => count(array_filter($scrapedContent, fn($s) => $s['status'] === 'success')),
+                                'successfully_scraped' => count(array_filter($scrapedContent, fn ($s) => $s['status'] === 'success')),
                                 'scraped_at' => now()->toISOString(),
                                 'scraping_summary' => $scrapingSummary,
-                                'source_details' => array_map(function($source) {
+                                'source_details' => array_map(function ($source) {
                                     return [
                                         'url' => $source['url'],
                                         'title' => $source['title'] ?? 'N/A',
                                         'word_count' => $source['word_count'] ?? 0,
                                         'status' => $source['status'],
                                         'error' => $source['error'] ?? null,
-                                        'status_code' => $source['status_code'] ?? null
+                                        'status_code' => $source['status_code'] ?? null,
                                     ];
-                                }, $scrapedContent)
+                                }, $scrapedContent),
                             ];
                         }
-                        
+
                         return $parsedResult;
                     }
-                    
+
                     return $result;
                 } else {
                     // Log detailed information about missing content
@@ -206,19 +217,22 @@ class ChatGPTService implements AIServiceInterface
                         'message_exists' => isset($data['choices'][0]['message']),
                         'content_exists' => isset($data['choices'][0]['message']['content']),
                         'content_value' => $data['choices'][0]['message']['content'] ?? 'NOT_SET',
-                        'content_type' => gettype($data['choices'][0]['message']['content'] ?? null)
+                        'content_type' => gettype($data['choices'][0]['message']['content'] ?? null),
                     ]);
                 }
-                
-                Log::error('Unexpected ChatGPT API response structure: ' . json_encode($data));
+
+                Log::error('Unexpected ChatGPT API response structure: '.json_encode($data));
+
                 return $this->getFallbackResponse($analysisType);
             }
-            
-            Log::error('ChatGPT API request failed: ' . $response->status() . ' - ' . $response->body());
+
+            Log::error('ChatGPT API request failed: '.$response->status().' - '.$response->body());
+
             return $this->getFallbackResponse($analysisType);
-            
+
         } catch (\Exception $e) {
-            Log::error('Error in ChatGPTService: ' . $e->getMessage());
+            Log::error('Error in ChatGPTService: '.$e->getMessage());
+
             return $this->getFallbackResponse($analysisType);
         }
     }
@@ -235,7 +249,7 @@ class ChatGPTService implements AIServiceInterface
             'three_months' => 'Next 3 Months',
             'six_months' => 'Next 6 Months',
             'twelve_months' => 'Next 12 Months',
-            'two_years' => 'Next 2 Years'
+            'two_years' => 'Next 2 Years',
         ];
 
         return $horizonMap[$horizon] ?? 'Next Month';
@@ -247,9 +261,9 @@ class ChatGPTService implements AIServiceInterface
     protected function predictionReportLanguageInstruction(?string $reportLanguage): string
     {
         if ($reportLanguage === 'ms') {
-            return "OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). "
-                . "Every JSON string value—title, executive_summary, current_situation, all point/explanation fields, risks, recommendations, methodology, notes, source_analysis, etc.—must be in professional, natural Bahasa Melayu. "
-                . "Keep proper nouns, organization names, and standard international terms (e.g. GDP, API) as commonly used in Malaysian business writing.\n\n";
+            return 'OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). '
+                .'Every JSON string value—title, executive_summary, current_situation, all point/explanation fields, risks, recommendations, methodology, notes, source_analysis, etc.—must be in professional, natural Bahasa Melayu. '
+                ."Keep proper nouns, organization names, and standard international terms (e.g. GDP, API) as commonly used in Malaysian business writing.\n\n";
         }
 
         return "OUTPUT LANGUAGE: Write the entire report in clear, professional English (all JSON string values).\n\n";
@@ -261,12 +275,105 @@ class ChatGPTService implements AIServiceInterface
     protected function socialMediaReportLanguageInstruction(?string $reportLanguage): string
     {
         if ($reportLanguage === 'ms') {
-            return "OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). "
-                . "Every JSON string value—title, executive_summary, all nested section text, risk fields, recommendations, personality and activity fields, indicators, assessments, etc.—must be in professional, natural Bahasa Melayu. "
-                . "Keep proper nouns, platform names, usernames, and standard international terms as commonly used in Malaysian professional writing.\n\n";
+            return 'OUTPUT LANGUAGE: The report must be written entirely in Bahasa Melayu (Malaysian Malay). '
+                .'Every JSON string value—title, executive_summary, all nested section text, risk fields, recommendations, personality and activity fields, indicators, assessments, etc.—must be in professional, natural Bahasa Melayu. '
+                ."Keep proper nouns, platform names, usernames, and standard international terms as commonly used in Malaysian professional writing.\n\n";
         }
 
         return "OUTPUT LANGUAGE: Write the entire report in clear, professional English (all JSON string values).\n\n";
+    }
+
+    /**
+     * Prompt for comparing sentiment between two completed social media profile analyses (JSON input).
+     */
+    protected function createSentimentComparisonPrompt(string $text, ?string $reportLanguage): string
+    {
+        $prompt = 'You are an expert in communication sentiment, emotional tone, and comparative discourse analysis. '
+            .'You receive two completed social media PROFILE ANALYSES (structured JSON from prior NUJUM assessments). '
+            ."Produce a formal comparative sentiment REPORT matching enterprise analytics style: numbered sections, quantitative chart support, and clear methodology.\n\n";
+        $prompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
+        $prompt .= "INPUT (two analyses to compare):\n{$text}\n\n";
+        $prompt .= 'Return ONLY valid JSON (no markdown fences). All numeric scores MUST be integers 0-100 (inclusive) for charting. '
+            ."If the input lacks data for a metric, infer a best-effort estimate from the analyses and state uncertainty in narrative text—not as null.\n\n";
+        $prompt .= "Required JSON structure (all top-level keys):\n";
+        $prompt .= "{\n";
+        $prompt .= "  \"title\": \"[Report title with both usernames + Sentiment Comparison]\",\n";
+        $prompt .= "  \"executive_summary\": \"[Section 1: 4-6 sentences — headline contrast, business relevance]\",\n";
+        $prompt .= "  \"scope_and_methodology\": \"[Section 2: data scope, what was compared, limitations of indirect/summary-based inference, NUJUM-style transparency]\",\n";
+        $prompt .= "  \"profile_a_username\": \"[from input profile_a]\",\n";
+        $prompt .= "  \"profile_b_username\": \"[from input profile_b]\",\n";
+        $prompt .= "  \"profile_a_sentiment\": {\n";
+        $prompt .= "    \"dominant_tone\": \"[string]\",\n";
+        $prompt .= "    \"positivity_assessment\": \"[string]\",\n";
+        $prompt .= "    \"emotional_themes\": [\"theme1\", \"theme2\"],\n";
+        $prompt .= "    \"controversy_or_conflict_level\": \"[Low/Medium/High + brief reason]\",\n";
+        $prompt .= "    \"audience_facing_mood\": \"[string]\",\n";
+        $prompt .= "    \"sentiment_score_0_100\": 0\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"profile_b_sentiment\": { same shape as profile_a_sentiment },\n";
+        $prompt .= "  \"overall_sentiment\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 3: synthesis of valence, tone, emotional posture]\",\n";
+        $prompt .= "    \"polarity_index\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"positive_ratio\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"neutral_ratio\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"negative_ratio\": { \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "    \"note\": \"[Ratios should sum to ~100 per profile; adjust if needed]\"\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"trend_analysis\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 4: momentum, consistency, stability of tone — inferred from analyses]\",\n";
+        $prompt .= "    \"dimensions\": [\n";
+        $prompt .= "      { \"label\": \"Consistency\", \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "      { \"label\": \"Engagement warmth\", \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "      { \"label\": \"Stability\", \"profile_a\": 0-100, \"profile_b\": 0-100 },\n";
+        $prompt .= "      { \"label\": \"Momentum (inferred)\", \"profile_a\": 0-100, \"profile_b\": 0-100 }\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"key_topics\": [\n";
+        $prompt .= "    { \"topic\": \"[short label]\", \"salience_a\": 0-100, \"salience_b\": 0-100 }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"sentiment_drivers\": [\n";
+        $prompt .= "    { \"driver\": \"[factor]\", \"influence_a\": 0-100, \"influence_b\": 0-100, \"note\": \"[one line]\" }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"mentions_volume\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 7: relative visibility / posting intensity / reach signals inferred from analyses]\",\n";
+        $prompt .= "    \"relative_volume_a\": 0-100,\n";
+        $prompt .= "    \"relative_volume_b\": 0-100\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"comparison\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 8: head-to-head]\",\n";
+        $prompt .= "    \"matrix\": [\n";
+        $prompt .= "      { \"dimension\": \"[e.g. Warmth]\", \"profile_a\": \"[brief]\", \"profile_b\": \"[brief]\" }\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"platform_analysis\": {\n";
+        $prompt .= "    \"narrative\": \"[Section 9: by platform if inferable; else clearly state not separable from input]\",\n";
+        $prompt .= "    \"platforms\": [\n";
+        $prompt .= "      { \"platform\": \"[name]\", \"profile_a_note\": \"[brief]\", \"profile_b_note\": \"[brief]\" }\n";
+        $prompt .= "    ]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"risk_alert\": {\n";
+        $prompt .= "    \"level\": \"Low|Medium|High\",\n";
+        $prompt .= "    \"summary\": \"[Section 10 lead]\",\n";
+        $prompt .= "    \"alerts\": [\"[specific risk or watch item]\"]\n";
+        $prompt .= "  },\n";
+        $prompt .= "  \"recommendations\": [\"[Section 11: actionable bullet]\", \"...\"],\n";
+        $prompt .= "  \"side_by_side_summary\": \"[Short paragraph — may echo comparison.narrative]\",\n";
+        $prompt .= "  \"key_differences\": [\n";
+        $prompt .= "    { \"aspect\": \"[string]\", \"profile_a\": \"[brief]\", \"profile_b\": \"[brief]\" }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"similarities\": [\"[string]\"],\n";
+        $prompt .= "  \"comparative_insights\": [\n";
+        $prompt .= "    { \"point\": \"[string]\", \"explanation\": \"[string]\" }\n";
+        $prompt .= "  ],\n";
+        $prompt .= "  \"stakeholder_takeaways\": [\"[string]\"],\n";
+        $prompt .= "  \"methodology\": \"[one paragraph — may align with scope_and_methodology]\",\n";
+        $prompt .= "  \"limitations\": \"[string]\",\n";
+        $prompt .= "  \"note\": \"[interpretation caution]\"\n";
+        $prompt .= "}\n\n";
+        $prompt .= 'RULES: Base claims only on supplied analyses. Use balanced professional language. Include at least 4 key_topics and 4 sentiment_drivers. '
+            .'Ensure polarity_index and sentiment scores reflect the same story as narratives.';
+
+        return $prompt;
     }
 
     protected function createAnalysisPrompt($text, $analysisType, $sourceUrls = null, $scrapedContent = null, $predictionHorizon = null, $scrapingSummary = null, $target = null, $reportLanguage = null)
@@ -275,31 +382,35 @@ class ChatGPTService implements AIServiceInterface
         if ($analysisType === 'social-media-analysis') {
             return $this->createSocialMediaAnalysisPrompt($text, $reportLanguage);
         }
-        
+
+        if ($analysisType === 'sentiment-comparison') {
+            return $this->createSentimentComparisonPrompt($text, $reportLanguage);
+        }
+
         $prompt = "You are a world-class AI prediction analyst with expertise in comprehensive future forecasting and strategic analysis. You are known for providing exceptionally detailed, thorough, and complex analysis that rivals top-tier consulting firms like McKinsey, BCG, and Bain. Your analysis should be comprehensive, nuanced, and deeply insightful.\n\n";
         if ($analysisType === 'prediction-analysis') {
             $prompt .= $this->predictionReportLanguageInstruction($reportLanguage);
         }
         $prompt .= "Text to analyze: {$text}\n\n";
-        
+
         if ($target) {
             $prompt .= "TARGET: {$target}\n";
             $prompt .= "Focus analysis on how predictions, risks, and implications affect {$target}.\n\n";
         }
-        
+
         if ($predictionHorizon) {
             $horizonText = $this->getHorizonText($predictionHorizon);
             $prompt .= "HORIZON: {$horizonText}\n";
             $prompt .= "Tailor all predictions and assessments to this timeframe.\n\n";
         }
-        
+
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= "IMPORTANT: You have been provided with the following additional sources that contain relevant context, data, or background information:\n";
-            
+
             foreach ($sourceUrls as $index => $url) {
-                $prompt .= "- Source " . ($index + 1) . ": {$url}\n";
+                $prompt .= '- Source '.($index + 1).": {$url}\n";
             }
-            
+
             // Add scraping summary if available
             if (isset($scrapingSummary) && $scrapingSummary) {
                 $prompt .= "\nSCRAPING SUMMARY:\n";
@@ -307,7 +418,7 @@ class ChatGPTService implements AIServiceInterface
                 $prompt .= "Successfully scraped: {$scrapingSummary['successful_scrapes']}\n";
                 $prompt .= "Failed to scrape: {$scrapingSummary['failed_scrapes']}\n";
                 $prompt .= "Success rate: {$scrapingSummary['success_rate']}%\n";
-                
+
                 if ($scrapingSummary['failed_scrapes'] > 0) {
                     $prompt .= "\nFAILED URLS (These could not be accessed due to anti-bot protection, server errors, or other issues):\n";
                     foreach ($scrapingSummary['failed_urls'] as $failed) {
@@ -320,17 +431,17 @@ class ChatGPTService implements AIServiceInterface
                     $prompt .= "\nNote: For failed URLs, rely on your existing knowledge about the topic or source.\n";
                 }
             }
-            
+
             // Add actual scraped content if available
             if ($scrapedContent && count($scrapedContent) > 0) {
                 $prompt .= "\nACTUAL CONTENT FROM SUCCESSFULLY SCRAPED SOURCES:\n";
                 $prompt .= "The following is the real content extracted from the accessible URLs. Use this actual data in your analysis:\n\n";
-                
+
                 foreach ($scrapedContent as $index => $source) {
-                    if ($source['status'] === 'success' && !empty($source['content'])) {
-                        $prompt .= "=== SOURCE " . ($index + 1) . " ===\n";
+                    if ($source['status'] === 'success' && ! empty($source['content'])) {
+                        $prompt .= '=== SOURCE '.($index + 1)." ===\n";
                         $prompt .= "URL: {$source['url']}\n";
-                        if (!empty($source['title'])) {
+                        if (! empty($source['title'])) {
                             $prompt .= "Title: {$source['title']}\n";
                         }
                         $prompt .= "Content: {$source['content']}\n";
@@ -339,14 +450,14 @@ class ChatGPTService implements AIServiceInterface
                     }
                 }
             }
-            
+
             $prompt .= "\nSOURCE INTEGRATION:\n";
             $prompt .= "1. Reference sources when supporting predictions\n";
             $prompt .= "2. Use 'Source 1...', 'Source 2...' format\n";
             $prompt .= "3. Include 'Source Analysis' section\n";
             $prompt .= "4. Cite specific facts/numbers from sources\n\n";
         }
-        
+
         $prompt .= "Provide analysis in this JSON structure:\n";
         $prompt .= "{\n";
         $prompt .= "  \"title\": \"[Topic + Time Period + Focus]\",\n";
@@ -474,13 +585,13 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "  \"success_metrics\": [\n";
         $prompt .= "    \"[How to measure success of predictions]\",\n";
         $prompt .= "    \"[How to measure success of predictions]\"\n";
-        $prompt .= "  ]";
-        
+        $prompt .= '  ]';
+
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= ",\n";
-            $prompt .= "  \"source_analysis\": \"[Detailed explanation of how each provided source influenced your analysis and predictions. Use specific examples and show direct connections between source information and conclusions.]\"";
+            $prompt .= '  "source_analysis": "[Detailed explanation of how each provided source influenced your analysis and predictions. Use specific examples and show direct connections between source information and conclusions.]"';
         }
-        
+
         $prompt .= "\n}\n\n";
         $prompt .= "DETAILED ANALYSIS INSTRUCTIONS:\n";
         $prompt .= "1. Be exceptionally specific and actionable with concrete examples\n";
@@ -503,7 +614,7 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "18. Provide comprehensive stakeholder impact analysis\n";
         $prompt .= "19. Consider regulatory, technological, and market disruption factors\n";
         $prompt .= "20. Include detailed competitive analysis and market positioning\n\n";
-        
+
         $prompt .= "ANALYSIS DEPTH REQUIREMENTS:\n";
         $prompt .= "- Each prediction must include: specific timeline, probability assessment, supporting evidence, and potential variations\n";
         $prompt .= "- Each risk must include: detailed impact analysis, probability assessment, early warning indicators, and comprehensive mitigation strategies\n";
@@ -515,7 +626,7 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "- Include specific examples, case studies, and comparable situations\n";
         $prompt .= "- Address potential objections and alternative viewpoints\n";
         $prompt .= "- Provide detailed methodology explanation for analytical approach\n\n";
-        
+
         if ($sourceUrls && count($sourceUrls) > 0) {
             $prompt .= "11. Cite sources using 'Source 1...', 'Source 2...'\n";
             $prompt .= "12. Show connections between sources and predictions\n";
@@ -525,9 +636,9 @@ class ChatGPTService implements AIServiceInterface
                 $prompt .= "15. Reference specific facts and numbers\n";
             }
         }
-        
+
         $prompt .= "\nGenerate high-quality, professional prediction analysis suitable for executive decision-making.";
-        
+
         return $prompt;
     }
 
@@ -541,7 +652,7 @@ class ChatGPTService implements AIServiceInterface
         if (stripos($text, 'ANALYSIS TYPE: POLITICAL') !== false || stripos($text, 'political profile') !== false) {
             $analysisType = 'political';
         }
-        
+
         if ($analysisType === 'political') {
             $prompt = "You are an expert political profile analyst specializing in analyzing political views and political involvement based on social media data. Your task is to analyze the following social media profile data across multiple platforms to assess the person's political views, political involvement, political activities, and political engagement.\n\n";
             $prompt .= $this->socialMediaReportLanguageInstruction($reportLanguage);
@@ -561,7 +672,7 @@ class ChatGPTService implements AIServiceInterface
             $prompt .= "SOCIAL MEDIA PROFILE DATA:\n{$text}\n\n";
             $prompt .= "Provide a comprehensive professional analysis covering the following areas:\n\n";
         }
-        
+
         if ($analysisType === 'political') {
             $prompt .= "Provide analysis in this JSON structure:\n";
             $prompt .= "{\n";
@@ -609,7 +720,7 @@ class ChatGPTService implements AIServiceInterface
         }
         $prompt .= "    ]\n";
         $prompt .= "  },\n";
-        
+
         if ($analysisType === 'political') {
             $prompt .= "  \"political_profile\": {\n";
             $prompt .= "    \"political_affiliation_score\": [A numeric score from 0-100 representing political alignment clarity and strength],\n";
@@ -768,7 +879,7 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "      \"[Notable behavioral patterns observed]\"\n";
         $prompt .= "    ]\n";
         $prompt .= "  },\n";
-        
+
         if ($analysisType === 'political') {
             $prompt .= "  \"political_communication_style\": {\n";
             $prompt .= "    \"confidence\": [Numeric value 0-100 for confidence in political communication assessment],\n";
@@ -849,7 +960,7 @@ class ChatGPTService implements AIServiceInterface
         $prompt .= "  \"data_quality\": \"[Assessment of data quality and completeness]\",\n";
         $prompt .= "  \"limitations\": \"[Any limitations or caveats to the analysis]\"\n";
         $prompt .= "}\n\n";
-        
+
         if ($analysisType === 'political') {
             $prompt .= "INSTRUCTIONS:\n";
             $prompt .= "1. Focus EXCLUSIVELY on political views and political involvement based on the social media data\n";
@@ -871,7 +982,7 @@ class ChatGPTService implements AIServiceInterface
             $prompt .= "17. CRITICAL: If political data is limited, provide contextual analysis: what does the absence of political content indicate? What can be inferred from their general content, interests, or connections?\n";
             $prompt .= "18. CRITICAL: For every field, provide a substantive assessment - use low scores (0-30) if no political indicators are found, but still provide descriptive analysis explaining why\n";
             $prompt .= "19. CRITICAL: Even with minimal data, provide scores and descriptions - a score of 0-20 with explanation is better than 'N/A'\n\n";
-            
+
             $prompt .= "Generate a high-quality, COMPREHENSIVE political profile analysis focusing on political views and political involvement. Always provide meaningful analysis for every field, even when data is limited. Use low scores and descriptive explanations rather than 'N/A' or 'Not applicable'.";
         } else {
             $prompt .= "INSTRUCTIONS:\n";
@@ -885,10 +996,10 @@ class ChatGPTService implements AIServiceInterface
             $prompt .= "8. Consider privacy and ethical boundaries\n";
             $prompt .= "9. Provide actionable insights for decision-making\n";
             $prompt .= "10. Ensure comprehensive coverage of all requested analysis areas\n\n";
-            
-            $prompt .= "Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.";
+
+            $prompt .= 'Generate a high-quality, professional social media profile analysis suitable for recruitment and hiring decisions.';
         }
-        
+
         return $prompt;
     }
 
@@ -903,29 +1014,88 @@ class ChatGPTService implements AIServiceInterface
                 if (preg_match('/\{.*\}/s', $text, $matches)) {
                     $jsonString = $matches[0];
                 } else {
-                    Log::warning("No JSON structure found in response");
+                    Log::warning('No JSON structure found in response');
+
                     return ['raw_response' => $text];
                 }
             }
-            
+
             $decoded = json_decode($jsonString, true);
-            
+
             if (json_last_error() === JSON_ERROR_NONE) {
                 return $decoded;
             } else {
-                Log::error("JSON decode error: " . json_last_error_msg());
-                Log::error("JSON string: " . substr($jsonString, 0, 500) . "...");
+                Log::error('JSON decode error: '.json_last_error_msg());
+                Log::error('JSON string: '.substr($jsonString, 0, 500).'...');
             }
         } catch (\Exception $e) {
-            Log::error("Exception in parseJsonResponse: " . $e->getMessage());
+            Log::error('Exception in parseJsonResponse: '.$e->getMessage());
         }
-        
+
         // If no valid JSON found, return the text as is
         return ['raw_response' => $text];
     }
 
     protected function getFallbackResponse($analysisType)
     {
+        if ($analysisType === 'sentiment-comparison') {
+            return [
+                'title' => 'Sentiment Comparison Unavailable',
+                'executive_summary' => 'The sentiment comparison could not be generated due to a technical issue. Please try again.',
+                'profile_a_username' => '',
+                'profile_b_username' => '',
+                'profile_a_sentiment' => [
+                    'dominant_tone' => 'Unknown',
+                    'positivity_assessment' => 'Unable to assess.',
+                    'emotional_themes' => [],
+                    'controversy_or_conflict_level' => 'Unknown',
+                    'audience_facing_mood' => 'Unknown',
+                    'sentiment_score_0_100' => 50,
+                ],
+                'profile_b_sentiment' => [
+                    'dominant_tone' => 'Unknown',
+                    'positivity_assessment' => 'Unable to assess.',
+                    'emotional_themes' => [],
+                    'controversy_or_conflict_level' => 'Unknown',
+                    'audience_facing_mood' => 'Unknown',
+                    'sentiment_score_0_100' => 50,
+                ],
+                'scope_and_methodology' => 'Comparison could not be completed.',
+                'overall_sentiment' => [
+                    'narrative' => 'Unavailable.',
+                    'polarity_index' => ['profile_a' => 50, 'profile_b' => 50],
+                    'positive_ratio' => ['profile_a' => 33, 'profile_b' => 33],
+                    'neutral_ratio' => ['profile_a' => 34, 'profile_b' => 34],
+                    'negative_ratio' => ['profile_a' => 33, 'profile_b' => 33],
+                    'note' => '',
+                ],
+                'trend_analysis' => ['narrative' => 'Unavailable.', 'dimensions' => []],
+                'key_topics' => [],
+                'sentiment_drivers' => [],
+                'mentions_volume' => ['narrative' => 'Unavailable.', 'relative_volume_a' => 50, 'relative_volume_b' => 50],
+                'comparison' => ['narrative' => 'Unavailable.', 'matrix' => []],
+                'platform_analysis' => ['narrative' => 'Unavailable.', 'platforms' => []],
+                'risk_alert' => ['level' => 'Medium', 'summary' => 'Analysis failed.', 'alerts' => ['Retry the comparison.']],
+                'recommendations' => ['Retry the comparison or contact support.'],
+                'side_by_side_summary' => 'Analysis failed.',
+                'key_differences' => [],
+                'similarities' => [],
+                'comparative_insights' => [],
+                'stakeholder_takeaways' => ['Retry the comparison or contact support if the issue persists.'],
+                'methodology' => 'Fallback response',
+                'limitations' => 'No model output received.',
+                'note' => 'System error.',
+                'status' => 'error',
+                'api_metadata' => [
+                    'api_response_time' => 0.0,
+                    'api_response_time_unit' => 'seconds',
+                    'api_timestamp' => now()->toISOString(),
+                    'model_version' => $this->model,
+                    'confidence_score' => 0.0,
+                ],
+            ];
+        }
+
         return [
             'title' => 'Analysis Failed - Fallback Response',
             'executive_summary' => 'Due to technical difficulties, a comprehensive analysis could not be generated. Please try again or contact support.',
@@ -940,8 +1110,8 @@ class ChatGPTService implements AIServiceInterface
                     'probability' => 'Very Likely',
                     'impact' => 'Severe',
                     'timeline' => 'Immediate',
-                    'mitigation' => 'Retry analysis or contact technical support'
-                ]
+                    'mitigation' => 'Retry analysis or contact technical support',
+                ],
             ],
             'recommendations' => ['Retry the analysis', 'Check system status', 'Contact support if problem persists'],
             'strategic_implications' => ['Analysis system requires attention'],
@@ -961,8 +1131,8 @@ class ChatGPTService implements AIServiceInterface
                 'api_timestamp' => now()->toISOString(),
                 'model_version' => $this->model,
                 'note' => 'Fallback response - timing may not be accurate',
-                'confidence_score' => 0.50 // Very low confidence for error fallback responses
-            ]
+                'confidence_score' => 0.50, // Very low confidence for error fallback responses
+            ],
         ];
     }
 
@@ -973,33 +1143,33 @@ class ChatGPTService implements AIServiceInterface
                 return [
                     'success' => false,
                     'message' => 'ChatGPT API key not configured',
-                    'status_code' => 0
+                    'status_code' => 0,
                 ];
             }
 
             // Test with a simple prompt
             $testPrompt = "Hello, this is a test message. Please respond with 'Test successful'.";
             $result = $this->analyzeText($testPrompt, 'test');
-            
+
             if (isset($result['status']) && $result['status'] === 'error') {
                 return [
                     'success' => false,
-                    'message' => 'ChatGPT API test failed: ' . ($result['note'] ?? 'Unknown error'),
-                    'status_code' => 0
+                    'message' => 'ChatGPT API test failed: '.($result['note'] ?? 'Unknown error'),
+                    'status_code' => 0,
                 ];
             }
-            
+
             return [
                 'success' => true,
                 'message' => 'ChatGPT API connection successful',
-                'status_code' => 200
+                'status_code' => 200,
             ];
-            
+
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'ChatGPT API connection error: ' . $e->getMessage(),
-                'status_code' => 0
+                'message' => 'ChatGPT API connection error: '.$e->getMessage(),
+                'status_code' => 0,
             ];
         }
     }
@@ -1010,8 +1180,8 @@ class ChatGPTService implements AIServiceInterface
             'prediction-analysis' => [
                 'name' => 'Advanced Prediction Analysis',
                 'model' => $this->model,
-                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using advanced AI models for comprehensive future forecasting and strategic insights across any topic or domain'
-            ]
+                'description' => 'Professional AI-powered prediction analysis system (NUJUM) using advanced AI models for comprehensive future forecasting and strategic insights across any topic or domain',
+            ],
         ];
     }
 
@@ -1041,12 +1211,12 @@ class ChatGPTService implements AIServiceInterface
         try {
             $responseData = $response->json();
             $outputTokens = 0;
-            
+
             // Get output tokens from response
             if (isset($responseData['usage']['completion_tokens'])) {
                 $outputTokens = $responseData['usage']['completion_tokens'];
             }
-            
+
             // Update analytics with API response data
             $analytics->update([
                 'output_tokens' => $outputTokens,
@@ -1054,23 +1224,23 @@ class ChatGPTService implements AIServiceInterface
                 'http_status_code' => $response->status(),
                 'retry_attempts' => $analytics->retry_attempts ?? 0,
             ]);
-            
+
             // Calculate total tokens and cost
             $analytics->calculateTotalTokens();
             $analytics->calculateEstimatedCost();
             $analytics->save();
-            
+
             Log::info('Analytics updated with API response data', [
                 'analytics_id' => $analytics->id,
                 'output_tokens' => $outputTokens,
                 'total_tokens' => $analytics->total_tokens,
-                'estimated_cost' => $analytics->estimated_cost
+                'estimated_cost' => $analytics->estimated_cost,
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Failed to update analytics with API response', [
                 'analytics_id' => $analytics->id ?? 'unknown',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -1084,6 +1254,7 @@ class ChatGPTService implements AIServiceInterface
             // Validate API key
             if (empty($this->apiKey)) {
                 Log::error('ChatGPT API key not configured');
+
                 return "I'm sorry, but the AI service is not properly configured. Please contact support.";
             }
 
@@ -1091,12 +1262,12 @@ class ChatGPTService implements AIServiceInterface
             $messages = [
                 [
                     'role' => 'system',
-                    'content' => "You are a helpful AI assistant for NUJUM, an AI-powered analysis platform. You help users with questions about predictions analysis, social media analysis, data analysis, and general platform usage. Be friendly, concise, and helpful. Keep responses conversational and under 200 words unless the user asks for detailed information."
+                    'content' => 'You are a helpful AI assistant for NUJUM, an AI-powered analysis platform. You help users with questions about predictions analysis, social media analysis, data analysis, and general platform usage. Be friendly, concise, and helpful. Keep responses conversational and under 200 words unless the user asks for detailed information.',
                 ],
                 [
                     'role' => 'user',
-                    'content' => $message
-                ]
+                    'content' => $message,
+                ],
             ];
 
             $response = Http::timeout(60)->withOptions([
@@ -1104,32 +1275,35 @@ class ChatGPTService implements AIServiceInterface
                 'curl' => [
                     CURLOPT_SSL_VERIFYPEER => $this->sslVerify,
                     CURLOPT_SSL_VERIFYHOST => $this->sslVerify,
-                ]
+                ],
             ])->withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json'
+                'Authorization' => 'Bearer '.$this->apiKey,
+                'Content-Type' => 'application/json',
             ])->post($this->baseUrl, [
                 'model' => $this->model,
                 'messages' => $messages,
                 'temperature' => 0.7,
-                'max_tokens' => 500
+                'max_tokens' => 500,
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 if (isset($data['choices'][0]['message']['content'])) {
                     return trim($data['choices'][0]['message']['content']);
                 }
-                
-                Log::error('Unexpected ChatGPT chat response structure: ' . json_encode($data));
+
+                Log::error('Unexpected ChatGPT chat response structure: '.json_encode($data));
+
                 return "I'm sorry, I encountered an issue processing your message. Please try again.";
             }
 
-            Log::error('ChatGPT chat API error: ' . $response->body());
+            Log::error('ChatGPT chat API error: '.$response->body());
+
             return "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.";
         } catch (\Exception $e) {
-            Log::error('ChatGPT chat exception: ' . $e->getMessage());
+            Log::error('ChatGPT chat exception: '.$e->getMessage());
+
             return "I'm sorry, something went wrong. Please try again later.";
         }
     }

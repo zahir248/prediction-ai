@@ -105,6 +105,29 @@ class SocialMediaAnalysis extends Model
     }
 
     /**
+     * Label for selects and reports: username (Platform1, Platform2).
+     *
+     * @param  string|null  $displayName  Override for the name part (e.g. AI report username).
+     */
+    public function profileDisplayLabel(?string $displayName = null): string
+    {
+        $name = $displayName !== null && $displayName !== ''
+            ? $displayName
+            : (string) ($this->username ?? '');
+
+        $pf = $this->found_platforms ?? [];
+        $platformLabel = count($pf) > 0
+            ? collect($pf)->map(fn ($p) => ucfirst((string) $p))->implode(', ')
+            : '—';
+
+        if ($name === '') {
+            return '('.$platformLabel.')';
+        }
+
+        return $name.' ('.$platformLabel.')';
+    }
+
+    /**
      * Get the first available profile URL from platform data
      */
     public function getFirstProfileUrlAttribute()

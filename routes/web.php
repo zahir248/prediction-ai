@@ -1,29 +1,30 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PredictionController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\SuperAdminController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\ChatController;
-use App\Http\Controllers\ChatbotController;
-use App\Http\Controllers\DocumentationController;
-use App\Http\Controllers\SocialMediaController;
-use App\Http\Controllers\DataAnalysisController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\SuperAdminLoginController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\DataAnalysisController;
+use App\Http\Controllers\DocumentationController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\PredictionController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SentimentAnalysisController;
+use App\Http\Controllers\SocialMediaController;
+use App\Http\Controllers\SuperAdminController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('dashboard');
 })->name('home');
 
 // Simple health check route (no auth required)
-Route::get('/health', function() {
+Route::get('/health', function () {
     return response()->json([
         'status' => 'healthy',
         'timestamp' => now()->toISOString(),
-        'message' => 'System is running'
+        'message' => 'System is running',
     ]);
 });
 
@@ -42,39 +43,40 @@ Route::get('/documentation', [DocumentationController::class, 'download'])->name
 Route::get('/predictions/create', [PredictionController::class, 'create'])->name('predictions.create');
 Route::get('/social-media', [SocialMediaController::class, 'index'])->name('social-media.index');
 Route::get('/data-analysis', [DataAnalysisController::class, 'index'])->name('data-analysis.index');
+Route::get('/sentiment-analysis', [SentimentAnalysisController::class, 'index'])->name('sentiment-analysis.index');
 
 // Authentication routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/home', function () {
         return view('dashboard');
     })->name('dashboard');
-    
+
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile/image', [ProfileController::class, 'removeImage'])->name('profile.image.remove');
-    
+
     // Profile image route (serves images through Laravel to avoid 403 errors in cPanel)
     Route::get('/profile-image/{filename}', function ($filename) {
         // Security: Only allow image files
-        if (!preg_match('/^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif)$/i', $filename)) {
+        if (! preg_match('/^[a-zA-Z0-9_-]+\.(jpg|jpeg|png|gif)$/i', $filename)) {
             abort(404);
         }
-        
-        $path = storage_path('app/public/profile-images/' . $filename);
-        
-        if (!file_exists($path)) {
+
+        $path = storage_path('app/public/profile-images/'.$filename);
+
+        if (! file_exists($path)) {
             abort(404);
         }
-        
+
         $file = file_get_contents($path);
         $type = mime_content_type($path);
-        
+
         return response($file, 200)
             ->header('Content-Type', $type)
             ->header('Cache-Control', 'public, max-age=31536000');
     })->name('profile.image');
-    
+
     // Default profile image route (generates avatar with initials)
     Route::get('/default-avatar/{initials}', function ($initials) {
         // Limit to 2 characters and sanitize
@@ -82,25 +84,25 @@ Route::middleware(['auth'])->group(function () {
         if (empty($initials)) {
             $initials = 'U';
         }
-        
+
         // Create SVG avatar
         $size = 200;
-        $svg = '<svg width="' . $size . '" height="' . $size . '" xmlns="http://www.w3.org/2000/svg">
+        $svg = '<svg width="'.$size.'" height="'.$size.'" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
                     <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
                 </linearGradient>
             </defs>
-            <rect width="' . $size . '" height="' . $size . '" fill="url(#grad)" rx="12"/>
-            <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="' . ($size * 0.4) . '" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="central">' . htmlspecialchars($initials) . '</text>
+            <rect width="'.$size.'" height="'.$size.'" fill="url(#grad)" rx="12"/>
+            <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="'.($size * 0.4).'" font-weight="700" fill="white" text-anchor="middle" dominant-baseline="central">'.htmlspecialchars($initials).'</text>
         </svg>';
-        
+
         return response($svg, 200)
             ->header('Content-Type', 'image/svg+xml')
             ->header('Cache-Control', 'public, max-age=31536000');
     })->name('profile.default.avatar');
-    
+
     // Prediction routes - ALL specific routes must come BEFORE parameterized routes
     Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
     Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
@@ -115,9 +117,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/predictions/debug-auth', [PredictionController::class, 'debugAuth'])->name('predictions.debug-auth');
     Route::get('/predictions/test-delete/{prediction}', [PredictionController::class, 'testDelete'])->name('predictions.test-delete');
     Route::post('/predictions/validate-urls', [PredictionController::class, 'validateUrls'])->name('predictions.validate-urls');
-    Route::get('/test-ai-providers', function() {
+    Route::get('/test-ai-providers', function () {
         $results = [];
-        
+
         // Test Gemini
         try {
             $geminiService = app(\App\Services\GeminiService::class);
@@ -126,7 +128,7 @@ Route::middleware(['auth'])->group(function () {
         } catch (\Exception $e) {
             $results['gemini'] = ['success' => false, 'message' => $e->getMessage()];
         }
-        
+
         // Test ChatGPT
         try {
             $chatgptService = app(\App\Services\ChatGPTService::class);
@@ -135,7 +137,7 @@ Route::middleware(['auth'])->group(function () {
         } catch (\Exception $e) {
             $results['chatgpt'] = ['success' => false, 'message' => $e->getMessage()];
         }
-        
+
         // Test AI Service Factory
         try {
             $aiService = \App\Services\AIServiceFactory::create();
@@ -145,11 +147,11 @@ Route::middleware(['auth'])->group(function () {
         } catch (\Exception $e) {
             $results['factory'] = ['success' => false, 'message' => $e->getMessage()];
         }
-        
+
         return response()->json($results);
     })->name('test-ai-providers');
     Route::get('/predictions/test-url-validation', [PredictionController::class, 'testUrlValidation'])->name('predictions.test-url-validation');
-    
+
     // Social Media Analysis routes
     Route::get('/social-media/history', [SocialMediaController::class, 'history'])->name('social-media.history');
     Route::get('/social-media/{socialMediaAnalysis}', [SocialMediaController::class, 'show'])->name('social-media.show');
@@ -165,7 +167,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/social-media/facebook', [SocialMediaController::class, 'getFacebookInfo'])->name('social-media.facebook');
     Route::post('/social-media/instagram', [SocialMediaController::class, 'getInstagramInfo'])->name('social-media.instagram');
     Route::post('/social-media/instagram-from-page', [SocialMediaController::class, 'getInstagramFromFacebookPage'])->name('social-media.instagram-from-page');
-    
+
     // Data Analysis routes
     Route::get('/data-analysis/history', [DataAnalysisController::class, 'history'])->name('data-analysis.history');
     Route::post('/data-analysis/upload', [DataAnalysisController::class, 'upload'])->name('data-analysis.upload');
@@ -175,7 +177,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/data-analysis/{dataAnalysis}/export', [DataAnalysisController::class, 'export'])->name('data-analysis.export');
     Route::get('/data-analysis/{dataAnalysis}', [DataAnalysisController::class, 'show'])->name('data-analysis.show');
     Route::delete('/data-analysis/{dataAnalysis}', [DataAnalysisController::class, 'destroy'])->name('data-analysis.destroy');
-    
+
+    // Sentiment Analysis — compare two completed social media profile analyses
+    Route::get('/sentiment-analysis/history', [SentimentAnalysisController::class, 'history'])->name('sentiment-analysis.history');
+    Route::post('/sentiment-analysis/compare', [SentimentAnalysisController::class, 'compare'])->name('sentiment-analysis.compare');
+    Route::get('/sentiment-analysis/{sentimentComparison}/content-html', [SentimentAnalysisController::class, 'comparisonHtml'])->name('sentiment-analysis.content-html');
+    Route::get('/sentiment-analysis/{sentimentComparison}/export', [SentimentAnalysisController::class, 'export'])->name('sentiment-analysis.export');
+    Route::delete('/sentiment-analysis/{sentimentComparison}', [SentimentAnalysisController::class, 'destroy'])->name('sentiment-analysis.destroy');
+    Route::get('/sentiment-analysis/{sentimentComparison}', [SentimentAnalysisController::class, 'show'])->name('sentiment-analysis.show');
+
     // Parameterized routes must come LAST
     Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');
     Route::get('/predictions/{prediction}/model-info', [PredictionController::class, 'showModelInfo'])->name('predictions.model-info');
@@ -187,7 +197,7 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware('guest')->group(function () {
     Route::get('/admin/login', [AdminLoginController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/admin/login', [AdminLoginController::class, 'login']);
-    
+
     Route::get('/superadmin/login', [SuperAdminLoginController::class, 'showLoginForm'])->name('superadmin.login');
     Route::post('/superadmin/login', [SuperAdminLoginController::class, 'login']);
 });
@@ -209,13 +219,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/predictions/{prediction}', [AdminController::class, 'showPrediction'])->name('predictions.show');
     Route::patch('/users/{user}/role', [AdminController::class, 'updateUserRole'])->name('users.update-role');
     Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
-    
+
     // Analytics routes
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [App\Http\Controllers\Admin\AnalyticsController::class, 'getData'])->name('analytics.data');
     Route::get('/analytics/export', [App\Http\Controllers\Admin\AnalyticsController::class, 'export'])->name('analytics.export');
     Route::get('/analytics/user/{userId}', [App\Http\Controllers\Admin\AnalyticsController::class, 'getUserAnalytics'])->name('analytics.user');
-    
+
     // Messages routes
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/sent', [MessageController::class, 'sent'])->name('messages.sent');
@@ -225,7 +235,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
     Route::post('/messages/{message}/mark-read', [MessageController::class, 'markAsRead'])->name('messages.mark-read');
     Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
-    
+
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/messages/{partner}', [ChatController::class, 'getMessages'])->name('chat.messages');
@@ -258,13 +268,13 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::put('/profile', [SuperAdminController::class, 'updateProfile'])->name('profile.update');
     Route::post('/ai-provider', [SuperAdminController::class, 'updateAIProvider'])->name('ai-provider.update');
     Route::post('/ai-provider/test', [SuperAdminController::class, 'testAIProvider'])->name('ai-provider.test');
-    
+
     // Analytics routes
     Route::get('/analytics', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'index'])->name('analytics.index');
     Route::get('/analytics/data', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'getData'])->name('analytics.data');
     Route::get('/analytics/export', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'export'])->name('analytics.export');
     Route::get('/analytics/user/{userId}', [App\Http\Controllers\SuperAdmin\AnalyticsController::class, 'getUserAnalytics'])->name('analytics.user');
-    
+
     // Messages routes
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/sent', [MessageController::class, 'sent'])->name('messages.sent');
@@ -274,7 +284,7 @@ Route::middleware(['auth', 'superadmin'])->prefix('superadmin')->name('superadmi
     Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
     Route::post('/messages/{message}/mark-read', [MessageController::class, 'markAsRead'])->name('messages.mark-read');
     Route::get('/messages/unread-count', [MessageController::class, 'unreadCount'])->name('messages.unread-count');
-    
+
     // Chat routes
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('/chat/messages/{partner}', [ChatController::class, 'getMessages'])->name('chat.messages');

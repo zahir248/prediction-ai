@@ -1165,6 +1165,22 @@
                             @endauth
                         </div>
                     </div>
+
+                    <div class="nav-dropdown {{ request()->routeIs('sentiment-analysis.*') ? 'has-active-child' : '' }}" id="sentimentAnalysisDropdown">
+                        <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('sentimentAnalysisDropdown');">
+                        Sentiment Analysis
+                    </a>
+                        <div class="nav-dropdown-menu">
+                            <a href="{{ route('sentiment-analysis.index') }}" class="nav-dropdown-item {{ request()->routeIs('sentiment-analysis.index') ? 'active' : '' }}">
+                                Compare profiles
+                            </a>
+                            @auth
+                            <a href="{{ route('sentiment-analysis.history') }}" class="nav-dropdown-item {{ request()->routeIs('sentiment-analysis.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                            @endauth
+                        </div>
+                    </div>
                     
                     <div class="nav-dropdown {{ request()->routeIs('data-analysis.*') ? 'has-active-child' : '' }}" id="dataAnalysisDropdown">
                         <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); toggleDropdown('dataAnalysisDropdown');">
@@ -1255,6 +1271,23 @@
                     </a>
                             @auth
                             <a href="{{ route('social-media.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('social-media.history') ? 'active' : '' }}">
+                                History
+                            </a>
+                            @endauth
+                        </div>
+                    </div>
+
+                    <div class="mobile-nav-section {{ request()->routeIs('sentiment-analysis.*') ? 'active has-active-child' : '' }}" id="mobileSentimentAnalysisSection">
+                        <div class="mobile-nav-section-header" onclick="toggleMobileDropdown('mobileSentimentAnalysisDropdown', 'mobileSentimentAnalysisSection')">
+                        Sentiment Analysis
+                            <span class="mobile-nav-arrow">▼</span>
+                        </div>
+                        <div class="mobile-nav-section-content" id="mobileSentimentAnalysisDropdown" style="display: {{ request()->routeIs('sentiment-analysis.*') ? 'block' : 'none' }};">
+                            <a href="{{ route('sentiment-analysis.index') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('sentiment-analysis.index') ? 'active' : '' }}">
+                                Compare profiles
+                            </a>
+                            @auth
+                            <a href="{{ route('sentiment-analysis.history') }}" class="mobile-nav-link mobile-nav-sub-link {{ request()->routeIs('sentiment-analysis.history') ? 'active' : '' }}">
                                 History
                             </a>
                             @endauth
@@ -1443,6 +1476,7 @@
         document.addEventListener('click', function(event) {
             const predictionsDropdown = document.getElementById('predictionsDropdown');
             const socialMediaDropdown = document.getElementById('socialMediaDropdown');
+            const sentimentAnalysisDropdown = document.getElementById('sentimentAnalysisDropdown');
             const dataAnalysisDropdown = document.getElementById('dataAnalysisDropdown');
             const profileDropdown = document.getElementById('profileDropdown');
             
@@ -1454,6 +1488,10 @@
             if (socialMediaDropdown && !socialMediaDropdown.contains(event.target)) {
                 // Only remove 'active' class, keep 'has-active-child' for highlighting
                 socialMediaDropdown.classList.remove('active');
+            }
+            
+            if (sentimentAnalysisDropdown && !sentimentAnalysisDropdown.contains(event.target)) {
+                sentimentAnalysisDropdown.classList.remove('active');
             }
             
             if (dataAnalysisDropdown && !dataAnalysisDropdown.contains(event.target)) {
@@ -1490,6 +1528,13 @@
                 const dataAnalysisDropdown = document.getElementById('dataAnalysisDropdown');
                 if (dataAnalysisDropdown) {
                     dataAnalysisDropdown.classList.add('has-active-child');
+                }
+            @endif
+
+            @if(request()->routeIs('sentiment-analysis.*'))
+                const sentimentAnalysisDropdown = document.getElementById('sentimentAnalysisDropdown');
+                if (sentimentAnalysisDropdown) {
+                    sentimentAnalysisDropdown.classList.add('has-active-child');
                 }
             @endif
             

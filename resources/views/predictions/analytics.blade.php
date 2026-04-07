@@ -288,15 +288,19 @@
                             $moduleBreakdown = [
                                 'Predictions Analysis' => 0,
                                 'Social Media Analysis' => 0,
-                                'Data Analysis' => 0
+                                'Data Analysis' => 0,
+                                'Sentiment Analysis' => 0,
                             ];
                             
                             if (!empty($analytics['analysis_type_breakdown'])) {
                                 foreach ($analytics['analysis_type_breakdown'] as $type => $count) {
                                     $typeLower = strtolower(trim($type));
                                     
+                                    if ($typeLower === 'sentiment-comparison' || strpos($typeLower, 'sentiment') !== false) {
+                                        $moduleBreakdown['Sentiment Analysis'] += $count;
+                                    }
                                     // Check for social media analysis (exact match or contains 'social')
-                                    if ($typeLower === 'social-media-analysis' || strpos($typeLower, 'social') !== false) {
+                                    elseif ($typeLower === 'social-media-analysis' || strpos($typeLower, 'social') !== false) {
                                         $moduleBreakdown['Social Media Analysis'] += $count;
                                     }
                                     // Check for data analysis (exact match or contains 'data' but not 'social')
